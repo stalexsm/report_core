@@ -1,6 +1,7 @@
 # __report-core__
 [![CI](https://github.com/stalexsm/report_core/actions/workflows/CI.yml/badge.svg?branch=main&event=push)](https://github.com/stalexsm/report_core/actions/workflows/CI.yml)
 [![pypi](https://img.shields.io/pypi/v/report_core.svg)](https://pypi.python.org/pypi/report-core)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/report-core.svg)](https://pypi.python.org/pypi/report-core/)
 
 `report-core` - это вспомогательная Python-библиотека для построения отчетов в формате Excel (XLSX) для проекта, предоставляющая удобные инструменты для манипуляции данными..
 
