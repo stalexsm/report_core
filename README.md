@@ -1,5 +1,5 @@
 # __report-core__
-[![CI](https://img.shields.io/github/actions/workflow/status/stalexsm/report_core/ci.yml?branch=main&logo=github&label=CI)](https://github.com/stalexsm/report_core/actions?query=event:push+branch:main+workflow:CI)
+[![CI](https://github.com/pydantic/pydantic-core/workflows/CI/badge.svg?event=push)](https://github.com/stalexsm/report_core/actions?query=event:push+branch:main+workflow:CI)
 [![pypi](https://img.shields.io/pypi/v/report_core.svg)](https://pypi.python.org/pypi/report-core)
 [![versions](https://img.shields.io/pypi/pyversions/report_core.svg)](https://github.com/stalexsm/report_core)
 
