@@ -1,9 +1,9 @@
-## __report_core__
-[![CI](https://github.com/stalexsm/report_core/actions/workflows/CI.yml/badge.svg)](https://github.com/stalexsm/report_core/actions/workflows/CI.yml)
+## __report-core__
+[![CI](https://github.com/stalexsm/report_core/actions?query=event%3Apush+branch%3Amain+workflow%3ACI)](https://github.com/stalexsm/report_core/actions/workflows/CI.yml?branch=main&logo=github&label=CI)
 
 ---
 
-`report_core` - это вспомогательная Python-библиотека для построения отчетов в формате Excel (XLSX) для проекта, предоставляющая удобные инструменты для манипуляции данными..
+`report-core` - это вспомогательная Python-библиотека для построения отчетов в формате Excel (XLSX) для проекта, предоставляющая удобные инструменты для манипуляции данными..
 
 ## Установка
 
