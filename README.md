@@ -1,6 +1,6 @@
 ## __report-core__
 ![CI branch event parameter]
-(https://github.com/github/docs/actions/workflows/CI.yml/badge.svg?branch=main&event=push)
+(https://github.com/github/docs/actions/workflows/CI.yml/badge.svg?branch=main&event=push&logo=github)
 
 ---
 
