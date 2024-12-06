@@ -1,5 +1,6 @@
 ## __report-core__
-[![CI](https://github.com/stalexsm/report_core/actions?query=event%3Apush+branch%3Amain+workflow%3ACI)](https://github.com/stalexsm/report_core/actions/workflows/CI.yml?branch=main&logo=github&label=CI)
+![CI branch event parameter]
+(https://github.com/github/docs/actions/workflows/CI.yml/badge.svg?branch=main&event=push)
 
 ---
 
