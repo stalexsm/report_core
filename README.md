@@ -8,7 +8,7 @@
 ## Установка
 
 ```
-poetry add report_core
+poetry add report-core
 ```
 
 ## Основные компоненты
