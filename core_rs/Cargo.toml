@@ -1,0 +1,16 @@
+[package]
+name = "core_rs"
+
+description.workspace = true
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+
+[dependencies]
+
+rayon.workspace = true
+anyhow.workspace = true
+chrono.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_json.workspace = true

@@ -1,0 +1,35 @@
+[workspace]
+resolver = "2"
+members = ["core_rs", "core_py"]
+
+
+[workspace.package]
+description = "Вспомогательное ядро для построения отчетов на основе XLSX."
+version = "0.1.0"
+edition = "2021"
+
+authors = ["Alexandr Starovoitov <stalex.info@yandex.ru>"]
+
+readme = "README.md"
+homepage = "https://github.com/stalexsm/report_core.git"
+repository = "https://github.com/stalexsm/report_core.git"
+
+[workspace.dependencies]
+anyhow = "1.0.94"
+chrono = { version = "0.4.38", features = ["serde"] }
+regex = "1.11.1"
+serde = { version = "1.0.215", features = ["derive"] }
+serde_json = "1.0.133"
+rayon = "1.10.0"
+pyo3 = { version = "0.23.3", features = [
+    "chrono",
+    "extension-module",
+    "generate-import-lib",
+    "py-clone",
+    "serde",
+] }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+strip = true
