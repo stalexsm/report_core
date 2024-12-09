@@ -1,8 +1,10 @@
-from report_core import HelperSheet, column_number_to_letter
+import time
 from uuid import uuid4
 
+from report_core import HelperSheet, column_number_to_letter
 
 if __name__ == "__main__":
+    start_time = time.time()
     sheet = {
         "id": 1,
         "name": "Тестовый лист",
@@ -45,3 +47,5 @@ if __name__ == "__main__":
     if sheet:
         for c in sheet.cells:
             print("Cell:", c.cell, "Value:", c.value)
+
+    print(f"Выполнено за: {time.time() - start_time:.3f} сек.")

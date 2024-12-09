@@ -2,6 +2,7 @@ use crate::helper::HelperCell;
 
 use super::cell::XLSXSheetCellRead;
 use anyhow::Result;
+use rayon::slice::ParallelSliceMut;
 use std::collections::HashMap;
 
 #[derive(Clone, Debug, Default)]
@@ -35,7 +36,7 @@ impl XLSXSheetRead {
         let max_col = max_col.unwrap_or(self.max_column);
 
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::iter_cells(min_row, max_row, min_col, max_col, cells)
     }
@@ -50,7 +51,7 @@ impl XLSXSheetRead {
     // Поиск ячеек по шаблону
     pub fn find_cells_by_pattern_regex(&self, pattern: &str) -> Result<Vec<XLSXSheetCellRead>> {
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cells_by_pattern_regex(pattern, cells)
     }
@@ -62,7 +63,7 @@ impl XLSXSheetRead {
         col_stop: Option<u16>,
     ) -> Result<Vec<XLSXSheetCellRead>> {
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cells_for_rows_pattern_regex(pattern, cells, col_stop)
     }
@@ -74,7 +75,7 @@ impl XLSXSheetRead {
         row_stop: Option<u32>,
     ) -> Result<Vec<XLSXSheetCellRead>> {
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cells_for_cols_pattern_regex(pattern, cells, row_stop)
     }
@@ -86,7 +87,7 @@ impl XLSXSheetRead {
         pattern_2: &str,
     ) -> Result<Vec<XLSXSheetCellRead>> {
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cells_multi_pattern_regex(pattern_1, pattern_2, cells)
     }
@@ -94,7 +95,7 @@ impl XLSXSheetRead {
     /// Поиск ячейки по буквенной координате A1 (cell)
     pub fn find_cell_by_cell(&self, cell: &str) -> Result<Option<XLSXSheetCellRead>> {
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cell_by_cell(cell, cells)
     }
@@ -102,7 +103,7 @@ impl XLSXSheetRead {
     /// Поиск ячейки по координате
     pub fn find_cell_by_coords(&self, row: u32, col: u16) -> Result<Option<XLSXSheetCellRead>> {
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cell_by_coords(row, col, cells)
     }
@@ -114,7 +115,7 @@ impl XLSXSheetRead {
         pattern_end: &str,
     ) -> Result<Vec<XLSXSheetCellRead>> {
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cells_between_patterns(pattern_start, pattern_end, cells)
     }
@@ -126,7 +127,7 @@ impl XLSXSheetRead {
         end_row: u32,
     ) -> Result<Vec<XLSXSheetCellRead>> {
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cells_by_range_rows(start_row, end_row, cells)
     }
@@ -138,7 +139,7 @@ impl XLSXSheetRead {
         end_col: u16,
     ) -> Result<Vec<XLSXSheetCellRead>> {
         let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
-        cells.sort_by_key(|cell| (cell.row, cell.column));
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cells_by_range_cols(start_col, end_col, cells)
     }

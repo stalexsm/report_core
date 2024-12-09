@@ -85,7 +85,7 @@ impl XLSXSheet {
     pub fn cells(&self) -> impl Iterator<Item = &Arc<Mutex<XLSXSheetCell>>> {
         let mut cells = self._cells.values().collect::<Vec<_>>();
 
-        cells.sort_by_key(|k| {
+        cells.par_sort_by_key(|k| {
             let cell = k.lock().unwrap();
             (cell.row, cell.column)
         });
@@ -122,7 +122,7 @@ impl XLSXSheet {
             .map(|(_, cell)| cell)
             .collect::<Vec<_>>();
 
-        cells.sort_by_key(|cell| {
+        cells.par_sort_by_key(|cell| {
             let cell = cell.lock().unwrap();
             (cell.row, cell.column)
         });
