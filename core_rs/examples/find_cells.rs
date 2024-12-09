@@ -28,9 +28,9 @@ fn main() -> anyhow::Result<()> {
                 row: r,
                 column: c,
                 cell: format!("{}{}", column_number_to_letter(c), r),
-                value: CellValue {
+                value: Box::new(CellValue {
                     raw_value: CellRawValue::String(value),
-                },
+                }),
                 formula: Some("SUM:A10".to_string()),
                 data_type: "s".to_string(),
                 number_format: "".to_string(),

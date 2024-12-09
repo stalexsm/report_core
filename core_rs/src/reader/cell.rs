@@ -5,7 +5,7 @@ pub struct XLSXSheetCellRead {
     pub row: u32,
     pub column: u16,
     pub cell: String,
-    pub value: CellValue,
+    pub value: Box<CellValue>,
     pub formula: Option<String>,
     pub data_type: String,
     pub number_format: String,

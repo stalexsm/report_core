@@ -16,7 +16,7 @@ pub struct XLSXSheetCell {
     pub row: u32,
     pub column: u16,
     pub cell: String,
-    pub value: CellValue,
+    pub value: Box<CellValue>,
     pub formula: Option<String>,
     pub data_type: String,
     pub number_format: String,
@@ -50,9 +50,9 @@ impl XLSXSheetCell {
             raw_value = CellValue::quess_typed_value(&val)
         }
 
-        let value = CellValue {
+        let value = Box::new(CellValue {
             raw_value: raw_value.clone(),
-        };
+        });
         // Определение datetype
         let data_type = raw_value.get_date_type().to_string();
         // Определение number format

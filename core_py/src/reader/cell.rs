@@ -62,9 +62,9 @@ impl From<&Bound<'_, PyAny>> for WrapperXLSXSheetCellRead {
                     .unwrap_or("".to_string())
             };
             // Хак
-            s.0.value = CellValue {
+            s.0.value = Box::new(CellValue {
                 raw_value: CellValue::quess_typed_value(&value),
-            };
+            });
 
             s
         })
