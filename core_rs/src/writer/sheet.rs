@@ -1,9 +1,10 @@
 use anyhow::{bail, Result};
+use parking_lot::Mutex;
 use rayon::prelude::*;
 use serde::Serialize;
 use std::{
     collections::HashMap,
-    sync::{Arc, Mutex, Weak},
+    sync::{Arc, Weak},
 };
 
 use super::{book::XLSXBook, cell::XLSXSheetCell, MAX_COL, MAX_ROW};
@@ -35,7 +36,7 @@ impl Serialize for XLSXSheet {
         state.serialize_field("max_column", &self.max_column)?;
         state.serialize_field("index", &self.index)?;
 
-        let cells: Vec<_> = self.cells().map(|s| s.lock().unwrap().clone()).collect();
+        let cells: Vec<_> = self.cells().map(|s| s.lock().clone()).collect();
         state.serialize_field("cells", &cells)?;
 
         state.end()
@@ -77,7 +78,7 @@ impl XLSXSheet {
             .collect();
 
         // Заполняем список ячеек
-        sheet.lock().unwrap()._cells = cells;
+        sheet.lock()._cells = cells;
 
         sheet
     }
@@ -86,7 +87,7 @@ impl XLSXSheet {
         let mut cells = self._cells.values().collect::<Vec<_>>();
 
         cells.par_sort_by_key(|k| {
-            let cell = k.lock().unwrap();
+            let cell = k.lock();
             (cell.row, cell.column)
         });
 
@@ -113,7 +114,7 @@ impl XLSXSheet {
             ._cells
             .par_iter()
             .filter(move |(_, cell)| {
-                let cell = cell.lock().unwrap();
+                let cell = cell.lock();
                 cell.row >= min_row
                     && cell.row <= max_row
                     && cell.column >= min_col
@@ -123,7 +124,7 @@ impl XLSXSheet {
             .collect::<Vec<_>>();
 
         cells.par_sort_by_key(|cell| {
-            let cell = cell.lock().unwrap();
+            let cell = cell.lock();
             (cell.row, cell.column)
         });
 
@@ -141,7 +142,7 @@ impl XLSXSheet {
 
     pub fn find_cell_by_cell(&self, cell: &str) -> Result<Option<Arc<Mutex<XLSXSheetCell>>>> {
         let found_cell = self._cells.par_iter().find_map_first(|(_, c)| {
-            if c.lock().unwrap().cell == cell {
+            if c.lock().cell == cell {
                 Some(Arc::clone(c))
             } else {
                 None
@@ -166,7 +167,7 @@ impl XLSXSheet {
         }
 
         if let Some(cell) = self._cells.get_mut(&(row, col)) {
-            let mut cell_guard = cell.lock().unwrap();
+            let mut cell_guard = cell.lock();
             cell_guard.set_value(value.to_string())?;
 
             Ok(cell.clone())
@@ -193,13 +194,13 @@ impl XLSXSheet {
     pub fn delete_cols(&mut self, idx: u16, amount: u16) -> Result<()> {
         // Remove cells in the specified columns
         self._cells.retain(|_, cell| {
-            let cell = cell.lock().unwrap();
+            let cell = cell.lock();
             cell.column < idx || cell.column >= idx + amount
         });
 
         // Update column numbers for remaining cells
         for (_, cell) in self._cells.iter() {
-            let mut cell = cell.lock().unwrap();
+            let mut cell = cell.lock();
             if cell.column > idx {
                 cell.column -= amount;
                 // Update the cell's letter coordinate
@@ -217,13 +218,13 @@ impl XLSXSheet {
     pub fn delete_rows(&mut self, idx: u32, amount: u32) -> Result<()> {
         // Remove cells in the specified columns
         self._cells.retain(|_, cell| {
-            let cell = cell.lock().unwrap();
+            let cell = cell.lock();
             cell.row < idx || cell.row >= idx + amount
         });
 
         // Update column numbers for remaining cells
         for (_, cell) in self._cells.iter() {
-            let mut cell = cell.lock().unwrap();
+            let mut cell = cell.lock();
             if cell.row > idx {
                 cell.row -= amount;
                 // Update the cell's letter coordinate
@@ -249,7 +250,7 @@ impl XLSXSheet {
         for row in start_row..=end_row {
             for col in start_column..=end_column {
                 if let Some(cell) = self._cells.get(&(row, col)) {
-                    let mut cell = cell.lock().unwrap();
+                    let mut cell = cell.lock();
                     cell.is_merge = true;
                     cell.start_row = Some(start_row);
                     cell.end_row = Some(end_row);

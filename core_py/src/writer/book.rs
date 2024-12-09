@@ -1,9 +1,7 @@
 use core_rs::writer::book::XLSXBook;
+use parking_lot::Mutex;
 use pyo3::prelude::*;
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use super::sheet::WrapperXLSXSheet;
 
@@ -17,7 +15,7 @@ impl WrapperXLSXBook {
     pub fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
         Python::with_gil(|_py| {
             let slf = slf.borrow();
-            let slf_lock = slf.0.lock().unwrap();
+            let slf_lock = slf.0.lock();
 
             Ok(format!("XLSXBook, sheets: {}", slf_lock.sheets.len(),))
         })
@@ -35,7 +33,7 @@ impl WrapperXLSXBook {
     #[getter]
     pub fn sheets(&self) -> PyResult<Vec<WrapperXLSXSheet>> {
         Python::with_gil(|_py| {
-            let book = self.0.lock().unwrap();
+            let book = self.0.lock();
             let sheets = book
                 .sheets
                 .iter()
@@ -53,14 +51,13 @@ impl WrapperXLSXBook {
         rows: Option<u32>,
         cols: Option<u16>,
     ) -> WrapperXLSXSheet {
-        Python::with_gil(|_py| WrapperXLSXSheet(self.0.lock().unwrap().add_sheet(name, rows, cols)))
+        Python::with_gil(|_py| WrapperXLSXSheet(self.0.lock().add_sheet(name, rows, cols)))
     }
 
     pub fn get_sheet_index(&self, idx: i32) -> Option<WrapperXLSXSheet> {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .get_sheet_index(idx)
                 .map(|s| WrapperXLSXSheet(Arc::clone(&s)))
         })
@@ -70,7 +67,6 @@ impl WrapperXLSXBook {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .get_sheet_name(name)
                 .map(|s| WrapperXLSXSheet(Arc::clone(&s)))
         })
@@ -78,7 +74,7 @@ impl WrapperXLSXBook {
 
     pub fn to_json(&self) -> PyResult<String> {
         Python::with_gil(|_py| {
-            let res = self.0.lock().unwrap().to_json();
+            let res = self.0.lock().to_json();
             match res {
                 Ok(s) => Ok(s),
                 Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
@@ -90,7 +86,7 @@ impl WrapperXLSXBook {
 
     pub fn to_dict(&self) -> PyResult<PyObject> {
         Python::with_gil(|py| {
-            if let Ok(res) = self.0.lock().unwrap().to_hashmap() {
+            if let Ok(res) = self.0.lock().to_hashmap() {
                 let hash_map: HashMap<String, String> =
                     res.into_iter().map(|(k, v)| (k, v.to_string())).collect();
 

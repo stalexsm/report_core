@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex, Weak};
+use std::sync::{Arc, Weak};
 
 use crate::{
     datatype::{CellRawValue, CellValue},
@@ -6,6 +6,7 @@ use crate::{
 };
 use anyhow::{bail, Result};
 use chrono::NaiveDateTime;
+use parking_lot::Mutex;
 use serde::Serialize;
 
 use super::{sheet::XLSXSheet, DATA_TYPES};

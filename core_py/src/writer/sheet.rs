@@ -1,6 +1,7 @@
 use core_rs::writer::{sheet::XLSXSheet, DEFAULT_COL, DEFAULT_ROW};
+use parking_lot::Mutex;
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use super::{book::WrapperXLSXBook, cell::WrapperXLSXSheetCell};
 
@@ -14,7 +15,7 @@ impl WrapperXLSXSheet {
     pub fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
         Python::with_gil(|_py| {
             let slf = slf.borrow();
-            let slf_lock = slf.0.lock().unwrap();
+            let slf_lock = slf.0.lock();
             Ok(format!(
                 "XLSXSheet ({}) cells: {}",
                 slf_lock.name,
@@ -41,28 +42,28 @@ impl WrapperXLSXSheet {
 
     #[getter]
     pub fn name(&self) -> PyResult<String> {
-        Python::with_gil(|_py| Ok(self.0.lock().unwrap().name.clone()))
+        Python::with_gil(|_py| Ok(self.0.lock().name.clone()))
     }
 
     #[getter]
     pub fn max_row(&self) -> PyResult<u32> {
-        Python::with_gil(|_py| Ok(self.0.lock().unwrap().max_row))
+        Python::with_gil(|_py| Ok(self.0.lock().max_row))
     }
 
     #[getter]
     pub fn max_column(&self) -> PyResult<u16> {
-        Python::with_gil(|_py| Ok(self.0.lock().unwrap().max_column))
+        Python::with_gil(|_py| Ok(self.0.lock().max_column))
     }
 
     #[getter]
     pub fn index(&self) -> PyResult<i32> {
-        Python::with_gil(|_py| Ok(self.0.lock().unwrap().index))
+        Python::with_gil(|_py| Ok(self.0.lock().index))
     }
 
     #[getter]
     pub fn cells(&self) -> PyResult<Vec<WrapperXLSXSheetCell>> {
         Python::with_gil(|_py| {
-            let sheet = self.0.lock().unwrap();
+            let sheet = self.0.lock();
             let cells = sheet
                 .cells()
                 .map(|c| WrapperXLSXSheetCell(Arc::clone(c)))
@@ -81,7 +82,6 @@ impl WrapperXLSXSheet {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .write_cell(row, col, &value)
                 .map(|cell| WrapperXLSXSheetCell(Arc::clone(&cell)))
                 .map_err(|e| PyRuntimeError::new_err(format!("Failed to write cell: {}", e)))
@@ -92,7 +92,6 @@ impl WrapperXLSXSheet {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .delete_cols(idx, cols)
                 .map_err(|e| PyRuntimeError::new_err(format!("Failed to delete cols: {}", e)))
         })
@@ -102,7 +101,6 @@ impl WrapperXLSXSheet {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .delete_rows(idx, rows)
                 .map_err(|e| PyRuntimeError::new_err(format!("Failed to delete rows: {}", e)))
         })
@@ -118,7 +116,6 @@ impl WrapperXLSXSheet {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .set_merged_cells(start_row, end_row, start_column, end_column)
                 .map_err(|e| PyRuntimeError::new_err(format!("Failed Merged cells{}", e)))
         })
@@ -128,7 +125,6 @@ impl WrapperXLSXSheet {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .generate_empty_cells()
                 .map_err(|e| PyRuntimeError::new_err(format!("Failed generate empty cells: {}", e)))
         })
@@ -145,7 +141,6 @@ impl WrapperXLSXSheet {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .iter_cells(min_row, max_row, min_col, max_col)
                 .map(|cells| {
                     cells
@@ -162,7 +157,6 @@ impl WrapperXLSXSheet {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .find_cell_by_cell(cell)
                 .map(|cell| cell.map(WrapperXLSXSheetCell))
                 .map_err(|e| PyRuntimeError::new_err(format!("{}", e)))
@@ -178,7 +172,6 @@ impl WrapperXLSXSheet {
         Python::with_gil(|_py| {
             self.0
                 .lock()
-                .unwrap()
                 .find_cell_by_coords(row, col)
                 .map(|cell| cell.map(WrapperXLSXSheetCell))
                 .map_err(|e| PyRuntimeError::new_err(format!("{}", e)))

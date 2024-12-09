@@ -5,16 +5,13 @@ use core_rs::writer::book::XLSXBook;
 fn main() -> anyhow::Result<()> {
     let start = Instant::now();
     let book = XLSXBook::new();
-    let sheet = book
-        .lock()
-        .unwrap()
-        .add_sheet("A".to_string(), Some(50), Some(30));
+    let sheet = book.lock().add_sheet("A".to_string(), Some(50), Some(30));
 
-    let mut guard_sheet = sheet.lock().unwrap();
+    let mut guard_sheet = sheet.lock();
     guard_sheet.set_merged_cells(1, 10, 1, 10)?;
 
     for cell in guard_sheet.cells() {
-        let cell = cell.lock().unwrap();
+        let cell = cell.lock();
 
         if cell.is_merge {
             println!(

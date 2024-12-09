@@ -7,13 +7,10 @@ fn main() -> anyhow::Result<()> {
 
     let book = XLSXBook::new();
 
-    let sheet = book
-        .lock()
-        .unwrap()
-        .add_sheet("A".to_string(), Some(50), Some(30));
+    let sheet = book.lock().add_sheet("A".to_string(), Some(50), Some(30));
 
-    for cell in sheet.lock().unwrap().cells() {
-        let mut cell = cell.lock().unwrap();
+    for cell in sheet.lock().cells() {
+        let mut cell = cell.lock();
 
         if cell.row == 2 && cell.column == 2 {
             cell.set_value("100".to_string())?;
@@ -29,13 +26,13 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    let cell = sheet.lock().unwrap().find_cell_by_coords(2, 2)?;
+    let cell = sheet.lock().find_cell_by_coords(2, 2)?;
     println!("Find Coords {:?}", cell);
 
-    let cell = sheet.lock().unwrap().find_cell_by_coords(3, 3)?;
+    let cell = sheet.lock().find_cell_by_coords(3, 3)?;
     println!("Find Coords {:?}", cell);
 
-    let cell = sheet.lock().unwrap().find_cell_by_coords(5, 5)?;
+    let cell = sheet.lock().find_cell_by_coords(5, 5)?;
     println!("Find Coords {:?}", cell);
 
     let end = start.elapsed();
@@ -46,19 +43,13 @@ fn main() -> anyhow::Result<()> {
     );
 
     let start = Instant::now();
-    let sheet = book
-        .lock()
-        .unwrap()
-        .add_sheet("B".to_string(), Some(50), Some(30));
+    let sheet = book.lock().add_sheet("B".to_string(), Some(50), Some(30));
 
     for r in 1..=100 {
         for c in 1..=100 {
-            let cell = sheet
-                .lock()
-                .unwrap()
-                .write_cell(r, c, &format!("Yop! {}{}", r, c))?;
+            let cell = sheet.lock().write_cell(r, c, &format!("Yop! {}{}", r, c))?;
 
-            let mut guarg_cell = cell.lock().unwrap();
+            let mut guarg_cell = cell.lock();
             if guarg_cell.row == 20 && guarg_cell.column == 20 {
                 guarg_cell.set_value("AAAAA".to_string())?;
                 guarg_cell.set_formula("=SUM(A1:A10)".to_string())?;
@@ -66,22 +57,22 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    sheet.lock().unwrap().write_cell(120, 120, "Yop! 120x120")?;
+    sheet.lock().write_cell(120, 120, "Yop! 120x120")?;
 
-    sheet.lock().unwrap().generate_empty_cells()?;
+    sheet.lock().generate_empty_cells()?;
 
     println!(
         "Sheet len cells {:?}",
-        sheet.lock().unwrap().cells().collect::<Vec<_>>().len()
+        sheet.lock().cells().collect::<Vec<_>>().len()
     );
 
-    let cell = sheet.lock().unwrap().find_cell_by_coords(1, 1)?;
+    let cell = sheet.lock().find_cell_by_coords(1, 1)?;
     println!("Find Coords 1x1 {:?}", cell);
 
-    let cell = sheet.lock().unwrap().find_cell_by_coords(20, 20)?;
+    let cell = sheet.lock().find_cell_by_coords(20, 20)?;
     println!("Find Coords 20x20 {:?}", cell);
 
-    let cell = sheet.lock().unwrap().find_cell_by_coords(105, 105)?;
+    let cell = sheet.lock().find_cell_by_coords(105, 105)?;
     println!("Find Coords 105x105 {:?}", cell);
 
     let end = start.elapsed();

@@ -6,14 +6,11 @@ fn main() -> anyhow::Result<()> {
     let start = Instant::now();
     let book = XLSXBook::new();
 
-    let sheet = book
-        .lock()
-        .unwrap()
-        .add_sheet("A".to_string(), Some(50), Some(30));
-    let mut guard_sheet = sheet.lock().unwrap();
+    let sheet = book.lock().add_sheet("A".to_string(), Some(50), Some(30));
+    let mut guard_sheet = sheet.lock();
 
     for cell in guard_sheet.cells() {
-        let mut cell = cell.lock().unwrap();
+        let mut cell = cell.lock();
         let f = format!("Row: {}, Col: {}", cell.row, cell.column);
 
         cell.set_value(f)?;
@@ -23,7 +20,7 @@ fn main() -> anyhow::Result<()> {
     guard_sheet.delete_rows(6, 45)?;
 
     for cell in guard_sheet.cells() {
-        let cell = cell.lock().unwrap();
+        let cell = cell.lock();
 
         println!(
             "Cell {:?}, Row: {}, Col: {}, Value: {:?}",

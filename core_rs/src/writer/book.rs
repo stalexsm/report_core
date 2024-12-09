@@ -1,9 +1,7 @@
-use std::{
-    collections::HashMap,
-    sync::{Arc, Mutex},
-};
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::{bail, Result};
+use parking_lot::Mutex;
 use serde::{ser::SerializeStruct, Serialize};
 use serde_json::Value;
 
@@ -23,11 +21,7 @@ impl Serialize for XLSXBook {
     {
         let mut state = serializer.serialize_struct("XLSXBook", 1)?;
 
-        let sheets: Vec<_> = self
-            .sheets
-            .iter()
-            .map(|s| s.lock().unwrap().clone())
-            .collect();
+        let sheets: Vec<_> = self.sheets.iter().map(|s| s.lock().clone()).collect();
 
         state.serialize_field("sheets", &sheets)?;
         state.end()
@@ -41,7 +35,7 @@ impl XLSXBook {
             self_ref: None,
         }));
 
-        let mut guard = book.lock().unwrap();
+        let mut guard = book.lock();
         guard.self_ref = Some(Arc::clone(&book));
         drop(guard);
 
@@ -70,14 +64,14 @@ impl XLSXBook {
     pub fn get_sheet_index(&self, idx: i32) -> Option<Arc<Mutex<XLSXSheet>>> {
         self.sheets
             .iter()
-            .find(|sheet| sheet.lock().unwrap().index == idx)
+            .find(|sheet| sheet.lock().index == idx)
             .map(Arc::clone)
     }
 
     pub fn get_sheet_name(&self, name: String) -> Option<Arc<Mutex<XLSXSheet>>> {
         self.sheets
             .iter()
-            .find(|sheet| sheet.lock().unwrap().name == name)
+            .find(|sheet| sheet.lock().name == name)
             .map(Arc::clone)
     }
 
