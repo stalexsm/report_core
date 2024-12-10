@@ -158,12 +158,12 @@ impl XLSXSheet {
         col: u16,
         value: &str,
     ) -> Result<Arc<Mutex<XLSXSheetCell>>> {
-        if row > MAX_ROW || col > MAX_COL {
-            bail!("Row or Column is out of range");
-        }
-
-        if row < 1 || col < 1 {
-            bail!("Row and Column must be greater than 0");
+        if row < 1 || row > MAX_ROW || col < 1 || col > MAX_COL {
+            bail!(
+                "Row or Column is valid. 0 < Row < {} and 0 < Column < {}",
+                MAX_ROW,
+                MAX_COL
+            );
         }
 
         if let Some(cell) = self._cells.get_mut(&(row, col)) {
@@ -265,14 +265,16 @@ impl XLSXSheet {
 
     pub fn generate_empty_cells(&mut self) -> Result<()> {
         // Создаем новые ячейки которые не существуют
+        let sheet_ref = Arc::new(Mutex::new(self.clone()));
+
         let cells: HashMap<_, _> = (1..=self.max_row)
             .into_par_iter()
             .flat_map(|r| {
-                let current_sheet = Arc::new(Mutex::new(self.clone()));
-                let existing_cells = self._cells.clone();
+                let sheet = Arc::clone(&sheet_ref);
                 (1..=self.max_column).into_par_iter().filter_map(move |c| {
-                    if !existing_cells.contains_key(&(r, c)) {
-                        let cell = XLSXSheetCell::new(Arc::clone(&current_sheet), r, c, None);
+                    let exists = sheet.lock()._cells.contains_key(&(r, c));
+                    if !exists {
+                        let cell = XLSXSheetCell::new(Arc::clone(&sheet), r, c, None);
                         Some(((r, c), cell))
                     } else {
                         None
