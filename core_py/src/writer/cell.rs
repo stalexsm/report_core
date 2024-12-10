@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
 use chrono::NaiveDateTime;
-use core_rs::{datatype::CellRawValue, writer::cell::XLSXSheetCell};
+use core_rs::writer::cell::XLSXSheetCell;
 use parking_lot::Mutex;
-use pyo3::{exceptions::PyRuntimeError, prelude::*, BoundObject};
+use pyo3::{exceptions::PyRuntimeError, prelude::*};
+
+use crate::utils::raw_value_to_py;
 
 use super::sheet::WrapperXLSXSheet;
 
@@ -59,14 +61,8 @@ impl WrapperXLSXSheetCell {
     #[getter]
     pub fn value(&self) -> PyResult<PyObject> {
         Python::with_gil(|py| {
-            Ok(match &self.0.lock().value.raw_value {
-                CellRawValue::Empty => py.None(),
-                CellRawValue::String(s) => s.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Integer(i) => i.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Numeric(n) => n.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Bool(b) => b.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Datetime(d) => d.into_pyobject(py).unwrap().into_any().unbind(),
-            })
+            let value = raw_value_to_py(py, &self.0.lock().value.raw_value)?;
+            Ok(value)
         })
     }
 

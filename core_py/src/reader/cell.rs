@@ -1,8 +1,7 @@
-use core_rs::{
-    datatype::{CellRawValue, CellValue},
-    reader::cell::XLSXSheetCellRead,
-};
-use pyo3::{prelude::*, types::PyDict, BoundObject};
+use core_rs::{datatype::CellValue, reader::cell::XLSXSheetCellRead};
+use pyo3::{prelude::*, types::PyDict};
+
+use crate::utils::raw_value_to_py;
 
 macro_rules! extract_sheetcell {
     ($obj:expr, $($attr:ident),+) => {
@@ -103,14 +102,8 @@ impl WrapperXLSXSheetCellRead {
     #[getter]
     pub fn value(&self) -> PyResult<PyObject> {
         Python::with_gil(|py| {
-            Ok(match &self.0.value.raw_value {
-                CellRawValue::Empty => py.None(),
-                CellRawValue::String(s) => s.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Integer(i) => i.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Numeric(n) => n.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Bool(b) => b.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Datetime(d) => d.into_pyobject(py).unwrap().into_any().unbind(),
-            })
+            let value = raw_value_to_py(py, &self.0.value.raw_value)?;
+            Ok(value)
         })
     }
 

@@ -1,10 +1,11 @@
-use core_rs::{datatype::CellRawValue, reader::sheet::XLSXSheetRead};
+use core_rs::reader::sheet::XLSXSheetRead;
 use pyo3::{
     exceptions::PyRuntimeError,
     prelude::*,
     types::{PyDict, PyList},
-    BoundObject,
 };
+
+use crate::utils::raw_value_to_py;
 
 use super::cell::WrapperXLSXSheetCellRead;
 
@@ -256,14 +257,10 @@ impl WrapperXLSXSheetRead {
     /// Поиск значенияячейки по координате
     pub fn find_value_by_coords(&self, row: u32, col: u16) -> PyResult<PyObject> {
         Python::with_gil(|py| match self.0.find_value_by_coords(row, col) {
-            Ok(Some(value)) => Ok(match value.raw_value {
-                CellRawValue::Empty => py.None(),
-                CellRawValue::String(s) => s.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Integer(i) => i.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Numeric(n) => n.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Bool(b) => b.into_pyobject(py).unwrap().into_any().unbind(),
-                CellRawValue::Datetime(d) => d.into_pyobject(py).unwrap().into_any().unbind(),
-            }),
+            Ok(Some(value)) => {
+                let value = raw_value_to_py(py, &value.raw_value)?;
+                Ok(value)
+            }
             Ok(None) => Ok(py.None()),
             Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
         })
