@@ -81,4 +81,8 @@ if __name__ == "__main__":
         for c in sheet.cells:
             print("Cell:", c.cell, "Value:", c.value)
 
+        print("---")
+        val = sheet.find_value_by_coords(5, 5)
+        print("find value by coords:", val)
+
     print(f"Выполнено за: {time.time() - start_time:.3f} сек.")

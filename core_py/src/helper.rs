@@ -1,5 +1,8 @@
-use core_rs::helper::{HelperCell, HelperSheet};
-use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyList};
+use core_rs::{
+    datatype::CellRawValue,
+    helper::{HelperCell, HelperSheet},
+};
+use pyo3::{exceptions::PyRuntimeError, prelude::*, types::PyList, BoundObject};
 
 use crate::reader::{cell::WrapperXLSXSheetCellRead, sheet::WrapperXLSXSheetRead};
 
@@ -236,6 +239,31 @@ impl WrapperHelperSheetCell {
             HelperCell::find_cells_between_patterns(&pattern_after, &pattern_before, cells)
                 .map(|c| c.into_iter().map(WrapperXLSXSheetCellRead).collect())
                 .map_err(|e| PyRuntimeError::new_err(format!("{}", e)))
+        })
+    }
+
+    /// Поиск ячейки по координате
+    #[staticmethod]
+    pub fn find_value_by_coords(
+        row: u32,
+        col: u16,
+        cells: Vec<WrapperXLSXSheetCellRead>,
+    ) -> PyResult<Py<PyAny>> {
+        Python::with_gil(|py| {
+            let cells = cells.into_iter().map(|item| item.0).collect();
+
+            match HelperCell::find_value_by_coords(row, col, cells) {
+                Ok(Some(value)) => Ok(match value.raw_value {
+                    CellRawValue::Empty => py.None(),
+                    CellRawValue::String(s) => s.into_pyobject(py).unwrap().into_any().unbind(),
+                    CellRawValue::Integer(i) => i.into_pyobject(py).unwrap().into_any().unbind(),
+                    CellRawValue::Numeric(n) => n.into_pyobject(py).unwrap().into_any().unbind(),
+                    CellRawValue::Bool(b) => b.into_pyobject(py).unwrap().into_any().unbind(),
+                    CellRawValue::Datetime(d) => d.into_pyobject(py).unwrap().into_any().unbind(),
+                }),
+                Ok(None) => Ok(py.None()),
+                Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            }
         })
     }
 }

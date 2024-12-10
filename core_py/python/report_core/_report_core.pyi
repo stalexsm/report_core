@@ -744,6 +744,24 @@ class XLSXSheetRead:
 
         """
 
+    @final
+    def find_value_by_coords(self, row: int, col: int) -> Any:
+        """
+        Функция для значения ячейки по координатам.
+        ---------------------------------
+
+        Arguments:
+        ---------
+            row: int
+                Номер строки
+            col: int
+                Номер колонки
+        Returns:
+        --------
+            Any
+
+        """
+
 class XLSXSheetCellRead:
     """Тип данных ячеек листа с которыми работает парсер."""
 
@@ -1093,6 +1111,29 @@ class HelperCell:
         Returns:
         --------
             Sequence[XLSXSheetCellRead]
+        """
+
+    @final
+    @staticmethod
+    def find_value_by_coords(
+        row: int,
+        col: int,
+        cells: Sequence[XLSXSheetCellRead],
+    ) -> Any:
+        """
+        Функция для значения ячейки по координатам.
+        ---------------------------------
+
+        Arguments:
+        ---------
+            row: int
+                Номер строки
+            col: int
+                Номер колонки
+        Returns:
+        --------
+            Any
+
         """
 
 class HelperSheet:

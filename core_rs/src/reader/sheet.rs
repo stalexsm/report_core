@@ -1,4 +1,4 @@
-use crate::helper::HelperCell;
+use crate::{datatype::CellValue, helper::HelperCell};
 
 use super::cell::XLSXSheetCellRead;
 use anyhow::Result;
@@ -142,5 +142,13 @@ impl XLSXSheetRead {
         cells.par_sort_by_key(|cell| (cell.row, cell.column));
 
         HelperCell::find_cells_by_range_cols(start_col, end_col, cells)
+    }
+
+    /// Поиск значения ячейки по координатам
+    pub fn find_value_by_coords(&self, row: u32, col: u16) -> Result<Option<CellValue>> {
+        let mut cells = self._cells.values().cloned().collect::<Vec<_>>();
+        cells.par_sort_by_key(|cell| (cell.row, cell.column));
+
+        HelperCell::find_value_by_coords(row, col, cells)
     }
 }

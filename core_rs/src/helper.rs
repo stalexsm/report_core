@@ -1,7 +1,10 @@
 use anyhow::{bail, Result};
 use rayon::prelude::*;
 
-use crate::reader::{cell::XLSXSheetCellRead, sheet::XLSXSheetRead};
+use crate::{
+    datatype::CellValue,
+    reader::{cell::XLSXSheetCellRead, sheet::XLSXSheetRead},
+};
 
 #[derive(Debug, Clone)]
 pub struct HelperSheet {
@@ -346,5 +349,22 @@ impl HelperCell {
             .collect();
 
         Ok(cells)
+    }
+
+    /// Возвращает значение ячейки по координатам
+    pub fn find_value_by_coords(
+        row: u32,
+        col: u16,
+        cells: Vec<XLSXSheetCellRead>,
+    ) -> Result<Option<CellValue>> {
+        let found_cell_value = cells.par_iter().find_map_first(|cell| {
+            if cell.row == row && cell.column == col {
+                Some(cell.value.as_ref().clone())
+            } else {
+                None
+            }
+        });
+
+        Ok(found_cell_value)
     }
 }

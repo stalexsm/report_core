@@ -158,7 +158,7 @@ impl XLSXSheet {
         col: u16,
         value: &str,
     ) -> Result<Arc<Mutex<XLSXSheetCell>>> {
-        if row < 1 || row > MAX_ROW || col < 1 || col > MAX_COL {
+        if !(1..=MAX_ROW).contains(&row) || !(1..=MAX_COL).contains(&col) {
             bail!(
                 "Row or Column is valid. 0 < Row < {} and 0 < Column < {}",
                 MAX_ROW,
