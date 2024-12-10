@@ -1,4 +1,4 @@
-use std::sync::{Arc, Weak};
+use std::sync::Arc;
 
 use crate::{
     datatype::{CellRawValue, CellValue},
@@ -9,7 +9,7 @@ use chrono::NaiveDateTime;
 use parking_lot::Mutex;
 use serde::Serialize;
 
-use super::{sheet::XLSXSheet, DATA_TYPES};
+use super::DATA_TYPES;
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct XLSXSheetCell {
@@ -28,19 +28,10 @@ pub struct XLSXSheetCell {
     pub style_id: Option<String>,
     pub hidden_value: Option<String>,
     pub comment: Option<String>,
-
-    // Слабая ссылка на текущую страницу
-    #[serde(skip)]
-    pub _current_sheet: Weak<Mutex<XLSXSheet>>,
 }
 
 impl XLSXSheetCell {
-    pub fn new(
-        sheet: Arc<Mutex<XLSXSheet>>,
-        row: u32,
-        col: u16,
-        value: Option<String>,
-    ) -> Arc<Mutex<Self>> {
+    pub fn new(row: u32, col: u16, value: Option<String>) -> Arc<Mutex<Self>> {
         // Получение  letter (cell)
         let cell = get_letter_coordinate(row, col);
 
@@ -65,7 +56,6 @@ impl XLSXSheetCell {
             value,
             data_type,
             number_format,
-            _current_sheet: Arc::downgrade(&sheet),
             ..Default::default()
         }))
     }

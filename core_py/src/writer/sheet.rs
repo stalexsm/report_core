@@ -3,7 +3,7 @@ use parking_lot::Mutex;
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
 use std::sync::Arc;
 
-use super::{book::WrapperXLSXBook, cell::WrapperXLSXSheetCell};
+use super::cell::WrapperXLSXSheetCell;
 
 #[pyclass]
 #[pyo3(module = "report_core", name = "XLSXSheet")]
@@ -25,16 +25,10 @@ impl WrapperXLSXSheet {
     }
 
     #[new]
-    #[pyo3(signature=(book,name, index, rows=DEFAULT_ROW, cols=DEFAULT_COL))]
-    pub fn new(
-        book: WrapperXLSXBook,
-        name: String,
-        index: i32,
-        rows: u32,
-        cols: u16,
-    ) -> PyResult<Self> {
+    #[pyo3(signature=(name, index, rows=DEFAULT_ROW, cols=DEFAULT_COL))]
+    pub fn new(name: String, index: i32, rows: u32, cols: u16) -> PyResult<Self> {
         Python::with_gil(|_py| {
-            let sheet = XLSXSheet::new(book.0, name, index, rows, cols);
+            let sheet = XLSXSheet::new(name, index, rows, cols);
 
             Ok(Self(sheet))
         })

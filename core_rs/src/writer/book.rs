@@ -11,7 +11,6 @@ use super::{sheet::XLSXSheet, DEFAULT_COL, DEFAULT_ROW};
 pub struct XLSXBook {
     // todo
     pub sheets: Vec<Arc<Mutex<XLSXSheet>>>,
-    self_ref: Option<Arc<Mutex<Self>>>,
 }
 
 impl Serialize for XLSXBook {
@@ -30,16 +29,7 @@ impl Serialize for XLSXBook {
 
 impl XLSXBook {
     pub fn new() -> Arc<Mutex<Self>> {
-        let book = Arc::new(Mutex::new(Self {
-            sheets: vec![],
-            self_ref: None,
-        }));
-
-        let mut guard = book.lock();
-        guard.self_ref = Some(Arc::clone(&book));
-        drop(guard);
-
-        book
+        Arc::new(Mutex::new(Self { sheets: vec![] }))
     }
 
     pub fn add_sheet(
@@ -48,13 +38,11 @@ impl XLSXBook {
         rows: Option<u32>,
         cols: Option<u16>,
     ) -> Arc<Mutex<XLSXSheet>> {
-        let book = self.self_ref.as_ref().unwrap().clone();
-
         let rows = rows.unwrap_or(DEFAULT_ROW);
         let cols = cols.unwrap_or(DEFAULT_COL);
 
         let idx = self.sheets.len() as i32;
-        let sheet = XLSXSheet::new(book, name, idx, rows, cols);
+        let sheet = XLSXSheet::new(name, idx, rows, cols);
 
         self.sheets.push(Arc::clone(&sheet));
 

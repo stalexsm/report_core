@@ -1,13 +1,10 @@
-use std::sync::Arc;
+use crate::utils::raw_value_to_py;
 
 use chrono::NaiveDateTime;
 use core_rs::writer::cell::XLSXSheetCell;
 use parking_lot::Mutex;
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
-
-use crate::utils::raw_value_to_py;
-
-use super::sheet::WrapperXLSXSheet;
+use std::sync::Arc;
 
 #[pyclass]
 #[pyo3(module = "report_core", name = "XLSXSheetCell")]
@@ -28,15 +25,10 @@ impl WrapperXLSXSheetCell {
     }
 
     #[new]
-    #[pyo3(signature=(sheet, row, col, value=None))]
-    pub fn new(
-        sheet: WrapperXLSXSheet,
-        row: u32,
-        col: u16,
-        value: Option<String>,
-    ) -> PyResult<Self> {
+    #[pyo3(signature=(row, col, value=None))]
+    pub fn new(row: u32, col: u16, value: Option<String>) -> PyResult<Self> {
         Python::with_gil(|_py| {
-            let cell = XLSXSheetCell::new(sheet.0, row, col, value);
+            let cell = XLSXSheetCell::new(row, col, value);
 
             Ok(Self(cell))
         })

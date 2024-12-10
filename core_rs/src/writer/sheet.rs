@@ -2,12 +2,9 @@ use anyhow::{bail, Result};
 use parking_lot::Mutex;
 use rayon::prelude::*;
 use serde::Serialize;
-use std::{
-    collections::HashMap,
-    sync::{Arc, Weak},
-};
+use std::{collections::HashMap, sync::Arc};
 
-use super::{book::XLSXBook, cell::XLSXSheetCell, MAX_COL, MAX_ROW};
+use super::{cell::XLSXSheetCell, MAX_COL, MAX_ROW};
 use crate::utils;
 
 #[derive(Clone, Debug, Default)]
@@ -18,8 +15,6 @@ pub struct XLSXSheet {
     pub index: i32,
     // todo
     pub _cells: HashMap<(u32, u16), Arc<Mutex<XLSXSheetCell>>>,
-
-    _current_workbook: Weak<Mutex<XLSXBook>>,
 }
 
 impl Serialize for XLSXSheet {
@@ -44,13 +39,7 @@ impl Serialize for XLSXSheet {
 }
 
 impl XLSXSheet {
-    pub fn new(
-        book: Arc<Mutex<XLSXBook>>,
-        name: String,
-        index: i32,
-        rows: u32,
-        cols: u16,
-    ) -> Arc<Mutex<XLSXSheet>> {
+    pub fn new(name: String, index: i32, rows: u32, cols: u16) -> Arc<Mutex<XLSXSheet>> {
         if rows > MAX_ROW || cols > MAX_COL {
             panic!("Row or Column is out of range");
         }
@@ -61,7 +50,6 @@ impl XLSXSheet {
             max_row: rows,
             max_column: cols,
             index,
-            _current_workbook: Arc::downgrade(&book),
             ..Default::default()
         }));
 
@@ -69,9 +57,8 @@ impl XLSXSheet {
         let cells: HashMap<_, _> = (1..=rows)
             .into_par_iter()
             .flat_map(|r| {
-                let sheet = Arc::clone(&sheet);
                 (1..=cols).into_par_iter().map(move |c| {
-                    let cell = XLSXSheetCell::new(Arc::clone(&sheet), r, c, None);
+                    let cell = XLSXSheetCell::new(r, c, None);
                     ((r, c), cell)
                 })
             })
@@ -173,13 +160,7 @@ impl XLSXSheet {
             Ok(cell.clone())
         } else {
             // Добавление ячейки в список ячеек
-            let current_sheet = Arc::new(Mutex::new(self.clone()));
-            let cell = XLSXSheetCell::new(
-                Arc::clone(&current_sheet),
-                row,
-                col,
-                Some(value.to_string()),
-            );
+            let cell = XLSXSheetCell::new(row, col, Some(value.to_string()));
 
             self._cells.insert((row, col), Arc::clone(&cell));
 
@@ -274,7 +255,7 @@ impl XLSXSheet {
                 (1..=self.max_column).into_par_iter().filter_map(move |c| {
                     let exists = sheet.lock()._cells.contains_key(&(r, c));
                     if !exists {
-                        let cell = XLSXSheetCell::new(Arc::clone(&sheet), r, c, None);
+                        let cell = XLSXSheetCell::new(r, c, None);
                         Some(((r, c), cell))
                     } else {
                         None

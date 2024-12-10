@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     for cell in sheet.cells:
         if cell.row == 99 and cell.column == 99:
-            cell.set_value("Yop! Жопа")
+            cell.set_value("Yop! Жопа --->")
             cell.set_style_id("Style Yop! Жопа")
 
         if cell.row == 100 and cell.column == 100:
@@ -64,7 +64,34 @@ if __name__ == "__main__":
         cell.style_id if cell else cell,
     )
 
-    cell = sheet.find_cell_by_coords(120, 120)
-    print("Find Cell 120x120", cell)
+    cell = sheet.find_cell_by_coords(150, 150)
+    print(
+        "Find Cell 150x150 coords value:",
+        cell.value if cell else cell,
+        "formula:",
+        cell.formula if cell else cell,
+        "StyleID:",
+        cell.style_id if cell else cell,
+        "IF formula:",
+        cell.is_formula if cell else cell,
+        "Data type:",
+        cell.data_type if cell else cell,
+    )
+
+    print(f"Выполнено за: {time.time() - start_time:.3f} сек.")
+
+    start_time = time.time()
+    sheet = book.add_sheet("A", 50, 30)
+
+    for r in range(1, 101):
+        for c in range(1, 101):
+            cell = sheet.write_cell(r, c, f"Yop! {r}{c}")
+
+            if r == 20 and c == 20:
+                cell.set_value("AAAAA")
+                cell.set_formula("=SUM(A1:A10)")
+
+    sheet.write_cell(120, 120, "Yop! 120x120")
+    sheet.generate_empty_cells()
 
     print(f"Выполнено за: {time.time() - start_time:.3f} сек.")
