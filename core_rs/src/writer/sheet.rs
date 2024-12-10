@@ -246,14 +246,14 @@ impl XLSXSheet {
 
     pub fn generate_empty_cells(&mut self) -> Result<()> {
         // Создаем новые ячейки которые не существуют
-        let sheet_ref = Arc::new(Mutex::new(self.clone()));
+        let ref_cells = Arc::new(Mutex::new(&self._cells));
 
         let cells: HashMap<_, _> = (1..=self.max_row)
             .into_par_iter()
             .flat_map(|r| {
-                let sheet = Arc::clone(&sheet_ref);
+                let ref_cells = Arc::clone(&ref_cells);
                 (1..=self.max_column).into_par_iter().filter_map(move |c| {
-                    let exists = sheet.lock()._cells.contains_key(&(r, c));
+                    let exists = ref_cells.lock().contains_key(&(r, c));
                     if !exists {
                         let cell = XLSXSheetCell::new(r, c, None);
                         Some(((r, c), cell))

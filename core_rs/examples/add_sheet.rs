@@ -45,8 +45,8 @@ fn main() -> anyhow::Result<()> {
     let start = Instant::now();
     let sheet = book.lock().add_sheet("B".to_string(), Some(50), Some(30));
 
-    for r in 1..=100 {
-        for c in 1..=100 {
+    for r in 1..=1000 {
+        for c in 1..=1000 {
             let cell = sheet.lock().write_cell(r, c, &format!("Yop! {}{}", r, c))?;
 
             let mut guarg_cell = cell.lock();
