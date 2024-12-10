@@ -435,6 +435,7 @@ class XLSXSheetCell:
         """
 
     @final
+    @property
     def is_formula(self) -> bool:
         """
         Метод для получения флага, ячейка с формулой или нет.
@@ -448,6 +449,7 @@ class XLSXSheetCell:
         """
 
     @final
+    @property
     def is_value_bool(self) -> bool:
         """
         Проверить, является ли значение ячейки boolean
@@ -459,6 +461,7 @@ class XLSXSheetCell:
         """
 
     @final
+    @property
     def is_value_numeric(self) -> bool:
         """
         Проверить, является ли значение ячейки numeric
@@ -471,6 +474,7 @@ class XLSXSheetCell:
         """
 
     @final
+    @property
     def is_value_datetime(self) -> bool:
         """
         Проверить, является ли значение ячейки datetime
@@ -483,6 +487,7 @@ class XLSXSheetCell:
         """
 
     @final
+    @property
     def is_value_empty(self) -> bool:
         """
         Проверить, является ли значение ячейки empty
@@ -759,6 +764,7 @@ class XLSXSheetCellRead:
     comment: str | None
 
     @final
+    @property
     def is_formula(self) -> bool:
         """
         Метод для получения флага, ячейка с формулой или нет.
@@ -770,6 +776,7 @@ class XLSXSheetCellRead:
         """
 
     @final
+    @property
     def is_value_bool(self) -> bool:
         """
         Проверить, является ли значение ячейки boolean
@@ -781,6 +788,7 @@ class XLSXSheetCellRead:
         """
 
     @final
+    @property
     def is_value_numeric(self) -> bool:
         """
         Проверить, является ли значение ячейки numeric
@@ -792,6 +800,7 @@ class XLSXSheetCellRead:
         """
 
     @final
+    @property
     def is_value_datetime(self) -> bool:
         """
         Проверить, является ли значение ячейки datetime
@@ -803,6 +812,7 @@ class XLSXSheetCellRead:
         """
 
     @final
+    @property
     def is_value_empty(self) -> bool:
         """
         Проверить, является ли значение ячейки empty

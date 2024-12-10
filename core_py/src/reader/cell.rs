@@ -170,31 +170,37 @@ impl WrapperXLSXSheetCellRead {
     }
 
     /// Метод для получения флага, ячейка с формулой или нет.
+    #[getter]
     pub fn is_formula(&self) -> PyResult<bool> {
         Python::with_gil(|_py| Ok(self.0.is_formula()))
     }
 
     /// Проверить, является ли значение ячейки boolean
+    #[getter]
     pub fn is_value_bool(&self) -> PyResult<bool> {
         Python::with_gil(|_py| Ok(self.0.is_value_bool()))
     }
 
     /// Проверить, является ли значение ячейки numeric
+    #[getter]
     pub fn is_value_numeric(&self) -> PyResult<bool> {
         Python::with_gil(|_py| Ok(self.0.is_value_numeric()))
     }
 
     /// Проверить, является ли значение ячейки numeric
+    #[getter]
     pub fn is_value_integer(&self) -> PyResult<bool> {
         Python::with_gil(|_py| Ok(self.0.is_value_integer()))
     }
 
     /// Проверить, является ли значение ячейки datetime
+    #[getter]
     pub fn is_value_datetime(&self) -> PyResult<bool> {
         Python::with_gil(|_py| Ok(self.0.is_value_datetime()))
     }
 
     /// Проверить, является ли значение ячейки empty
+    #[getter]
     pub fn is_value_empty(&self) -> PyResult<bool> {
         Python::with_gil(|_py| Ok(self.0.is_value_empty()))
     }

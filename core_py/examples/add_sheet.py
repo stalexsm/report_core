@@ -51,7 +51,7 @@ if __name__ == "__main__":
         "StyleID:",
         cell.style_id if cell else cell,
         "IF formula:",
-        cell.is_formula() if cell else cell,
+        cell.is_formula if cell else cell,
         "Data type:",
         cell.data_type if cell else cell,
     )
