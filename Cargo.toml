@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["core_rs", "core_py"]
+members = ["core_rs"]
 
 
 [workspace.package]
@@ -17,12 +17,13 @@ repository = "https://github.com/stalexsm/report_core.git"
 [workspace.dependencies]
 anyhow = "1.0.94"
 chrono = { version = "0.4.38", features = ["serde"] }
-regex = "1.11.1"
+fancy-regex = "0.14.0"
 serde = { version = "1.0.215", features = ["derive"] }
 serde_json = "1.0.133"
 serde_with = "3.11.0"
 rayon = "1.10.0"
 parking_lot = { version = "0.12.3", features = ["serde"] }
+lazy_static = "1.5.0"
 pyo3 = { version = "0.23.3", features = [
     "chrono",
     "extension-module",

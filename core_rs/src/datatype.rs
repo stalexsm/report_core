@@ -8,7 +8,7 @@ pub enum CellRawValue {
     #[default]
     Empty,
 
-    String(String),
+    String(Box<str>),
     Numeric(f64),
     Integer(i32),
     Bool(bool),
@@ -17,6 +17,7 @@ pub enum CellRawValue {
 
 impl CellRawValue {
     /// Метод для получения типа данных.
+    #[inline]
     pub(crate) fn get_date_type(&self) -> &str {
         match &self {
             Self::String(_) => "s",
@@ -29,6 +30,7 @@ impl CellRawValue {
     }
 
     /// Метод для получения данных тип String.
+    #[inline]
     pub(crate) fn get_value_str(&self) -> String {
         match &self {
             Self::String(_)
@@ -55,102 +57,102 @@ impl Display for CellRawValue {
     }
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize)]
 pub struct CellValue {
     pub raw_value: CellRawValue,
 }
 
-impl Serialize for CellValue {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&self.raw_value.get_value_str())
-    }
-}
-
 impl CellValue {
-    /// Метод для получения типа ячейки.
+    #[inline]
     pub fn get_data_type(&self) -> &str {
         self.raw_value.get_date_type()
     }
 
-    /// Метод для получения значения ячейки.
-    pub fn get_value_str(&self) -> String {
-        self.raw_value.get_value_str()
+    #[inline]
+    pub fn get_value(&self) -> String {
+        self.raw_value.to_string().into()
     }
 
-    /// Метод для установки значения как Number
+    #[inline]
+    pub fn get_raw_value(&self) -> &CellRawValue {
+        &self.raw_value
+    }
+
+    #[inline]
+    pub fn set_value<S: Into<String>>(&mut self, value: S) -> &mut Self {
+        self.raw_value = Self::quess_typed_data(&value.into());
+
+        self
+    }
+
+    #[inline]
+    pub fn set_value_str<S: Into<String>>(&mut self, value: S) -> &mut Self {
+        self.raw_value = CellRawValue::String(value.into().into_boxed_str());
+
+        self
+    }
+
+    #[inline]
     pub fn set_value_number(&mut self, value: f64) -> &mut Self {
         self.raw_value = CellRawValue::Numeric(value);
 
         self
     }
 
-    /// Метод для установки значения как Integer
+    #[inline]
     pub fn set_value_integer(&mut self, value: i32) -> &mut Self {
         self.raw_value = CellRawValue::Integer(value);
 
         self
     }
 
-    /// Метод для установки значения как Boolean
+    #[inline]
     pub fn set_value_bool(&mut self, value: bool) -> &mut Self {
         self.raw_value = CellRawValue::Bool(value);
 
         self
     }
 
-    /// Метод для установки значения как String
-    pub fn set_value_str(&mut self, value: String) -> &mut Self {
-        self.raw_value = CellRawValue::String(value);
-
-        self
-    }
-
-    /// Метод для установки значения как String
+    #[inline]
     pub fn set_value_datatime(&mut self, value: NaiveDateTime) -> &mut Self {
         self.raw_value = CellRawValue::Datetime(value);
 
         self
     }
 
-    /// Метод для установки значения как String
-    pub fn set_value(&mut self, value: String) -> &mut Self {
-        self.raw_value = Self::quess_typed_value(&value);
-
-        self
-    }
-
-    /// Проверить, является ли значение ячейки boolean
+    #[inline]
     pub fn is_bool(&self) -> bool {
         matches!(self.raw_value, CellRawValue::Bool(_))
     }
 
-    /// Проверить, является ли значение ячейки numeric
+    #[inline]
     pub fn is_numeric(&self) -> bool {
         matches!(self.raw_value, CellRawValue::Numeric(_))
     }
 
-    /// Проверить, является ли значение ячейки numeric
+    #[inline]
     pub fn is_integer(&self) -> bool {
         matches!(self.raw_value, CellRawValue::Integer(_))
     }
 
-    /// Проверить, является ли значение ячейки Datetime
+    #[inline]
     pub fn is_datetime(&self) -> bool {
         matches!(self.raw_value, CellRawValue::Datetime(_))
     }
 
-    /// Проверить, является ли значение ячейки Empty
+    #[inline]
     pub fn is_empty(&self) -> bool {
         matches!(self.raw_value, CellRawValue::Empty)
     }
 
-    /// Метод для определения типа значения
-    pub fn quess_typed_value(value: &str) -> CellRawValue {
-        match value {
+    #[inline]
+    pub(crate) fn quess_typed_data(value: &str) -> CellRawValue {
+        let uppercase_value = value.to_uppercase();
+
+        match uppercase_value.as_str() {
             "" => CellRawValue::Empty,
+            "TRUE" => CellRawValue::Bool(true),
+            "FALSE" => CellRawValue::Bool(false),
             _ => {
                 if let Ok(number) = value.parse::<i32>() {
                     CellRawValue::Integer(number)
