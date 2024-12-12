@@ -1,3 +1,4 @@
+use anyhow::Result;
 use serde::Serialize;
 
 use super::{
@@ -81,11 +82,80 @@ impl Sheet {
     pub fn delete_rows(&mut self, idx: u32, amount: u32) {
         self.cells.delete_rows(idx, amount);
     }
+
+    #[inline]
+    pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Cell>> {
+        self.cells.find_cell_by_regex(regex)
+    }
+
+    #[inline]
+    pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Cell>> {
+        self.cells.find_cell_by_letter(letter)
+    }
+
+    #[inline]
+    pub fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Cell>> {
+        self.cells.find_cells_by_regex(regex)
+    }
+
+    #[inline]
+    pub fn find_cells_for_rows_by_regex(&self, regex: &str, col_stop: u16) -> Result<Vec<&Cell>> {
+        self.cells.find_cells_for_rows_by_regex(regex, col_stop)
+    }
+
+    #[inline]
+    pub fn find_cells_for_cols_by_regex(&self, regex: &str, row_stop: u32) -> Result<Vec<&Cell>> {
+        self.cells.find_cells_for_cols_by_regex(regex, row_stop)
+    }
+
+    #[inline]
+    pub fn find_cells_multi_regex(
+        &self,
+        before_regex: &str,
+        after_regex: &str,
+    ) -> Result<Vec<&Cell>> {
+        self.cells.find_cells_multi_regex(before_regex, after_regex)
+    }
+
+    #[inline]
+    pub fn find_cells_between_regex(
+        &self,
+        before_regex: &str,
+        after_regex: &str,
+    ) -> Result<Vec<&Cell>> {
+        self.cells
+            .find_cells_between_regex(before_regex, after_regex)
+    }
+
+    #[inline]
+    pub fn find_cells_range_rows(&self, start_row: u32, end_row: u32) -> Result<Vec<&Cell>> {
+        self.cells.find_cells_range_rows(start_row, end_row)
+    }
+
+    #[inline]
+    pub fn find_cells_range_cols(&self, start_col: u16, end_col: u16) -> Result<Vec<&Cell>> {
+        self.cells.find_cells_range_cols(start_col, end_col)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn sheet() -> Sheet {
+        let mut sheet = Sheet::new("A");
+
+        for r in 1..=5 {
+            for c in 1..=5 {
+                let coord = Coordinate::new(r, c);
+                let val = format!("Yop! {}:{}", r, c);
+
+                sheet.write_cell(coord, &val);
+            }
+        }
+
+        sheet
+    }
 
     #[test]
     fn new_sheet() {
@@ -224,5 +294,124 @@ mod tests {
         sheet.delete_cols(2, 4);
 
         assert_eq!(sheet.get_cell_collection().len(), 5);
+    }
+
+    #[test]
+    pub fn find_cell_by_regex() {
+        let sheet = sheet();
+        let regex = "Yop! 3:3";
+
+        let cell = sheet.cells.find_cell_by_regex(regex).unwrap();
+
+        assert!(cell.is_some());
+        assert_eq!(cell.unwrap().get_value(), "Yop! 3:3");
+    }
+
+    #[test]
+    pub fn find_cell_by_letter() {
+        let sheet = sheet();
+        let letter = "C1";
+
+        let cell = sheet.cells.find_cell_by_letter(letter).unwrap();
+
+        assert!(cell.is_some());
+        assert_eq!(cell.unwrap().get_value(), "Yop! 1:3");
+    }
+
+    #[test]
+    pub fn find_cells_by_regex() {
+        let sheet = sheet();
+        let regex = "Yop! 2:2";
+
+        let cells = sheet.cells.find_cells_by_regex(regex).unwrap();
+
+        assert_eq!(cells.len(), 1);
+    }
+
+    #[test]
+    pub fn find_cells_for_rows_by_regex() {
+        let sheet = sheet();
+        let regex = "Yop!";
+        let col_stop = 2;
+
+        let cells = sheet
+            .cells
+            .find_cells_for_rows_by_regex(regex, col_stop)
+            .unwrap();
+
+        assert_eq!(cells.len(), 10);
+    }
+
+    #[test]
+    pub fn find_cells_for_cols_by_regex() {
+        let sheet = sheet();
+        let regex = "Yop!";
+        let row_stop = 2;
+
+        let cells = sheet
+            .cells
+            .find_cells_for_cols_by_regex(regex, row_stop)
+            .unwrap();
+
+        assert_eq!(cells.len(), 10);
+    }
+
+    #[test]
+    pub fn find_cells_multi_regex() {
+        let sheet = sheet();
+
+        let before_regex = "Yop! 1:1";
+        let after_regex = "Yop! 5:5";
+
+        let cells = sheet
+            .cells
+            .find_cells_multi_regex(before_regex, after_regex)
+            .unwrap();
+
+        assert_eq!(cells.len(), 2);
+    }
+
+    #[test]
+    pub fn find_cells_between_regex() {
+        let sheet = sheet();
+
+        let before_regex = "Yop! 1:5";
+        let after_regex = "Yop! 2:5";
+
+        let cells = sheet
+            .cells
+            .find_cells_between_regex(before_regex, after_regex)
+            .unwrap();
+
+        assert_eq!(cells.len(), 10);
+    }
+
+    #[test]
+    pub fn find_cells_range_rows() {
+        let sheet = sheet();
+        let start_row = 1;
+        let end_row = 2;
+
+        let cells = sheet
+            .cells
+            .find_cells_range_rows(start_row, end_row)
+            .unwrap();
+
+        assert_eq!(cells.len(), 10);
+    }
+
+    #[test]
+    pub fn find_cells_range_cols() {
+        let sheet = sheet();
+
+        let start_col = 1;
+        let end_col = 2;
+
+        let cells = sheet
+            .cells
+            .find_cells_range_cols(start_col, end_col)
+            .unwrap();
+
+        assert_eq!(cells.len(), 10);
     }
 }

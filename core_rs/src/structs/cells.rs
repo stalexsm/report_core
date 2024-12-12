@@ -1,9 +1,14 @@
+use anyhow::Result;
+use fancy_regex::Regex;
 use rayon::{
     iter::{IntoParallelRefIterator, IntoParallelRefMutIterator, ParallelIterator},
     slice::ParallelSliceMut,
 };
 use serde::Serialize;
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    sync::atomic::{AtomicBool, Ordering},
+};
 
 use crate::{datatype::CellValue, MAX_COL, MAX_ROW};
 
@@ -45,6 +50,16 @@ impl Cells {
         self.map.get(&(row, column))
     }
 
+    /// Метод для получения мутабельной ячейки по координатам
+    #[inline]
+    pub fn get_cell_mut<T>(&mut self, coordinate: T) -> Option<&mut Cell>
+    where
+        T: Into<Coordinate>,
+    {
+        let Coordinate { row, column } = coordinate.into();
+        self.map.get_mut(&(row, column))
+    }
+
     #[inline]
     pub fn get_cell_by_letter(&self, letter: &str) -> Option<&Cell> {
         let Coordinate { row, column } = Coordinate::from(letter);
@@ -56,16 +71,6 @@ impl Cells {
     pub fn get_cell_by_letter_mut(&mut self, letter: &str) -> Option<&mut Cell> {
         let Coordinate { row, column } = Coordinate::from(letter);
 
-        self.map.get_mut(&(row, column))
-    }
-
-    /// Метод для получения мутабельной ячейки по координатам
-    #[inline]
-    pub fn get_cell_mut<T>(&mut self, coordinate: T) -> Option<&mut Cell>
-    where
-        T: Into<Coordinate>,
-    {
-        let Coordinate { row, column } = coordinate.into();
         self.map.get_mut(&(row, column))
     }
 
@@ -208,5 +213,205 @@ impl Cells {
                 });
             }
         }
+    }
+
+    #[inline]
+    pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Cell>> {
+        let cells = self.get_collection_sorted();
+
+        let re = Regex::new(regex)?;
+        Ok(cells.par_iter().find_map_first(|cell| {
+            if re.is_match(&cell.get_value()).unwrap_or(false) {
+                Some(*cell)
+            } else {
+                None
+            }
+        }))
+    }
+
+    #[inline]
+    pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Cell>> {
+        let cells = self.get_collection_sorted();
+        let letter_coord = &Coordinate::from(letter);
+
+        Ok(cells.par_iter().find_map_first(|cell| {
+            let coord = cell.get_coordinate();
+            if coord == letter_coord {
+                Some(*cell)
+            } else {
+                None
+            }
+        }))
+    }
+
+    #[inline]
+    pub fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Cell>> {
+        let cells = self.get_collection_sorted();
+
+        let re = Regex::new(regex)?;
+        Ok(cells
+            .par_iter()
+            .filter_map(|cell| {
+                if re.is_match(&cell.get_value()).unwrap_or(false) {
+                    Some(*cell)
+                } else {
+                    None
+                }
+            })
+            .collect())
+    }
+
+    #[inline]
+    pub fn find_cells_for_rows_by_regex(&self, regex: &str, col_stop: u16) -> Result<Vec<&Cell>> {
+        let cells = self.get_collection_sorted();
+
+        let re = Regex::new(regex)?;
+        Ok(cells
+            .par_iter()
+            .filter_map(|cell| {
+                if re.is_match(&cell.get_value()).unwrap_or(false) {
+                    if cell.get_coordinate().column <= col_stop {
+                        Some(*cell)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect())
+    }
+
+    #[inline]
+    pub fn find_cells_for_cols_by_regex(&self, regex: &str, row_stop: u32) -> Result<Vec<&Cell>> {
+        let cells = self.get_collection_sorted();
+
+        let re = Regex::new(regex)?;
+        Ok(cells
+            .par_iter()
+            .filter_map(|cell| {
+                if re.is_match(&cell.get_value()).unwrap_or(false) {
+                    if cell.get_coordinate().row <= row_stop {
+                        Some(*cell)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect())
+    }
+
+    #[inline]
+    pub fn find_cells_multi_regex(
+        &self,
+        before_regex: &str,
+        after_regex: &str,
+    ) -> Result<Vec<&Cell>> {
+        let cells = self.get_collection_sorted();
+
+        let before_regex = Regex::new(before_regex)?;
+        let after_regex = Regex::new(after_regex)?;
+
+        let b = AtomicBool::new(false);
+        Ok(cells
+            .par_iter()
+            .filter_map(|cell| {
+                let v = cell.get_value();
+                let bval = b.load(Ordering::Relaxed);
+                if ((before_regex.is_match(&v).unwrap_or(false)) && !bval)
+                    || ((after_regex.is_match(&v).unwrap_or(false)) && bval)
+                {
+                    b.store(!bval, Ordering::Relaxed);
+                    Some(*cell)
+                } else {
+                    None
+                }
+            })
+            .collect())
+    }
+
+    #[inline]
+    pub fn find_cells_between_regex(
+        &self,
+        before_regex: &str,
+        after_regex: &str,
+    ) -> Result<Vec<&Cell>> {
+        let cells = self.get_collection_sorted();
+
+        let before_regex = Regex::new(before_regex)?;
+        let after_regex = Regex::new(after_regex)?;
+
+        let b = AtomicBool::new(false);
+        let rows_idx = cells
+            .par_iter()
+            .filter_map(|cell| {
+                let v = cell.get_value();
+                let bval = b.load(Ordering::Relaxed);
+                if ((before_regex.is_match(&v).unwrap_or(false)) && !bval)
+                    || ((after_regex.is_match(&v).unwrap_or(false)) && bval)
+                {
+                    b.store(!bval, Ordering::Relaxed);
+                    Some(cell.get_coordinate().row)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        Ok(cells
+            .par_iter()
+            .filter_map(|cell| {
+                let row = cell.get_coordinate().row;
+                if rows_idx.len() >= 2 {
+                    if row >= rows_idx[0] && row <= rows_idx[1] {
+                        Some(*cell)
+                    } else {
+                        None
+                    }
+                } else if rows_idx.len() == 1 {
+                    if row >= rows_idx[0] {
+                        Some(*cell)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            })
+            .collect())
+    }
+
+    pub fn find_cells_range_rows(&self, start_row: u32, end_row: u32) -> Result<Vec<&Cell>> {
+        let cells = self.get_collection_sorted();
+
+        Ok(cells
+            .par_iter()
+            .filter_map(|cell| {
+                let coord = cell.get_coordinate();
+                if coord.row >= start_row && coord.row <= end_row {
+                    Some(*cell)
+                } else {
+                    None
+                }
+            })
+            .collect())
+    }
+
+    pub fn find_cells_range_cols(&self, start_col: u16, end_col: u16) -> Result<Vec<&Cell>> {
+        let cells = self.get_collection_sorted();
+
+        Ok(cells
+            .par_iter()
+            .filter_map(|cell| {
+                let coord = cell.get_coordinate();
+                if coord.column >= start_col && coord.column <= end_col {
+                    Some(*cell)
+                } else {
+                    None
+                }
+            })
+            .collect())
     }
 }
