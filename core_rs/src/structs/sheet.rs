@@ -424,4 +424,25 @@ mod tests {
 
         assert_eq!(cells.len(), 10);
     }
+
+    #[test]
+    pub fn add_merge_range() {
+        let mut sheet = sheet();
+
+        let range = Range::new(1, 2, 1, 2);
+        sheet.add_merge_range(range);
+
+        let range = sheet.get_merge_cell_collection();
+
+        assert_eq!(range.len(), 1);
+    }
+
+    #[test]
+    pub fn get_merge_cell_collection() {
+        let sheet = sheet();
+
+        let range = sheet.get_merge_cell_collection();
+
+        assert_eq!(range.len(), 0);
+    }
 }
