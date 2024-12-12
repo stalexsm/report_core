@@ -1,6 +1,7 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::{bail, Result};
+use parking_lot::RwLock;
 use serde::Serialize;
 use serde_json::Value;
 
@@ -8,7 +9,7 @@ use super::sheet::Sheet;
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct Book {
-    sheets: Vec<Sheet>,
+    sheets: Vec<Arc<RwLock<Sheet>>>,
 }
 
 impl Book {
@@ -17,40 +18,26 @@ impl Book {
     }
 
     #[inline]
-    pub fn add_sheet(&mut self, sheet: Sheet) -> &mut Self {
-        self.sheets.push(sheet);
+    pub fn add_sheet(&mut self, name: &str) -> Arc<RwLock<Sheet>> {
+        let sheet = Arc::new(RwLock::new(Sheet::new(name)));
+        self.sheets.push(Arc::clone(&sheet));
 
-        self
+        sheet
     }
 
     #[inline]
-    pub fn get_sheet_name(&self, name: &str) -> Option<&Sheet> {
-        self.sheets.iter().find(|sheet| sheet.name == name)
+    pub fn get_sheet_name(&self, name: &str) -> Option<&Arc<RwLock<Sheet>>> {
+        self.sheets.iter().find(|sheet| sheet.read().name == name)
     }
 
     #[inline]
-    pub fn get_sheet_name_mut(&mut self, name: &str) -> Option<&mut Sheet> {
-        self.sheets.iter_mut().find(|sheet| sheet.name == name)
-    }
-
-    #[inline]
-    pub fn get_sheet_index(&self, idx: i32) -> Option<&Sheet> {
+    pub fn get_sheet_index(&self, idx: i32) -> Option<&Arc<RwLock<Sheet>>> {
         self.sheets.get(idx as usize)
     }
 
     #[inline]
-    pub fn get_sheet_index_mut(&mut self, idx: i32) -> Option<&mut Sheet> {
-        self.sheets.get_mut(idx as usize)
-    }
-
-    #[inline]
-    pub fn get_sheet_collection(&self) -> &[Sheet] {
+    pub fn get_sheet_collection(&self) -> &[Arc<RwLock<Sheet>>] {
         &self.sheets
-    }
-
-    #[inline]
-    pub fn get_sheet_collection_mut(&mut self) -> &mut [Sheet] {
-        &mut self.sheets
     }
 
     #[inline]
@@ -77,7 +64,7 @@ mod tests {
 
     fn test_book() -> Book {
         let mut book = Book::new();
-        book.add_sheet(Sheet::new("ЦП"));
+        book.add_sheet("ЦП");
 
         book
     }
@@ -92,7 +79,7 @@ mod tests {
     #[test]
     fn test_add_sheet() {
         let mut book = Book::new();
-        book.add_sheet(Sheet::new("ЦП"));
+        book.add_sheet("ЦП");
 
         assert_eq!(book.sheets.len(), 1);
     }
@@ -101,28 +88,14 @@ mod tests {
     fn test_get_sheet_name() {
         let book = test_book();
 
-        assert_eq!(book.get_sheet_name("ЦП").unwrap().name, "ЦП");
-    }
-
-    #[test]
-    fn test_get_sheet_name_mut() {
-        let mut book = test_book();
-
-        assert_eq!(book.get_sheet_name_mut("ЦП").unwrap().name, "ЦП");
+        assert_eq!(book.get_sheet_name("ЦП").unwrap().read().name, "ЦП");
     }
 
     #[test]
     fn test_get_sheet_index() {
         let book = test_book();
 
-        assert_eq!(book.get_sheet_index(0).unwrap().name, "ЦП");
-    }
-
-    #[test]
-    fn test_get_sheet_index_mut() {
-        let mut book = test_book();
-
-        assert_eq!(book.get_sheet_index_mut(0).unwrap().name, "ЦП");
+        assert_eq!(book.get_sheet_index(0).unwrap().read().name, "ЦП");
     }
 
     #[test]
@@ -130,13 +103,6 @@ mod tests {
         let book = test_book();
 
         assert_eq!(book.get_sheet_collection().len(), 1);
-    }
-
-    #[test]
-    fn test_get_sheet_collection_mut() {
-        let mut book = test_book();
-
-        assert_eq!(book.get_sheet_collection_mut().len(), 1);
     }
 
     #[test]

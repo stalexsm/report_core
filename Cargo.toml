@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["core_rs"]
+members = ["core_rs", "core_py"]
 
 
 [workspace.package]
@@ -18,9 +18,9 @@ repository = "https://github.com/stalexsm/report_core.git"
 anyhow = "1.0.94"
 chrono = { version = "0.4.38", features = ["serde"] }
 fancy-regex = "0.14.0"
-serde = { version = "1.0.215", features = ["derive"] }
+serde = { version = "1.0.215", features = ["derive", "rc"] }
 serde_json = "1.0.133"
-serde_with = "3.11.0"
+serde_with = { version = "3.11.0", features = ["json", "schemars_0_8"] }
 rayon = "1.10.0"
 parking_lot = { version = "0.12.3", features = ["serde"] }
 lazy_static = "1.5.0"

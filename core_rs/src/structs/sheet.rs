@@ -1,4 +1,7 @@
+use std::sync::Arc;
+
 use anyhow::Result;
+use parking_lot::RwLock;
 use serde::Serialize;
 
 use super::{
@@ -22,29 +25,21 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn get_cell_collection(&self) -> Vec<&Cell> {
+    pub fn get_cell_collection(&self) -> Vec<&Arc<RwLock<Cell>>> {
         self.cells.get_collection()
     }
 
     #[inline]
-    pub fn get_cell_collection_sorted(&self) -> Vec<&Cell> {
+    pub fn get_cell_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>> {
         self.cells.get_collection_sorted()
     }
 
     #[inline]
-    pub fn get_cell<T>(&self, coordinate: T) -> Option<&Cell>
+    pub fn get_cell<T>(&self, coordinate: T) -> Option<&Arc<RwLock<Cell>>>
     where
         T: Into<Coordinate>,
     {
         self.cells.get_cell(coordinate)
-    }
-
-    #[inline]
-    pub fn get_cell_mut<T>(&mut self, coordinate: T) -> Option<&mut Cell>
-    where
-        T: Into<Coordinate>,
-    {
-        self.cells.get_cell_mut(coordinate)
     }
 
     #[inline]
@@ -56,16 +51,11 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn get_cell_collection_by_range(&self, range: &Range) -> impl Iterator<Item = &Cell> {
-        self.cells.get_cell_collection_by_range(range)
-    }
-
-    #[inline]
-    pub fn get_cell_collection_by_range_mut(
-        &mut self,
+    pub fn get_cell_collection_by_range(
+        &self,
         range: &Range,
-    ) -> impl Iterator<Item = &mut Cell> {
-        self.cells.get_cell_collection_by_range_mut(range)
+    ) -> impl Iterator<Item = &Arc<RwLock<Cell>>> {
+        self.cells.get_cell_collection_by_range(range)
     }
 
     #[inline]
@@ -79,7 +69,7 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn write_cell(&mut self, coordinate: Coordinate, value: &str) -> &mut Cell {
+    pub fn write_cell(&mut self, coordinate: Coordinate, value: &str) -> &Arc<RwLock<Cell>> {
         self.cells.write_cell(coordinate, value)
     }
 
@@ -94,27 +84,35 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Cell>> {
+    pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         self.cells.find_cell_by_regex(regex)
     }
 
     #[inline]
-    pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Cell>> {
+    pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         self.cells.find_cell_by_letter(letter)
     }
 
     #[inline]
-    pub fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Cell>> {
+    pub fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells.find_cells_by_regex(regex)
     }
 
     #[inline]
-    pub fn find_cells_for_rows_by_regex(&self, regex: &str, col_stop: u16) -> Result<Vec<&Cell>> {
+    pub fn find_cells_for_rows_by_regex(
+        &self,
+        regex: &str,
+        col_stop: u16,
+    ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells.find_cells_for_rows_by_regex(regex, col_stop)
     }
 
     #[inline]
-    pub fn find_cells_for_cols_by_regex(&self, regex: &str, row_stop: u32) -> Result<Vec<&Cell>> {
+    pub fn find_cells_for_cols_by_regex(
+        &self,
+        regex: &str,
+        row_stop: u32,
+    ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells.find_cells_for_cols_by_regex(regex, row_stop)
     }
 
@@ -123,7 +121,7 @@ impl Sheet {
         &self,
         before_regex: &str,
         after_regex: &str,
-    ) -> Result<Vec<&Cell>> {
+    ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells.find_cells_multi_regex(before_regex, after_regex)
     }
 
@@ -132,18 +130,26 @@ impl Sheet {
         &self,
         before_regex: &str,
         after_regex: &str,
-    ) -> Result<Vec<&Cell>> {
+    ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells
             .find_cells_between_regex(before_regex, after_regex)
     }
 
     #[inline]
-    pub fn find_cells_range_rows(&self, start_row: u32, end_row: u32) -> Result<Vec<&Cell>> {
+    pub fn find_cells_range_rows(
+        &self,
+        start_row: u32,
+        end_row: u32,
+    ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells.find_cells_range_rows(start_row, end_row)
     }
 
     #[inline]
-    pub fn find_cells_range_cols(&self, start_col: u16, end_col: u16) -> Result<Vec<&Cell>> {
+    pub fn find_cells_range_cols(
+        &self,
+        start_col: u16,
+        end_col: u16,
+    ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells.find_cells_range_cols(start_col, end_col)
     }
 }
@@ -209,16 +215,6 @@ mod tests {
     }
 
     #[test]
-    fn get_cell_mut() {
-        let mut sheet = Sheet::new("A");
-        let coord = Coordinate::new(1, 1);
-
-        sheet.write_cell(coord.clone(), "Привет, мир!");
-
-        assert!(sheet.get_cell_mut(coord).is_some());
-    }
-
-    #[test]
     fn get_cell_value() {
         let mut sheet = Sheet::new("A");
         let coord = Coordinate::new(1, 1);
@@ -244,27 +240,6 @@ mod tests {
         assert_eq!(
             sheet
                 .get_cell_collection_by_range(&Range::new(1, 2, 1, 2))
-                .count(),
-            4
-        );
-    }
-
-    #[test]
-    fn get_cell_collection_by_range_mut() {
-        let mut sheet = Sheet::new("A");
-
-        for r in 1..=5 {
-            for c in 1..=5 {
-                let coord = Coordinate::new(r, c);
-                let val = format!("Привет, мир! {}:{}", r, c);
-
-                sheet.write_cell(coord, &val);
-            }
-        }
-
-        assert_eq!(
-            sheet
-                .get_cell_collection_by_range_mut(&Range::new(1, 2, 1, 2))
                 .count(),
             4
         );
@@ -314,7 +289,7 @@ mod tests {
         let cell = sheet.cells.find_cell_by_regex(regex).unwrap();
 
         assert!(cell.is_some());
-        assert_eq!(cell.unwrap().get_value(), "Yop! 3:3");
+        assert_eq!(cell.unwrap().read().get_value(), "Yop! 3:3");
     }
 
     #[test]
@@ -325,7 +300,7 @@ mod tests {
         let cell = sheet.cells.find_cell_by_letter(letter).unwrap();
 
         assert!(cell.is_some());
-        assert_eq!(cell.unwrap().get_value(), "Yop! 1:3");
+        assert_eq!(cell.unwrap().read().get_value(), "Yop! 1:3");
     }
 
     #[test]
