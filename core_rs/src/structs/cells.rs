@@ -343,16 +343,15 @@ impl Cells {
         let before_regex = Regex::new(before_regex)?;
         let after_regex = Regex::new(after_regex)?;
 
-        let b = AtomicBool::new(false);
+        let mut b = false;
         let rows_idx = cells
-            .par_iter()
+            .iter()
             .filter_map(|cell| {
                 let v = cell.get_value();
-                let bval = b.load(Ordering::Relaxed);
-                if ((before_regex.is_match(&v).unwrap_or(false)) && !bval)
-                    || ((after_regex.is_match(&v).unwrap_or(false)) && bval)
+                if ((before_regex.is_match(&v).unwrap_or(false)) && !b)
+                    || ((after_regex.is_match(&v).unwrap_or(false)) && b)
                 {
-                    b.store(!bval, Ordering::Relaxed);
+                    b = !b;
                     Some(cell.get_coordinate().row)
                 } else {
                     None
