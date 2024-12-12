@@ -69,6 +69,16 @@ impl Sheet {
     }
 
     #[inline]
+    pub fn get_merge_cell_collection(&self) -> &[Range] {
+        &self.merge_cells.get_collection()
+    }
+
+    #[inline]
+    pub fn add_merge_range(&mut self, range: Range) {
+        self.merge_cells.add_range(range);
+    }
+
+    #[inline]
     pub fn write_cell(&mut self, coordinate: Coordinate, value: &str) -> &mut Cell {
         self.cells.write_cell(coordinate, value)
     }
