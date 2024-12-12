@@ -31,7 +31,7 @@ impl CellRawValue {
 
     /// Метод для получения данных тип String.
     #[inline]
-    pub(crate) fn get_value_str(&self) -> String {
+    pub(crate) fn _get_value_str(&self) -> String {
         match &self {
             Self::String(_)
             | Self::Numeric(_)
@@ -70,7 +70,7 @@ impl CellValue {
 
     #[inline]
     pub fn get_value(&self) -> String {
-        self.raw_value.to_string().into()
+        self.raw_value.to_string()
     }
 
     #[inline]

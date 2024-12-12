@@ -35,12 +35,12 @@ impl Book {
 
     #[inline]
     pub fn get_sheet_index(&self, idx: i32) -> Option<&Sheet> {
-        self.sheets.iter().nth(idx as usize)
+        self.sheets.get(idx as usize)
     }
 
     #[inline]
     pub fn get_sheet_index_mut(&mut self, idx: i32) -> Option<&mut Sheet> {
-        self.sheets.iter_mut().nth(idx as usize)
+        self.sheets.get_mut(idx as usize)
     }
 
     #[inline]

@@ -1,5 +1,3 @@
-use std::iter::successors;
-
 use crate::structs::coordinate::CellIndex;
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
@@ -14,7 +12,7 @@ use lazy_static::lazy_static;
 ///    - Преобразует остаток в соответствующую букву и добавляет её к результату.
 ///    - Делит номер колонки на 26 для перехода к следующей "цифре" в системе счисления с основанием 26.
 /// 4. Переворачивает полученную строку, так как буквы были добавлены в обратном порядке.
-pub fn column_number_to_letter(mut column: u16) -> String {
+pub fn index_to_alpha(mut column: u16) -> String {
     let mut result = String::new();
 
     while column > 0 {
@@ -30,32 +28,15 @@ pub fn column_number_to_letter(mut column: u16) -> String {
 
 /// Получение координат ячейки в стиле A1
 pub fn get_letter_coordinate(row: u32, col: u16) -> String {
-    format!("{}{}", column_number_to_letter(col), row)
+    format!("{}{}", index_to_alpha(col), row)
 }
 
 /// Определение формата по типу
-pub(crate) fn get_number_format_by_datatype(data_type: &str) -> String {
+pub(crate) fn _get_number_format_by_datatype(data_type: &str) -> String {
     match data_type {
         "d" => "mm-dd-yy".to_string(),
         _ => "General".to_string(),
     }
-}
-
-fn index_to_alpha(index: u32) -> String {
-    assert!(index >= 1, "Index cannot be less than one.");
-
-    const BASE_CHAR_CODE: u32 = 'A' as u32;
-    // below code is based on the source code of `radix_fmt`
-    successors(Some(index - 1), |index| match index / 26u32 {
-        0 => None,
-        n => Some(n - 1),
-    })
-    .map(|v| BASE_CHAR_CODE + (v % 26))
-    .collect::<Vec<u32>>()
-    .into_iter()
-    .rev()
-    .map(|v| char::from_u32(v).unwrap())
-    .collect()
 }
 
 fn alpha_to_index<S>(alpha: S) -> u32

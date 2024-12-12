@@ -70,7 +70,7 @@ impl Sheet {
 
     #[inline]
     pub fn get_merge_cell_collection(&self) -> &[Range] {
-        &self.merge_cells.get_collection()
+        self.merge_cells.get_collection()
     }
 
     #[inline]
