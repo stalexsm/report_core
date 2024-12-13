@@ -262,4 +262,30 @@ impl WrapperHelperSheetCell {
             }
         })
     }
+
+    #[staticmethod]
+    pub fn find_cells_by_range_rows(
+        start_row: u32,
+        end_row: u32,
+        cells: Vec<WrapperXLSXSheetCellRead>,
+    ) -> PyResult<Vec<WrapperXLSXSheetCellRead>> {
+        let cells = cells.into_iter().map(|item| item.0).collect();
+
+        HelperCell::find_cells_by_range_rows(start_row, end_row, cells)
+            .map(|c| c.into_iter().map(WrapperXLSXSheetCellRead).collect())
+            .map_err(|e| PyRuntimeError::new_err(format!("{}", e)))
+    }
+
+    #[staticmethod]
+    pub fn find_cells_by_range_cols(
+        start_col: u16,
+        end_col: u16,
+        cells: Vec<WrapperXLSXSheetCellRead>,
+    ) -> PyResult<Vec<WrapperXLSXSheetCellRead>> {
+        let cells = cells.into_iter().map(|item| item.0).collect();
+
+        HelperCell::find_cells_by_range_cols(start_col, end_col, cells)
+            .map(|c| c.into_iter().map(WrapperXLSXSheetCellRead).collect())
+            .map_err(|e| PyRuntimeError::new_err(format!("{}", e)))
+    }
 }

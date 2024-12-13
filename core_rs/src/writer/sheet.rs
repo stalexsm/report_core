@@ -5,7 +5,7 @@ use serde::Serialize;
 use std::{collections::HashMap, sync::Arc};
 
 use super::{cell::XLSXSheetCell, MAX_COL, MAX_ROW};
-use crate::utils;
+use crate::{datatype::CellValue, utils};
 
 #[derive(Clone, Debug, Default)]
 pub struct XLSXSheet {
@@ -125,6 +125,15 @@ impl XLSXSheet {
     ) -> Result<Option<Arc<Mutex<XLSXSheetCell>>>> {
         let cell = self._cells.get(&(row, col));
         Ok(cell.cloned())
+    }
+
+    pub fn find_value_by_coords(&self, row: u32, col: u16) -> Result<Option<CellValue>> {
+        let cell = self._cells.get(&(row, col));
+
+        match cell {
+            Some(cell) => Ok(Some(cell.lock().value.as_ref().clone())),
+            None => Ok(None),
+        }
     }
 
     pub fn find_cell_by_cell(&self, cell: &str) -> Result<Option<Arc<Mutex<XLSXSheetCell>>>> {

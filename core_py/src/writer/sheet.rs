@@ -3,6 +3,8 @@ use parking_lot::Mutex;
 use pyo3::{exceptions::PyRuntimeError, prelude::*};
 use std::sync::Arc;
 
+use crate::utils::raw_value_to_py;
+
 use super::cell::WrapperXLSXSheetCell;
 
 #[pyclass]
@@ -169,6 +171,18 @@ impl WrapperXLSXSheet {
                 .find_cell_by_coords(row, col)
                 .map(|cell| cell.map(WrapperXLSXSheetCell))
                 .map_err(|e| PyRuntimeError::new_err(format!("{}", e)))
+        })
+    }
+
+    /// Поиск значенияячейки по координате
+    pub fn find_value_by_coords(&self, row: u32, col: u16) -> PyResult<PyObject> {
+        Python::with_gil(|py| match self.0.lock().find_value_by_coords(row, col) {
+            Ok(Some(value)) => {
+                let value = raw_value_to_py(py, &value.raw_value)?;
+                Ok(value)
+            }
+            Ok(None) => Ok(py.None()),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
         })
     }
 }

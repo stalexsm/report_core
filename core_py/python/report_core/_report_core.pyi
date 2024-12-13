@@ -160,6 +160,24 @@ class XLSXSheet:
         """
 
     @final
+    def find_value_by_coords(self, row: int, col: int) -> Any:
+        """
+        Функция для значения ячейки по координатам.
+        ---------------------------------
+
+        Arguments:
+        ---------
+            row: int
+                Номер строки
+            col: int
+                Номер колонки
+        Returns:
+        --------
+            Any
+
+        """
+
+    @final
     def write_cell(self, row: int, col: int, value: str) -> XLSXSheetCell:
         """
         Добавление ячейки в лист с заданным значением
