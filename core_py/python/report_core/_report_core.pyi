@@ -8,10 +8,10 @@ class Book:
     def __init__(self) -> None:
         """
         Инициализация Книги
-        --------------------
+        ----
 
         Example:
-        --------
+        ---
         .. code-block:: python3
 
             book = Book()
@@ -21,29 +21,29 @@ class Book:
     def add_sheet(self, name: str) -> Sheet:
         """
         Добавление листа в книгу
-        ------------------------
+        ---
 
         Arguments:
-        ---------
+        ---
             name: str
                 Имя листа
         Returns:
-        --------
+        ---
             Sheet
         """
 
     def get_sheet_index(self, idx: int) -> Sheet | None:
         """
         Получение листа по индексу
-        --------------------------
+        ---
 
         Arguments:
-        ---------
+        ---
             idx: int
                 Индекс листа
 
         Returns:
-        --------
+        ---
             Sheet | None
 
         """
@@ -51,25 +51,25 @@ class Book:
     def get_sheet_name(self, name: str) -> Sheet | None:
         """
         Получение листа по названию
-        ---------------------------
+        ---
 
         Arguments:
-        ---------
+        ---
             name: str
                 Имя листа
 
         Returns:
-        --------
+        ---
             Sheet | None
         """
 
     def to_json(self) -> str:
         """
         Преобразование книги в json
-        ---------------------------
+        ---
 
         Returns:
-        --------
+        ---
             str
         """
 
@@ -103,6 +103,28 @@ class Sheet:
                 Начальная колонка
             end_col: int
                 Конечная колонка
+        """
+
+    @property
+    def max_row(self) -> int:
+        """
+        Получение максимальной строки в книге
+        ---
+
+        Returns:
+        ---
+            int
+        """
+
+    @property
+    def max_column(self) -> int:
+        """
+        Получение максимальной колонки в книге
+        ---
+
+        Returns:
+        ---
+            int
         """
 
     @final

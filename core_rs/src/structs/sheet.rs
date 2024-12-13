@@ -39,6 +39,16 @@ impl Sheet {
     }
 
     #[inline]
+    pub fn get_max_row(&self) -> u32 {
+        self.cells.get_max_row()
+    }
+
+    #[inline]
+    pub fn get_max_column(&self) -> u16 {
+        self.cells.get_max_column()
+    }
+
+    #[inline]
     pub fn get_cell_value<T>(&self, coordinate: T) -> String
     where
         T: Into<Coordinate>,
@@ -178,6 +188,20 @@ mod tests {
         let sheet = Sheet::new("test");
 
         assert_eq!(sheet.name, "test");
+    }
+
+    #[test]
+    fn max_row() {
+        let sheet = sheet();
+
+        assert_eq!(sheet.get_max_row(), 5);
+    }
+
+    #[test]
+    fn max_column() {
+        let sheet = sheet();
+
+        assert_eq!(sheet.get_max_column(), 5);
     }
 
     #[test]

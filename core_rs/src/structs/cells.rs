@@ -64,6 +64,24 @@ impl Cells {
     }
 
     #[inline]
+    pub fn get_max_row(&self) -> u32 {
+        self.map
+            .values()
+            .map(|cell| cell.read().get_coordinate().row)
+            .max()
+            .unwrap_or(0)
+    }
+
+    #[inline]
+    pub fn get_max_column(&self) -> u16 {
+        self.map
+            .values()
+            .map(|cell| cell.read().get_coordinate().column)
+            .max()
+            .unwrap_or(0)
+    }
+
+    #[inline]
     pub fn get_cell_by_letter(&self, letter: &str) -> Option<&Arc<RwLock<Cell>>> {
         let Coordinate { row, column } = Coordinate::from(letter);
 

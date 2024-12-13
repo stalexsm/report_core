@@ -48,6 +48,24 @@ impl WrapperSheet {
     }
 
     #[getter]
+    pub fn get_max_row(&self) -> PyResult<u32> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            Ok(slf.get_max_row())
+        })
+    }
+
+    #[getter]
+    pub fn get_max_column(&self) -> PyResult<u16> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            Ok(slf.get_max_column())
+        })
+    }
+
+    #[getter]
     pub fn get_cells(&self) -> PyResult<Vec<WrapperCell>> {
         Python::with_gil(|_py| {
             let slf = self.0.read();
