@@ -2,6 +2,7 @@ use serde::Serialize;
 
 #[derive(Default, Debug, Clone, Serialize)]
 pub struct Style {
+    #[serde(rename = "style")]
     style_id: String,
 }
 

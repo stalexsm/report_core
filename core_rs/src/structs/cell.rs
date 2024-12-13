@@ -13,7 +13,7 @@ pub struct Cell {
     #[serde(skip_serializing_if = "Option::is_none")]
     formula: Option<String>,
     data_type: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(flatten)]
     style: Option<Style>,
     #[serde(skip_serializing_if = "Option::is_none")]
     hidden_value: Option<String>,
