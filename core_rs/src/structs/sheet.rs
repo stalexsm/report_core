@@ -15,6 +15,7 @@ pub struct Sheet {
     merge_cells: MergeCells,
     #[serde(flatten)]
     cells: Cells,
+    sheet_state: Box<str>,
 }
 
 impl Sheet {
@@ -22,6 +23,7 @@ impl Sheet {
     pub fn new(name: &str) -> Self {
         Sheet {
             name: name.to_string(),
+            sheet_state: "visible".into(),
             ..Default::default()
         }
     }

@@ -8,7 +8,7 @@ use rayon::{
 use serde::Serialize;
 use std::{collections::HashMap, sync::Arc};
 
-use super::{cell::Cell, coordinate::Coordinate, range::Range};
+use super::{cell::Cell, coordinate::Coordinate};
 use crate::{datatype::CellValue, MAX_COL, MAX_ROW};
 
 #[derive(Clone, Default, Debug, Serialize)]
