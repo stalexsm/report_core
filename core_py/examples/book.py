@@ -1,4 +1,5 @@
 from report_core import XLSXBook
+import time
 
 
 def main():
@@ -6,24 +7,17 @@ def main():
     sheet = book.add_sheet("Sheet1")
     print(sheet)
 
-    sheet.name = "A"
+    start_time = time.time()
 
-    sheet = book.get_sheet_index(0)
-    print(sheet)
-
-    print(book)
-
-    for sheet_ in book.sheets:
-        sheet_.name = "B"
+    for r in range(1, 11):
+        for c in range(1, 11):
+            sheet.cell(r, c, f"Dynamic value: r{r}:c{c}")
 
     print(sheet)
-
-    print(sheet.cells)
-
-    sheet.add_merge_cells(1, 2, 1, 2)
-    print(sheet.merge_cells)
 
     print(book.to_json())
+
+    print(f"Выполнено за: {time.time() - start_time:.3f} сек.")
 
 
 if __name__ == "__main__":

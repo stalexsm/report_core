@@ -42,10 +42,11 @@ impl Book {
 
     #[inline]
     pub fn to_json(&self) -> Result<String> {
-        if let Ok(j) = serde_json::to_string(self) {
-            Ok(j)
-        } else {
-            bail!("Failed to convert in JSON");
+        match serde_json::to_string(self) {
+            Ok(j) => Ok(j),
+            Err(e) => {
+                bail!("Failed to convert in JSON: {}", e);
+            }
         }
     }
 

@@ -6,11 +6,16 @@ use crate::datatype::CellValue;
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct Cell {
+    #[serde(flatten)]
     coordinate: Coordinate,
+    #[serde(flatten)]
     value: Box<CellValue>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     formula: Option<String>,
     data_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     style: Option<Style>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     hidden_value: Option<String>,
 }
 

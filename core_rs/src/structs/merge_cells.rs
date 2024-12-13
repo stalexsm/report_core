@@ -4,7 +4,7 @@ use super::range::Range;
 
 #[derive(Clone, Default, Debug, Serialize)]
 pub struct MergeCells {
-    #[serde(rename = "merge_cells")]
+    #[serde(rename = "merge_cells", skip_serializing_if = "<[_]>::is_empty")]
     range: Vec<Range>,
 }
 

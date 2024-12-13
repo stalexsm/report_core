@@ -11,8 +11,31 @@ use std::{collections::HashMap, sync::Arc};
 use super::{cell::Cell, coordinate::Coordinate};
 use crate::{datatype::CellValue, MAX_COL, MAX_ROW};
 
+/// Вспомоогательная функция для сериализации HashMap только Value, как вектор.
+fn serialize_cells_to_vec<S>(
+    map: &HashMap<(u32, u16), Arc<RwLock<Cell>>>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeSeq;
+    let mut values: Vec<_> = map.values().map(|cell| cell.read().clone()).collect();
+    values.sort_by_key(|cell| {
+        let coord = cell.get_coordinate();
+        (coord.row, coord.column)
+    });
+
+    let mut seq = serializer.serialize_seq(Some(values.len()))?;
+    for value in values {
+        seq.serialize_element(&value)?;
+    }
+    seq.end()
+}
+
 #[derive(Clone, Default, Debug, Serialize)]
 pub struct Cells {
+    #[serde(serialize_with = "serialize_cells_to_vec")]
     #[serde(rename = "cells")]
     map: HashMap<(u32, u16), Arc<RwLock<Cell>>>,
     #[serde(skip)]

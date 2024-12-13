@@ -4,6 +4,7 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(untagged)]
 pub enum CellRawValue {
     #[default]
     Empty,
@@ -59,6 +60,7 @@ impl Display for CellRawValue {
 
 #[derive(Debug, Clone, Default, Serialize)]
 pub struct CellValue {
+    #[serde(rename = "value")]
     pub raw_value: CellRawValue,
 }
 
