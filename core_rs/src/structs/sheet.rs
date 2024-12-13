@@ -39,14 +39,6 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn get_cell<T>(&self, coordinate: T) -> Option<&Arc<RwLock<Cell>>>
-    where
-        T: Into<Coordinate>,
-    {
-        self.cells.get_cell(coordinate)
-    }
-
-    #[inline]
     pub fn get_cell_value<T>(&self, coordinate: T) -> String
     where
         T: Into<Coordinate>,
@@ -77,8 +69,8 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn write_cell(&mut self, coordinate: Coordinate, value: &str) -> &Arc<RwLock<Cell>> {
-        self.cells.write_cell(coordinate, value)
+    pub fn cell(&mut self, coordinate: Coordinate, value: Option<&str>) -> &Arc<RwLock<Cell>> {
+        self.cells.cell(coordinate, value.unwrap_or(""))
     }
 
     #[inline]
@@ -174,7 +166,7 @@ mod tests {
                 let coord = Coordinate::new(r, c);
                 let val = format!("Yop! {}:{}", r, c);
 
-                sheet.write_cell(coord, &val);
+                sheet.cell(coord, Some(&val));
             }
         }
 
@@ -191,7 +183,7 @@ mod tests {
     #[test]
     fn write_cell() {
         let mut sheet = Sheet::new("A");
-        sheet.write_cell(Coordinate::new(1, 1), "Привет, мир!");
+        sheet.cell(Coordinate::new(1, 1), Some("Привет, мир!"));
 
         assert_eq!(sheet.get_cell_collection().len(), 1);
     }
@@ -199,7 +191,7 @@ mod tests {
     #[test]
     fn get_cell_collection() {
         let mut sheet = Sheet::new("A");
-        sheet.write_cell(Coordinate::new(1, 1), "Привет, мир!");
+        sheet.cell(Coordinate::new(1, 1), Some("Привет, мир!"));
 
         assert_eq!(sheet.get_cell_collection().len(), 1);
     }
@@ -207,19 +199,9 @@ mod tests {
     #[test]
     fn get_cell_collection_sorted() {
         let mut sheet = Sheet::new("A");
-        sheet.write_cell(Coordinate::new(1, 1), "Привет, мир!");
+        sheet.cell(Coordinate::new(1, 1), Some("Привет, мир!"));
 
         assert_eq!(sheet.get_cell_collection_sorted().len(), 1);
-    }
-
-    #[test]
-    fn get_cell() {
-        let mut sheet = Sheet::new("A");
-        let coord = Coordinate::new(1, 1);
-
-        sheet.write_cell(coord.clone(), "Привет, мир!");
-
-        assert!(sheet.get_cell(coord).is_some());
     }
 
     #[test]
@@ -227,7 +209,7 @@ mod tests {
         let mut sheet = Sheet::new("A");
         let coord = Coordinate::new(1, 1);
 
-        sheet.write_cell(coord.clone(), "Привет, мир!");
+        sheet.cell(coord.clone(), Some("Привет, мир!"));
 
         assert_eq!(sheet.get_cell_value(coord), "Привет, мир!");
     }
@@ -241,7 +223,7 @@ mod tests {
                 let coord = Coordinate::new(r, c);
                 let val = format!("Привет, мир! {}:{}", r, c);
 
-                sheet.write_cell(coord, &val);
+                sheet.cell(coord, Some(&val));
             }
         }
 
@@ -262,7 +244,7 @@ mod tests {
                 let coord = Coordinate::new(r, c);
                 let val = format!("Привет, мир! {}:{}", r, c);
 
-                sheet.write_cell(coord, &val);
+                sheet.cell(coord, Some(&val));
             }
         }
 
@@ -280,7 +262,7 @@ mod tests {
                 let coord = Coordinate::new(r, c);
                 let val = format!("Привет, мир! {}:{}", r, c);
 
-                sheet.write_cell(coord, &val);
+                sheet.cell(coord, Some(&val));
             }
         }
 

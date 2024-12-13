@@ -18,6 +18,8 @@ def main():
 
     print(sheet)
 
+    print(sheet.cells)
+
     sheet.add_merge_cells(1, 2, 1, 2)
     print(sheet.merge_cells)
 

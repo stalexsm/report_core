@@ -40,16 +40,6 @@ impl Cells {
         cells
     }
 
-    /// Метод для получения ячейки по координатам
-    #[inline]
-    pub fn get_cell<T>(&self, coordinate: T) -> Option<&Arc<RwLock<Cell>>>
-    where
-        T: Into<Coordinate>,
-    {
-        let Coordinate { row, column } = coordinate.into();
-        self.map.get(&(row, column))
-    }
-
     #[inline]
     pub fn get_cell_by_letter(&self, letter: &str) -> Option<&Arc<RwLock<Cell>>> {
         let Coordinate { row, column } = Coordinate::from(letter);
@@ -108,7 +98,7 @@ impl Cells {
     }
 
     #[inline]
-    pub fn write_cell<T>(&mut self, coordinate: T, value: &str) -> &Arc<RwLock<Cell>>
+    pub fn cell<T>(&mut self, coordinate: T, value: &str) -> &Arc<RwLock<Cell>>
     where
         T: Into<Coordinate>,
     {
