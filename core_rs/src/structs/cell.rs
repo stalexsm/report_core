@@ -10,7 +10,7 @@ pub struct Cell {
     value: Box<CellValue>,
     formula: Option<String>,
     data_type: String,
-    style_id: Option<Style>,
+    style: Option<Style>,
     hidden_value: Option<String>,
 }
 
@@ -43,8 +43,24 @@ impl Cell {
         self.coordinate = coordinate;
     }
 
+    #[inline]
     pub fn get_value(&self) -> String {
         self.value.get_value()
+    }
+
+    #[inline]
+    pub fn get_formula(&self) -> Option<String> {
+        self.formula.clone()
+    }
+
+    #[inline]
+    pub fn get_data_type(&self) -> String {
+        self.data_type.clone()
+    }
+
+    #[inline]
+    pub fn get_style(&self) -> Option<Style> {
+        self.style.clone()
     }
 
     #[inline]
@@ -97,7 +113,7 @@ impl Cell {
 
     #[inline]
     pub fn set_style(&mut self, value: &str) -> &mut Self {
-        self.style_id = Some(Style::new(value));
+        self.style = Some(Style::new(value));
 
         self
     }
