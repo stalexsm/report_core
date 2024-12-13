@@ -104,6 +104,15 @@ impl WrapperCell {
     }
 
     #[getter]
+    pub fn is_value_integer(&self) -> PyResult<bool> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            Ok(slf.is_value_integer())
+        })
+    }
+
+    #[getter]
     pub fn is_value_datetime(&self) -> PyResult<bool> {
         Python::with_gil(|_py| {
             let slf = self.0.read();

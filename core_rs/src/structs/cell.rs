@@ -153,6 +153,11 @@ impl Cell {
     }
 
     #[inline]
+    pub fn is_value_integer(&self) -> bool {
+        self.value.is_integer()
+    }
+
+    #[inline]
     pub fn is_value_datetime(&self) -> bool {
         self.value.is_datetime()
     }
@@ -160,5 +165,221 @@ impl Cell {
     #[inline]
     pub fn is_value_empty(&self) -> bool {
         self.value.is_empty()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::Utc;
+
+    fn cell() -> Cell {
+        Cell::new(Coordinate { row: 1, column: 1 }, Some("Тестовая ячейка"))
+    }
+
+    #[test]
+    fn new_cell() {
+        let cell = cell();
+
+        assert_eq!(cell.get_coordinate(), &Coordinate::new(1, 1))
+    }
+
+    #[test]
+    fn get_coordinate() {
+        let cell = cell();
+
+        assert_eq!(cell.get_coordinate(), &Coordinate::new(1, 1))
+    }
+
+    #[test]
+    fn set_coordinate() {
+        let mut cell = cell();
+
+        let coord = Coordinate::new(1, 2);
+        cell.set_coordinate(coord.clone());
+
+        assert_eq!(cell.get_coordinate(), &coord)
+    }
+
+    #[test]
+    fn get_value() {
+        let cell = cell();
+
+        assert_eq!(cell.get_value(), "Тестовая ячейка")
+    }
+
+    #[test]
+    fn get_formula() {
+        let cell = Cell {
+            coordinate: Coordinate::new(1, 1),
+            formula: Some("=A1".to_string()),
+            ..Default::default()
+        };
+
+        assert_eq!(cell.get_formula().unwrap(), "=A1".to_string())
+    }
+
+    #[test]
+    fn get_data_type() {
+        let cell = Cell {
+            coordinate: Coordinate::new(1, 1),
+            formula: Some("=A1".to_string()),
+            data_type: "f".to_string(),
+            ..Default::default()
+        };
+
+        assert_eq!(cell.get_data_type(), "f".to_string())
+    }
+
+    #[test]
+    fn get_style() {
+        let style = Style::new("AAAA");
+        let cell = Cell {
+            coordinate: Coordinate::new(1, 1),
+            formula: Some("=A1".to_string()),
+            data_type: "f".to_string(),
+            style: Some(style.clone()),
+            ..Default::default()
+        };
+
+        assert_eq!(cell.get_style().unwrap(), style)
+    }
+
+    #[test]
+    fn set_value() {
+        let val = "AAA";
+        let mut cell = cell();
+        cell.set_value(val);
+
+        assert_eq!(cell.get_value(), val)
+    }
+
+    #[test]
+    fn set_value_number() {
+        let val = 34.8;
+        let mut cell = cell();
+        cell.set_value_number(val);
+
+        assert_eq!(cell.get_value(), "34.8")
+    }
+
+    #[test]
+    fn set_value_integer() {
+        let val = 34;
+        let mut cell = cell();
+        cell.set_value_integer(val);
+
+        assert_eq!(cell.get_value(), "34")
+    }
+
+    #[test]
+    fn set_value_bool() {
+        let val = true;
+        let mut cell = cell();
+        cell.set_value_bool(val);
+
+        assert_eq!(cell.get_value(), "true")
+    }
+
+    #[test]
+    fn set_value_datetime() {
+        let val = Utc::now().naive_utc();
+        let mut cell = cell();
+        cell.set_value_datetime(val);
+
+        assert_eq!(cell.get_value(), val.to_string())
+    }
+
+    #[test]
+    fn set_formula() {
+        let val = "=A1";
+        let mut cell = cell();
+        cell.set_formula(val);
+
+        assert_eq!(cell.get_formula().unwrap(), val.to_string())
+    }
+
+    #[test]
+    fn set_style() {
+        let val = "A1";
+        let mut cell = cell();
+        cell.set_style(val);
+
+        assert_eq!(cell.get_style().unwrap().get_id(), "A1")
+    }
+
+    #[test]
+    fn set_hidden_value() {
+        let val = "Hidden";
+        let mut cell = cell();
+        cell.set_hidden_value(val);
+
+        assert_eq!(cell.hidden_value.unwrap(), "Hidden")
+    }
+
+    #[test]
+    fn remove_formula() {
+        let val = "=A1";
+        let mut cell = cell();
+        cell.set_formula(val);
+
+        cell.remove_formula();
+
+        assert!(cell.formula.is_none());
+        assert_eq!(cell.data_type, "s")
+    }
+
+    #[test]
+    fn is_formula() {
+        let val = "=A1";
+        let mut cell = cell();
+        cell.set_formula(val);
+
+        assert!(cell.is_formula());
+    }
+
+    #[test]
+    fn is_value_bool() {
+        let val = "true";
+        let mut cell = cell();
+        cell.set_value(val);
+
+        assert!(cell.is_value_bool());
+    }
+
+    #[test]
+    fn is_value_numeric() {
+        let val = "38.9";
+        let mut cell = cell();
+        cell.set_value(val);
+
+        assert!(cell.is_value_numeric());
+    }
+
+    #[test]
+    fn is_value_integer() {
+        let val = "38";
+        let mut cell = cell();
+        cell.set_value(val);
+
+        assert!(cell.is_value_integer());
+    }
+
+    #[test]
+    fn is_value_datetime() {
+        let val = Utc::now().naive_utc();
+        let mut cell = cell();
+        cell.set_value_datetime(val);
+
+        assert!(cell.is_value_datetime());
+    }
+
+    #[test]
+    fn is_value_empty() {
+        let val = "";
+        let mut cell = cell();
+        cell.set_value(val);
+
+        assert!(cell.is_value_empty());
     }
 }

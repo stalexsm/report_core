@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-#[derive(Default, Debug, Clone, Serialize)]
+#[derive(Default, Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct Style {
     #[serde(rename = "style")]
     style_id: String,

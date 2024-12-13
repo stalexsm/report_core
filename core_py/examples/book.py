@@ -16,19 +16,17 @@ def main():
             if r == 5 and c == 5:
                 cell.value = "100"
                 cell.formula = "SUM(A1:A5)"
-                cell.style = "A"
+                cell.style = "Style A"
 
     print(sheet)
 
-    print("Aaaa->", sheet.)
-    print("Aaaa->", sheet.max_column)
-
     cell = sheet.find_cell_by_letter("E5")
-    print(cell.value)
-    print(cell.formula)
-    print(cell.style)
+    if cell:
+        print(cell.value)
+        print(cell.formula)
+        print(cell.style)
 
-    # print(book.to_json())
+    print(book.to_json())
 
     print(f"Выполнено за: {time.time() - start_time:.3f} сек.")
 
