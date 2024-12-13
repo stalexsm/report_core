@@ -13,7 +13,9 @@ use crate::{datatype::CellValue, MAX_COL, MAX_ROW};
 
 #[derive(Clone, Default, Debug, Serialize)]
 pub struct Cells {
+    #[serde(rename = "cells")]
     map: HashMap<(u32, u16), Arc<RwLock<Cell>>>,
+    #[serde(skip)]
     default_cell_value: CellValue,
 }
 
@@ -71,15 +73,11 @@ impl Cells {
     #[inline]
     pub fn get_cell_collection_by_range(
         &self,
-        range: &Range,
+        start_row: Option<u32>,
+        end_row: Option<u32>,
+        start_col: Option<u16>,
+        end_col: Option<u16>,
     ) -> impl Iterator<Item = &Arc<RwLock<Cell>>> {
-        let Range {
-            start_col,
-            start_row,
-            end_col,
-            end_row,
-        } = range;
-
         let start_row = start_row.unwrap_or(1);
         let end_row = end_row.unwrap_or(MAX_ROW);
         let start_col = start_col.unwrap_or(1);

@@ -11,7 +11,9 @@ use super::{
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct Sheet {
     pub name: String,
+    #[serde(flatten)]
     merge_cells: MergeCells,
+    #[serde(flatten)]
     cells: Cells,
 }
 
@@ -53,9 +55,13 @@ impl Sheet {
     #[inline]
     pub fn get_cell_collection_by_range(
         &self,
-        range: &Range,
+        start_row: Option<u32>,
+        end_row: Option<u32>,
+        start_col: Option<u16>,
+        end_col: Option<u16>,
     ) -> impl Iterator<Item = &Arc<RwLock<Cell>>> {
-        self.cells.get_cell_collection_by_range(range)
+        self.cells
+            .get_cell_collection_by_range(start_row, end_row, start_col, end_col)
     }
 
     #[inline]
@@ -239,7 +245,7 @@ mod tests {
 
         assert_eq!(
             sheet
-                .get_cell_collection_by_range(&Range::new(1, 2, 1, 2))
+                .get_cell_collection_by_range(Some(1), Some(2), Some(1), Some(2))
                 .count(),
             4
         );

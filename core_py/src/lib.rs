@@ -1,20 +1,13 @@
-pub(crate) mod helper;
-pub(crate) mod reader;
-pub(crate) mod services;
-pub(crate) mod utils;
-pub(crate) mod writer;
+pub(crate) mod structs;
 
-use helper::{WrapperHelperSheet, WrapperHelperSheetCell};
 use pyo3::prelude::*;
-use reader::{cell::WrapperXLSXSheetCellRead, sheet::WrapperXLSXSheetRead};
-use services::Service;
-use writer::{book::WrapperXLSXBook, cell::WrapperXLSXSheetCell, sheet::WrapperXLSXSheet};
+use structs::{book::WrapperBook, sheet::WrapperSheet};
 
 /// Преобразование номера колонки в букву.
 #[pyfunction]
 fn column_number_to_letter(col: u16) -> PyResult<String> {
     Python::with_gil(|_py| {
-        let letter = core_rs::utils::column_number_to_letter(col);
+        let letter = core_rs::utils::index_to_alpha(col);
 
         Ok(letter)
     })
@@ -54,17 +47,7 @@ macro_rules! add_classes {
 #[pyo3(name = "_report_core")]
 fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
-    add_classes!(
-        m,
-        Service,
-        WrapperXLSXBook,
-        WrapperXLSXSheet,
-        WrapperXLSXSheetCell,
-        WrapperXLSXSheetRead,
-        WrapperXLSXSheetCellRead,
-        WrapperHelperSheet,
-        WrapperHelperSheetCell
-    );
+    add_classes!(m, WrapperBook, WrapperSheet);
 
     // functions
     m.add_function(wrap_pyfunction!(version, m)?)?;
