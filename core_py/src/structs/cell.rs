@@ -6,7 +6,7 @@ use std::sync::Arc;
 use core_rs::structs::cell::Cell;
 
 #[pyclass]
-#[pyo3(module = "report_core", name = "XLSXCell")]
+#[pyo3(module = "report_core", name = "Cell")]
 #[derive(Debug, Clone)]
 pub struct WrapperCell(pub(crate) Arc<RwLock<Cell>>);
 
@@ -17,7 +17,7 @@ impl WrapperCell {
             let slf = slf.borrow();
             let slf = slf.0.read();
 
-            Ok(format!("XLSXCell, Coords: {:?}", slf.get_coordinate()))
+            Ok(format!("Cell, Coords: {:?}", slf.get_coordinate()))
         })
     }
 

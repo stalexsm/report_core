@@ -8,7 +8,7 @@ use pyo3::prelude::*;
 use super::sheet::WrapperSheet;
 
 #[pyclass]
-#[pyo3(module = "report_core", name = "XLSXBook")]
+#[pyo3(module = "report_core", name = "Book")]
 #[derive(Debug, Clone)]
 pub struct WrapperBook(pub(crate) Arc<RwLock<Book>>);
 
@@ -20,7 +20,7 @@ impl WrapperBook {
             let slf = slf.0.read();
 
             Ok(format!(
-                "XLSXBook, sheets: {}",
+                "Book, sheets: {}",
                 slf.get_sheet_collection().len(),
             ))
         })

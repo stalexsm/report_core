@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Sequence, Self, final, Literal
+from typing import Any, Sequence, final
 
-class XLSXBook:
-    sheets: Sequence[XLSXSheet]
+class Book:
+    sheets: Sequence[Sheet]
 
     def __init__(self) -> None:
         """
@@ -14,11 +14,11 @@ class XLSXBook:
         --------
         .. code-block:: python3
 
-            book = XLSXBook()
+            book = Book()
         """
         ...
 
-    def add_sheet(self, name: str) -> XLSXSheet:
+    def add_sheet(self, name: str) -> Sheet:
         """
         Добавление листа в книгу
         ------------------------
@@ -29,10 +29,10 @@ class XLSXBook:
                 Имя листа
         Returns:
         --------
-            XLSXSheet
+            Sheet
         """
 
-    def get_sheet_index(self, idx: int) -> XLSXSheet | None:
+    def get_sheet_index(self, idx: int) -> Sheet | None:
         """
         Получение листа по индексу
         --------------------------
@@ -44,11 +44,11 @@ class XLSXBook:
 
         Returns:
         --------
-            XLSXSheet | None
+            Sheet | None
 
         """
 
-    def get_sheet_name(self, name: str) -> XLSXSheet | None:
+    def get_sheet_name(self, name: str) -> Sheet | None:
         """
         Получение листа по названию
         ---------------------------
@@ -60,7 +60,7 @@ class XLSXBook:
 
         Returns:
         --------
-            XLSXSheet | None
+            Sheet | None
         """
 
     def to_json(self) -> str:
@@ -73,12 +73,12 @@ class XLSXBook:
             str
         """
 
-class XLSXSheet:
+class Sheet:
     """Тип данных листа с которыми работает парсер."""
 
     name: str
     merge_cells: Sequence[tuple[int, int, int, int]]
-    cells: Sequence[XLSXCell]
+    cells: Sequence[Cell]
     sheet_state: str
 
     @final
@@ -111,7 +111,7 @@ class XLSXSheet:
         row: int,
         col: int,
         value: str | None = None,
-    ) -> XLSXCell:
+    ) -> Cell:
         """
         Функция для получения/добавления ячейки.
         ---
@@ -127,7 +127,7 @@ class XLSXSheet:
 
         Returns:
         ---
-            XLSXCell
+            Cell
         """
 
     @final
@@ -184,7 +184,7 @@ class XLSXSheet:
         max_row: int | None = None,
         min_col: int | None = None,
         max_col: int | None = None,
-    ) -> Sequence[XLSXCell]:
+    ) -> Sequence[Cell]:
         """
         Получить список всех ячеек в заданном диапазоне.
         ---
@@ -202,12 +202,12 @@ class XLSXSheet:
 
         Returns:
         ---
-            Sequence[XLSXCell]
+            Sequence[Cell]
 
         """
 
     @final
-    def find_cell_by_regex(self, regex: str) -> XLSXCell | None:
+    def find_cell_by_regex(self, regex: str) -> Cell | None:
         """
         Функция для получения ячейки по регулярному (шаблону) значению.
         ---
@@ -219,11 +219,11 @@ class XLSXSheet:
 
         Returns:
         ---
-            XLSXCell | None
+            Cell | None
         """
 
     @final
-    def find_cell_by_letter(self, letter: str) -> XLSXCell | None:
+    def find_cell_by_letter(self, letter: str) -> Cell | None:
         """
         Функция для получения ячейки по буквенной координате (A1).
         ---
@@ -235,11 +235,11 @@ class XLSXSheet:
 
         Returns:
         --------
-            XLSXCell | None
+            Cell | None
         """
 
     @final
-    def find_cells_by_regex(self, regex: str) -> Sequence[XLSXCell]:
+    def find_cells_by_regex(self, regex: str) -> Sequence[Cell]:
         """
         Функция для получения ячеек по регулярному (шаблону) значению).
         ---
@@ -251,13 +251,11 @@ class XLSXSheet:
 
         Returns:
         ---
-             Sequence[XLSXCell]
+             Sequence[Cell]
         """
 
     @final
-    def find_cells_for_rows_by_regex(
-        self, regex: str, col_stop: int
-    ) -> Sequence[XLSXCell]:
+    def find_cells_for_rows_by_regex(self, regex: str, col_stop: int) -> Sequence[Cell]:
         """
         Функция для получения ячeек по регулярному (шаблону) значению) до определенной колонки.
         ---
@@ -271,13 +269,11 @@ class XLSXSheet:
 
         Returns:
         ---
-             Sequence[XLSXCell]
+             Sequence[Cell]
         """
 
     @final
-    def find_cells_for_cols_by_regex(
-        self, regex: str, row_stop: int
-    ) -> Sequence[XLSXCell]:
+    def find_cells_for_cols_by_regex(self, regex: str, row_stop: int) -> Sequence[Cell]:
         """
         Функция для получения ячeек по регулярному (шаблону) значению) до определенной строки.
         ---
@@ -291,7 +287,7 @@ class XLSXSheet:
 
         Returns:
         ---
-             Sequence[XLSXCell]
+             Sequence[Cell]
         """
 
     @final
@@ -299,7 +295,7 @@ class XLSXSheet:
         self,
         before_regex: str,
         after_regex: str,
-    ) -> Sequence[XLSXCell]:
+    ) -> Sequence[Cell]:
         """
         Функция для получения ячeек по регулярным (шаблонам) значениям).
         Находит ячейки в соостветствии шаблонов.
@@ -314,7 +310,7 @@ class XLSXSheet:
 
         Returns:
         ---
-             Sequence[XLSXCell]
+             Sequence[Cell]
         """
 
     @final
@@ -322,7 +318,7 @@ class XLSXSheet:
         self,
         before_regex: str,
         after_regex: str,
-    ) -> Sequence[XLSXCell]:
+    ) -> Sequence[Cell]:
         """
         Функция для получения ячeек по регулярным (шаблонам) значениям).
         Находит ячейки от первого шаборна до второго.
@@ -337,7 +333,7 @@ class XLSXSheet:
 
         Returns:
         ---
-             Sequence[XLSXCell]
+             Sequence[Cell]
         """
 
     @final
@@ -345,7 +341,7 @@ class XLSXSheet:
         self,
         start_row: int,
         end_row: int,
-    ) -> Sequence[XLSXCell]:
+    ) -> Sequence[Cell]:
         """
         Функция для получения ячeек в диапазоне строк.
         ---
@@ -359,7 +355,7 @@ class XLSXSheet:
 
         Returns:
         ---
-            Sequence[XLSXCell]
+            Sequence[Cell]
         """
 
     @final
@@ -367,7 +363,7 @@ class XLSXSheet:
         self,
         start_col: int,
         end_col: int,
-    ) -> Sequence[XLSXCell]:
+    ) -> Sequence[Cell]:
         """
         Функция для получения ячeек в диапазоне колонок.
         ---
@@ -381,10 +377,10 @@ class XLSXSheet:
 
         Returns:
         ---
-            Sequence[XLSXCell]
+            Sequence[Cell]
         """
 
-class XLSXCell:
+class Cell:
     """Тип данных ячеек листа с которыми работает парсер."""
 
     row: int
@@ -882,11 +878,11 @@ def version() -> str:
     """
 
 __all__ = (
-    "XLSXBook",
-    "XLSXSheet",
-    "XLSXSheetCell",
-    # "XLSXSheetRead",
-    # "XLSXSheetCellRead",
+    "Book",
+    "Sheet",
+    "Cell",
+    # "SheetRead",
+    # "SheetCellRead",
     # "HelperSheet",
     # "HelperCell",
     # "Service",

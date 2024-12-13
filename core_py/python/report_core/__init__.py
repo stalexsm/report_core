@@ -2,8 +2,8 @@ from ._report_core import (
     # Service,
     # HelperSheet,
     # HelperCell,
-    XLSXBook,
-    XLSXSheet,
+    Book,
+    Sheet,
     # XLSXSheetCell,
     # XLSXSheetRead,
     # XLSXSheetCellRead,
@@ -15,8 +15,8 @@ from ._report_core import (
 
 __all__ = (
     # "Service",
-    "XLSXBook",
-    "XLSXSheet",
+    "Book",
+    "Sheet",
     # "XLSXSheetCell",
     # "XLSXSheetRead",
     # "XLSXSheetCellRead",

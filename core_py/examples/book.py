@@ -1,9 +1,9 @@
-from report_core import XLSXBook
+from report_core import Book
 import time
 
 
 def main():
-    book = XLSXBook()
+    book = Book()
     sheet = book.add_sheet("Sheet1")
     print(sheet)
 

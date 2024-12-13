@@ -11,7 +11,7 @@ use pyo3::prelude::*;
 use super::cell::WrapperCell;
 
 #[pyclass]
-#[pyo3(module = "report_core", name = "XLSXSheet")]
+#[pyo3(module = "report_core", name = "Sheet")]
 #[derive(Debug, Clone)]
 pub struct WrapperSheet(pub(crate) Arc<RwLock<Sheet>>);
 
@@ -22,7 +22,7 @@ impl WrapperSheet {
             let slf = slf.borrow();
             let slf = slf.0.read();
             Ok(format!(
-                "XLSXSheet ({}) cells: {}",
+                "Sheet ({}) cells: {}",
                 slf.name,
                 slf.get_cell_collection().len()
             ))
