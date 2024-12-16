@@ -9,8 +9,8 @@ def main():
 
     start_time = time.time()
 
-    for r in range(1, 11):
-        for c in range(1, 11):
+    for r in range(1, 1001):
+        for c in range(1, 1001):
             cell = sheet.cell(r, c, f"Dynamic value: r{r}:c{c}")
 
             if r == 5 and c == 5:
@@ -25,6 +25,7 @@ def main():
         print(cell.value)
         print(cell.formula)
         print(cell.style)
+        print(cell.letter)
 
     print(book.to_json())
 

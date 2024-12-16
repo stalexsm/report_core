@@ -40,6 +40,15 @@ impl WrapperCell {
     }
 
     #[getter]
+    pub fn letter(&self) -> PyResult<String> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            Ok(slf.get_letter())
+        })
+    }
+
+    #[getter]
     pub fn get_value(&self) -> PyResult<String> {
         Python::with_gil(|_py| {
             let slf = self.0.read();

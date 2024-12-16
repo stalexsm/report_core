@@ -44,6 +44,11 @@ impl Cell {
     }
 
     #[inline]
+    pub fn get_letter(&self) -> String {
+        String::from(&self.coordinate)
+    }
+
+    #[inline]
     pub fn set_coordinate(&mut self, coordinate: Coordinate) {
         self.coordinate = coordinate;
     }
@@ -381,5 +386,12 @@ mod tests {
         cell.set_value(val);
 
         assert!(cell.is_value_empty());
+    }
+
+    #[test]
+    fn get_letter() {
+        let cell = cell();
+
+        assert_eq!(cell.get_letter(), "A1");
     }
 }

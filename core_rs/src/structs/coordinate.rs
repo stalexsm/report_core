@@ -1,6 +1,6 @@
 use serde::Serialize;
 
-use crate::utils::index_from_coordinate;
+use crate::utils::{get_letter_coordinate, index_from_coordinate};
 
 pub type CellIndex = (Option<u32>, Option<u16>);
 
@@ -39,6 +39,13 @@ impl From<&str> for Coordinate {
         let (col, row) = index_from_coordinate(value.to_uppercase());
 
         Coordinate::new(col.unwrap(), row.unwrap())
+    }
+}
+
+impl From<&Coordinate> for String {
+    #[inline]
+    fn from(coord: &Coordinate) -> String {
+        get_letter_coordinate(coord.row, coord.column)
     }
 }
 

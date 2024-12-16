@@ -413,7 +413,17 @@ class Cell:
     style: str | None
     hidden_value: str | None
 
-    @final
+    @property
+    def letter(self) -> int:
+        """
+        Получение буквенной координаты
+        ---
+
+        Returns:
+        ---
+            str
+        """
+
     @property
     def is_formula(self) -> bool:
         """
@@ -426,7 +436,6 @@ class Cell:
 
         """
 
-    @final
     @property
     def is_value_bool(self) -> bool:
         """
@@ -438,7 +447,6 @@ class Cell:
             bool
         """
 
-    @final
     @property
     def is_value_numeric(self) -> bool:
         """
@@ -451,7 +459,6 @@ class Cell:
 
         """
 
-    @final
     @property
     def is_value_datetime(self) -> bool:
         """
@@ -464,7 +471,6 @@ class Cell:
 
         """
 
-    @final
     @property
     def is_value_empty(self) -> bool:
         """
