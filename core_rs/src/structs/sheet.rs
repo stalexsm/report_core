@@ -11,11 +11,11 @@ use super::{
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct Sheet {
     pub name: String,
+    sheet_state: Box<str>,
     #[serde(flatten)]
     merge_cells: MergeCells,
     #[serde(flatten)]
     cells: Cells,
-    sheet_state: Box<str>,
 }
 
 impl Sheet {

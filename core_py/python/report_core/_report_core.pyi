@@ -1,6 +1,127 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Sequence, final
+from typing import Any, Sequence, final, Self
+
+class Service(ABC):
+    """Сервис"""
+
+    _uow: Any
+
+    def __init__(self: Self, uow: Any) -> None:
+        """
+        Инициализация парсера
+        ---------------------
+
+        Arguments:
+        ---------
+            uow: Any
+                UoW для работы с базой данных
+        """
+        ...
+
+    @abstractmethod
+    def summary_0(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
+        """
+        Данный метод для реализации генерации данных сервиса
+        ----------------------------------------------------
+
+        Arguments:
+        ---------
+            sheets: Sequence[Any]
+                Список листов
+            kwargs: Any
+                Дополнительные параметры
+
+        Returns:
+        --------
+            Any
+        """
+
+    @abstractmethod
+    def _fmt_0(self: Self, /, **kwargs: Any) -> Any:
+        """
+        Данный метод для форматирования отчета сервиса.
+        ----------------------------------------------
+
+        Arguments:
+        ---------
+            kwargs: Any
+                Дополнительные параметры
+
+        Returns:
+        --------
+            Any
+        """
+
+    @final
+    def _add_sheet(self, name: str) -> Sheet:
+        """
+        Добавление листа в книгу
+        ---
+
+        Arguments:
+        ---
+            name: str
+                Имя листа
+        Returns:
+        ---
+            Sheet
+        """
+
+    @final
+    def _get_sheet_index(self, idx: int) -> Sheet | None:
+        """
+        Получение листа по индексу
+        ---
+
+        Arguments:
+        ---
+            idx: int
+                Индекс листа
+
+        Returns:
+        ---
+            Sheet | None
+
+        """
+
+    @final
+    def _get_sheet_name(self, name: str) -> Sheet | None:
+        """
+        Получение листа по названию
+        ---
+
+        Arguments:
+        ---
+            name: str
+                Имя листа
+
+        Returns:
+        ---
+            Sheet | None
+        """
+
+    @property
+    def _sheets(self) -> Sequence[Sheet]:
+        """
+        Получение списка листов
+        ---
+
+        Returns:
+        ---
+            Sequence[Sheet]
+
+        """
+    @final
+    def to_json(self) -> str:
+        """
+        Преобразование книги в json
+        ---
+
+        Returns:
+        ---
+            str
+        """
 
 class Book:
     sheets: Sequence[Sheet]
@@ -534,332 +655,6 @@ class Cell:
                 Значение ячейки
 
         """
-
-# class Service(ABC):
-#     """Сервис"""
-
-#     uow: Any
-
-#     def __init__(self: Self, uow: Any) -> None:
-#         """
-#         Инициализация парсера
-#         ---------------------
-
-#         Arguments:
-#         ---------
-#             uow: Any
-#                 UoW для работы с базой данных
-#         """
-#         ...
-
-#     @abstractmethod
-#     def summary_0(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для реализации генерации данных сервиса
-#         ----------------------------------------------------
-
-#         Arguments:
-#         ---------
-#             sheets: Sequence[Any]
-#                 Список листов
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def summary_1(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для реализации генерации данных сервиса
-#         ----------------------------------------------------
-
-#         Arguments:
-#         ---------
-#             sheets: Sequence[Any]
-#                 Список листов
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def summary_2(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для реализации генерации данных сервиса
-#         ----------------------------------------------------
-
-#         Arguments:
-#         ---------
-#             sheets: Sequence[Any]
-#                 Список листов
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def summary_3(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для реализации генерации данных сервиса
-#         ----------------------------------------------------
-
-#         Arguments:
-#         ---------
-#             sheets: Sequence[Any]
-#                 Список листов
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def summary_4(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для реализации генерации данных сервиса
-#         ----------------------------------------------------
-
-#         Arguments:
-#         ---------
-#             sheets: Sequence[Any]
-#                 Список листов
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def summary_5(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для реализации генерации данных сервиса
-#         ----------------------------------------------------
-
-#         Arguments:
-#         ---------
-#             sheets: Sequence[Any]
-#                 Список листов
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def summary_6(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для реализации генерации данных сервиса
-#         ----------------------------------------------------
-
-#         Arguments:
-#         ---------
-#             sheets: Sequence[Any]
-#                 Список листов
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def summary_7(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для реализации генерации данных сервиса
-#         ----------------------------------------------------
-
-#         Arguments:
-#         ---------
-#             sheets: Sequence[Any]
-#                 Список листов
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def summary_8(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для реализации генерации данных сервиса
-#         ----------------------------------------------------
-
-#         Arguments:
-#         ---------
-#             sheets: Sequence[Any]
-#                 Список листов
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     @abstractmethod
-#     def fmt_0(self: Self, book: XLSXBook, /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для форматирования отчета сервиса.
-#         ----------------------------------------------
-
-#         Arguments:
-#         ---------
-#             book: XLSXBook
-#                 Книга для форматирования
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def fmt_1(self: Self, book: XLSXBook, /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для форматирования отчета сервиса.
-#         ----------------------------------------------
-
-#         Arguments:
-#         ---------
-#             book: XLSXBook
-#                 Книга для форматирования
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-#         ...
-
-#     def fmt_2(self: Self, book: XLSXBook, /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для форматирования отчета сервиса.
-#         ----------------------------------------------
-
-#         Arguments:
-#         ---------
-#             book: XLSXBook
-#                 Книга для форматирования
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def fmt_3(self: Self, book: XLSXBook, /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для форматирования отчета сервиса.
-#         ----------------------------------------------
-
-#         Arguments:
-#         ---------
-#             book: XLSXBook
-#                 Книга для форматирования
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def fmt_4(self: Self, book: XLSXBook, /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для форматирования отчета сервиса.
-#         ----------------------------------------------
-
-#         Arguments:
-#         ---------
-#             book: XLSXBook
-#                 Книга для форматирования
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def fmt_5(self: Self, book: XLSXBook, /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для форматирования отчета сервиса.
-#         ----------------------------------------------
-
-#         Arguments:
-#         ---------
-#             book: XLSXBook
-#                 Книга для форматирования
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def fmt_6(self: Self, book: XLSXBook, /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для форматирования отчета сервиса.
-#         ----------------------------------------------
-
-#         Arguments:
-#         ---------
-#             book: XLSXBook
-#                 Книга для форматирования
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def fmt_7(self: Self, book: XLSXBook, /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для форматирования отчета сервиса.
-#         ----------------------------------------------
-
-#         Arguments:
-#         ---------
-#             book: XLSXBook
-#                 Книга для форматирования
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
-
-#     def fmt_8(self: Self, book: XLSXBook, /, **kwargs: Any) -> Any:
-#         """
-#         Данный метод для форматирования отчета сервиса.
-#         ----------------------------------------------
-
-#         Arguments:
-#         ---------
-#             book: XLSXBook
-#                 Книга для форматирования
-#             kwargs: Any
-#                 Дополнительные параметры
-
-#         Returns:
-#         --------
-#             Any
-#         """
 
 def column_number_to_letter(column: int) -> str:
     """

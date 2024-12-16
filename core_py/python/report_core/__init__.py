@@ -1,5 +1,5 @@
 from ._report_core import (
-    # Service,
+    Service,
     # HelperSheet,
     # HelperCell,
     Book,
@@ -14,7 +14,7 @@ from ._report_core import (
 
 
 __all__ = (
-    # "Service",
+    "Service",
     "Book",
     "Sheet",
     # "XLSXSheetCell",

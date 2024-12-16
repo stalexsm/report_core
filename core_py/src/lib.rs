@@ -1,7 +1,7 @@
 pub(crate) mod structs;
 
 use pyo3::prelude::*;
-use structs::{book::WrapperBook, sheet::WrapperSheet};
+use structs::{book::WrapperBook, cell::WrapperCell, service::WrapperService, sheet::WrapperSheet};
 
 /// Преобразование номера колонки в букву.
 #[pyfunction]
@@ -47,7 +47,7 @@ macro_rules! add_classes {
 #[pyo3(name = "_report_core")]
 fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // classes
-    add_classes!(m, WrapperBook, WrapperSheet);
+    add_classes!(m, WrapperService, WrapperBook, WrapperSheet, WrapperCell);
 
     // functions
     m.add_function(wrap_pyfunction!(version, m)?)?;

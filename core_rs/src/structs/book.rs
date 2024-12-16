@@ -9,7 +9,7 @@ use super::sheet::Sheet;
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct Book {
-    sheets: Vec<Arc<RwLock<Sheet>>>,
+    pub(crate) sheets: Vec<Arc<RwLock<Sheet>>>,
 }
 
 impl Book {

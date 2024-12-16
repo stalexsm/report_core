@@ -5,5 +5,6 @@ pub mod book;
 pub mod coordinate;
 pub mod merge_cells;
 pub mod range;
+pub mod service;
 pub mod sheet;
 pub mod style;
