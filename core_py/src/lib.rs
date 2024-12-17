@@ -46,6 +46,7 @@ macro_rules! add_classes {
 #[pymodule]
 #[pyo3(name = "_report_core")]
 fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add("__version__", version())?;
     // classes
     add_classes!(m, WrapperService, WrapperBook, WrapperSheet, WrapperCell);
 

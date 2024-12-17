@@ -2,6 +2,62 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any, Sequence, final, Self
 
+__all__ = (
+    "__version__",
+    "Book",
+    "Sheet",
+    "Cell",
+    "column_number_to_letter",
+    "get_letter_coordinate",
+    "version",
+)
+
+__version__: str
+
+def column_number_to_letter(column: int) -> str:
+    """
+    Функция для преобразования номера колонки в букву
+    -------------------------------------------------
+
+    Arguments:
+    ---------
+        column: int
+            Номер колонки
+
+    Returns:
+    --------
+        str
+    """
+
+def get_letter_coordinate(row: int, column: int) -> str:
+    """
+    Функция для получения координаты ячейки в стиле A1
+    -------------------------------------------------
+
+    Arguments:
+    ---------
+        row: int
+            Номер строки
+        column: int
+            Номер колонки
+
+    Returns:
+    --------
+        str
+
+    """
+
+def version() -> str:
+    """
+    Для получения версии
+    ---------------------
+
+    Returns:
+    --------
+        str
+
+    """
+
 class Service(ABC):
     """Сервис"""
 
@@ -655,61 +711,3 @@ class Cell:
                 Значение ячейки
 
         """
-
-def column_number_to_letter(column: int) -> str:
-    """
-    Функция для преобразования номера колонки в букву
-    -------------------------------------------------
-
-    Arguments:
-    ---------
-        column: int
-            Номер колонки
-
-    Returns:
-    --------
-        str
-    """
-
-def get_letter_coordinate(row: int, column: int) -> str:
-    """
-    Функция для получения координаты ячейки в стиле A1
-    -------------------------------------------------
-
-    Arguments:
-    ---------
-        row: int
-            Номер строки
-        column: int
-            Номер колонки
-
-    Returns:
-    --------
-        str
-
-    """
-
-def version() -> str:
-    """
-    Для получения версии
-    ---------------------
-
-    Returns:
-    --------
-        str
-
-    """
-
-__all__ = (
-    "Book",
-    "Sheet",
-    "Cell",
-    # "SheetRead",
-    # "SheetCellRead",
-    # "HelperSheet",
-    # "HelperCell",
-    # "Service",
-    "column_number_to_letter",
-    "get_letter_coordinate",
-    "version",
-)
