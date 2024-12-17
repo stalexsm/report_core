@@ -26,7 +26,7 @@ impl WrapperSheet {
             let slf = slf.0.read();
             Ok(format!(
                 "Sheet ({}) cells: {}",
-                slf.name,
+                slf.get_name(),
                 slf.get_cell_collection().len()
             ))
         })
@@ -36,7 +36,7 @@ impl WrapperSheet {
     pub fn name(&self) -> PyResult<String> {
         Python::with_gil(|_py| {
             let slf = self.0.read();
-            Ok(slf.name.clone())
+            Ok(slf.get_name())
         })
     }
 
@@ -44,7 +44,7 @@ impl WrapperSheet {
     pub fn set_name(&self, name: String) -> PyResult<()> {
         Python::with_gil(|_py| {
             let mut slf = self.0.write();
-            slf.name = name;
+            slf.set_name(name.as_str());
 
             Ok(())
         })

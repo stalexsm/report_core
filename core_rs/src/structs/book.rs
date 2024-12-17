@@ -5,6 +5,8 @@ use parking_lot::RwLock;
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::traits::ReadableSheet;
+
 use super::sheet::Sheet;
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -27,7 +29,9 @@ impl Book {
 
     #[inline]
     pub fn get_sheet_name(&self, name: &str) -> Option<&Arc<RwLock<Sheet>>> {
-        self.sheets.iter().find(|sheet| sheet.read().name == name)
+        self.sheets
+            .iter()
+            .find(|sheet| sheet.read().get_name() == name)
     }
 
     #[inline]
@@ -89,14 +93,14 @@ mod tests {
     fn test_get_sheet_name() {
         let book = test_book();
 
-        assert_eq!(book.get_sheet_name("ЦП").unwrap().read().name, "ЦП");
+        assert_eq!(book.get_sheet_name("ЦП").unwrap().read().get_name(), "ЦП");
     }
 
     #[test]
     fn test_get_sheet_index() {
         let book = test_book();
 
-        assert_eq!(book.get_sheet_index(0).unwrap().read().name, "ЦП");
+        assert_eq!(book.get_sheet_index(0).unwrap().read().get_name(), "ЦП");
     }
 
     #[test]

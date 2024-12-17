@@ -12,7 +12,7 @@ use super::{
 
 #[derive(Clone, Debug, Default, Serialize)]
 pub struct Sheet {
-    pub name: String,
+    name: String,
     sheet_state: Box<str>,
     #[serde(flatten)]
     merge_cells: MergeCells,
@@ -32,6 +32,13 @@ impl Sheet {
 }
 
 impl ReadableSheet for Sheet {
+    type Cell = Cell;
+
+    #[inline]
+    fn get_name(&self) -> String {
+        self.name.to_string()
+    }
+
     #[inline]
     fn get_cell_collection(&self) -> Vec<&Arc<RwLock<Cell>>> {
         self.cells.get_collection()
@@ -149,6 +156,11 @@ impl ReadableSheet for Sheet {
 }
 
 impl WriteableSheet for Sheet {
+    #[inline]
+    fn set_name(&mut self, name: &str) {
+        self.name = name.to_string();
+    }
+
     #[inline]
     fn add_merge_range(&mut self, range: Range) {
         self.merge_cells.add_range(range);

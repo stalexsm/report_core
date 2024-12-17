@@ -34,6 +34,10 @@ pub trait WriteableCell {
 }
 
 pub trait ReadableSheet {
+    type Cell: ReadableCell + Clone + Send; // добавляем дополнительные
+
+    fn get_name(&self) -> String;
+
     fn get_cell_collection(&self) -> Vec<&Arc<RwLock<Cell>>>;
     fn get_cell_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>>;
     fn get_max_row(&self) -> u32;
@@ -86,6 +90,7 @@ pub trait ReadableSheet {
 }
 
 pub trait WriteableSheet {
+    fn set_name(&mut self, name: &str);
     fn add_merge_range(&mut self, range: Range);
     fn cell(&mut self, coordinate: Coordinate, value: Option<&str>) -> &Arc<RwLock<Cell>>;
     fn delete_cols(&mut self, idx: u16, amount: u16);
