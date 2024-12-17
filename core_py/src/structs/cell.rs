@@ -3,7 +3,10 @@ use parking_lot::RwLock;
 use pyo3::prelude::*;
 use std::sync::Arc;
 
-use core_rs::structs::cell::Cell;
+use core_rs::{
+    structs::cell::Cell,
+    traits::{ReadableCell, WriteableCell},
+};
 
 #[pyclass]
 #[pyo3(module = "report_core", name = "Cell")]

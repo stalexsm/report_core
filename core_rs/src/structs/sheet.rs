@@ -4,6 +4,8 @@ use anyhow::Result;
 use parking_lot::RwLock;
 use serde::Serialize;
 
+use crate::traits::{ReadableSheet, WriteableSheet};
+
 use super::{
     cell::Cell, cells::Cells, coordinate::Coordinate, merge_cells::MergeCells, range::Range,
 };
@@ -27,29 +29,31 @@ impl Sheet {
             ..Default::default()
         }
     }
+}
 
+impl ReadableSheet for Sheet {
     #[inline]
-    pub fn get_cell_collection(&self) -> Vec<&Arc<RwLock<Cell>>> {
+    fn get_cell_collection(&self) -> Vec<&Arc<RwLock<Cell>>> {
         self.cells.get_collection()
     }
 
     #[inline]
-    pub fn get_cell_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>> {
+    fn get_cell_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>> {
         self.cells.get_collection_sorted()
     }
 
     #[inline]
-    pub fn get_max_row(&self) -> u32 {
+    fn get_max_row(&self) -> u32 {
         self.cells.get_max_row()
     }
 
     #[inline]
-    pub fn get_max_column(&self) -> u16 {
+    fn get_max_column(&self) -> u16 {
         self.cells.get_max_column()
     }
 
     #[inline]
-    pub fn get_cell_value<T>(&self, coordinate: T) -> String
+    fn get_cell_value<T>(&self, coordinate: T) -> String
     where
         T: Into<Coordinate>,
     {
@@ -57,7 +61,7 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn get_cell_collection_by_range(
+    fn get_cell_collection_by_range(
         &self,
         start_row: Option<u32>,
         end_row: Option<u32>,
@@ -69,47 +73,27 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn get_merge_cell_collection(&self) -> &[Range] {
+    fn get_merge_cell_collection(&self) -> &[Range] {
         self.merge_cells.get_collection()
     }
 
     #[inline]
-    pub fn add_merge_range(&mut self, range: Range) {
-        self.merge_cells.add_range(range);
-    }
-
-    #[inline]
-    pub fn cell(&mut self, coordinate: Coordinate, value: Option<&str>) -> &Arc<RwLock<Cell>> {
-        self.cells.cell(coordinate, value.unwrap_or(""))
-    }
-
-    #[inline]
-    pub fn delete_cols(&mut self, idx: u16, amount: u16) {
-        self.cells.delete_cols(idx, amount);
-    }
-
-    #[inline]
-    pub fn delete_rows(&mut self, idx: u32, amount: u32) {
-        self.cells.delete_rows(idx, amount);
-    }
-
-    #[inline]
-    pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
+    fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         self.cells.find_cell_by_regex(regex)
     }
 
     #[inline]
-    pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
+    fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         self.cells.find_cell_by_letter(letter)
     }
 
     #[inline]
-    pub fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
+    fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells.find_cells_by_regex(regex)
     }
 
     #[inline]
-    pub fn find_cells_for_rows_by_regex(
+    fn find_cells_for_rows_by_regex(
         &self,
         regex: &str,
         col_stop: u16,
@@ -118,7 +102,7 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn find_cells_for_cols_by_regex(
+    fn find_cells_for_cols_by_regex(
         &self,
         regex: &str,
         row_stop: u32,
@@ -127,7 +111,7 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn find_cells_multi_regex(
+    fn find_cells_multi_regex(
         &self,
         before_regex: &str,
         after_regex: &str,
@@ -136,7 +120,7 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn find_cells_between_regex(
+    fn find_cells_between_regex(
         &self,
         before_regex: &str,
         after_regex: &str,
@@ -146,7 +130,7 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn find_cells_range_rows(
+    fn find_cells_range_rows(
         &self,
         start_row: u32,
         end_row: u32,
@@ -155,7 +139,7 @@ impl Sheet {
     }
 
     #[inline]
-    pub fn find_cells_range_cols(
+    fn find_cells_range_cols(
         &self,
         start_col: u16,
         end_col: u16,
@@ -164,8 +148,32 @@ impl Sheet {
     }
 }
 
+impl WriteableSheet for Sheet {
+    #[inline]
+    fn add_merge_range(&mut self, range: Range) {
+        self.merge_cells.add_range(range);
+    }
+
+    #[inline]
+    fn cell(&mut self, coordinate: Coordinate, value: Option<&str>) -> &Arc<RwLock<Cell>> {
+        self.cells.cell(coordinate, value.unwrap_or(""))
+    }
+
+    #[inline]
+    fn delete_cols(&mut self, idx: u16, amount: u16) {
+        self.cells.delete_cols(idx, amount);
+    }
+
+    #[inline]
+    fn delete_rows(&mut self, idx: u32, amount: u32) {
+        self.cells.delete_rows(idx, amount);
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::traits::ReadableCell;
+
     use super::*;
 
     fn sheet() -> Sheet {

@@ -1,9 +1,7 @@
 pub mod datatype;
-// pub mod helper;
-// pub mod reader;
 pub mod structs;
+pub mod traits;
 pub mod utils;
-// pub mod writer;
 
 /// Функция для получения версии.
 pub fn version() -> &'static str {

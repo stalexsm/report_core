@@ -9,7 +9,11 @@ use serde::Serialize;
 use std::{collections::HashMap, sync::Arc};
 
 use super::{cell::Cell, coordinate::Coordinate};
-use crate::{datatype::CellValue, MAX_COL, MAX_ROW};
+use crate::{
+    datatype::CellValue,
+    traits::{ReadableCell, WriteableCell},
+    MAX_COL, MAX_ROW,
+};
 
 /// Вспомоогательная функция для сериализации HashMap только Value, как вектор.
 fn serialize_cells_to_vec<S>(

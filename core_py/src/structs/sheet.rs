@@ -1,9 +1,12 @@
 use std::sync::Arc;
 
-use core_rs::structs::{
-    coordinate::Coordinate,
-    range::{MergedRange, Range},
-    sheet::Sheet,
+use core_rs::{
+    structs::{
+        coordinate::Coordinate,
+        range::{MergedRange, Range},
+        sheet::Sheet,
+    },
+    traits::{ReadableSheet, WriteableSheet},
 };
 use parking_lot::RwLock;
 use pyo3::prelude::*;

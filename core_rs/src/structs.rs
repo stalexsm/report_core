@@ -3,6 +3,7 @@ pub mod cells;
 // pub mod comment;
 pub mod book;
 pub mod coordinate;
+pub mod finder;
 pub mod merge_cells;
 pub mod range;
 pub mod service;
