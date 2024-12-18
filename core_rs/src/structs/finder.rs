@@ -6,7 +6,7 @@ use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::traits::ReadableSheet;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Finder<T: ReadableSheet + Send + Sync> {
     pub sheets: Vec<Arc<RwLock<T>>>,
 }
@@ -19,6 +19,11 @@ impl<T: ReadableSheet + Send + Sync> Finder<T> {
             .collect();
 
         Self { sheets }
+    }
+
+    #[inline]
+    pub fn get_sheet_collection(&self) -> &[Arc<RwLock<T>>] {
+        &self.sheets
     }
 
     #[inline]
