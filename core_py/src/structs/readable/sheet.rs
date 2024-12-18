@@ -12,7 +12,7 @@ use core_rs::{
 use parking_lot::RwLock;
 use pyo3::{
     prelude::*,
-    types::{PyDict, PyString},
+    types::{PyDict, PyList, PyString},
 };
 
 use super::cell::WrapperCell;
@@ -29,6 +29,25 @@ macro_rules! extract_from_py {
     }};
 }
 
+fn extract_cells(obj: &Bound<'_, PyAny>) -> HashMap<(u32, u16), Arc<RwLock<Cell>>> {
+    Python::with_gil(|_py| {
+        let cells_attr = obj.getattr("cells").unwrap();
+        let cells_list = cells_attr.downcast::<PyList>().unwrap();
+        let map: HashMap<(u32, u16), Arc<RwLock<Cell>>> = cells_list
+            .iter()
+            .map(|c| WrapperCell::from(&c))
+            .map(|c| {
+                let guard = c.0.read();
+                let coord = guard.get_coordinate();
+
+                ((coord.row, coord.column), c.0.clone())
+            })
+            .collect();
+
+        map
+    })
+}
+
 #[pyclass]
 #[pyo3(module = "readable", name = "ReadableSheet")]
 #[derive(Debug, Clone)]
@@ -38,22 +57,14 @@ impl From<&Bound<'_, PyAny>> for WrapperSheet {
     fn from(obj: &Bound<'_, PyAny>) -> Self {
         Python::with_gil(|_py| {
             let name = extract_from_py!(obj, name, String);
-            let sheet_state = extract_from_py!(obj, sheet_state, String);
-            let merge_cells = extract_from_py!(obj, merge_cells, Vec<(u32, u32, u16, u16)>);
-            let cells = extract_from_py!(obj, cells, Vec<WrapperCell>);
-
-            let cells: HashMap<(u32, u16), Arc<RwLock<Cell>>> = cells
+            let merge_cells = extract_from_py!(obj, merge_cells, Vec<(u32, u32, u16, u16)>)
                 .into_iter()
-                .map(|c| {
-                    let guard = c.0.read();
-                    let coord = guard.get_coordinate();
-
-                    ((coord.row, coord.column), c.0.clone())
-                })
+                .map(Range::from)
                 .collect();
-            let merge_cells: Vec<Range> = merge_cells.into_iter().map(Range::from).collect();
 
-            let sheet = Sheet::extract(&name, &sheet_state, merge_cells, cells);
+            let map = extract_cells(obj);
+
+            let sheet = Sheet::extract(&name, "visible".into(), merge_cells, map);
             Self(Arc::new(RwLock::new(sheet)))
         })
     }
