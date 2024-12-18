@@ -55,5 +55,17 @@ fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(column_number_to_letter, m)?)?;
     m.add_function(wrap_pyfunction!(get_letter_coordinate, m)?)?;
 
+    // Sub Module
+    // let readable = PyModule::new(m.py(), "readable")?;
+    // readable.add_class::<readable::finder::WrapperFinder>()?;
+    // readable.add_class::<readable::sheet::WrapperSheet>()?;
+    // readable.add_class::<readable::cell::WrapperCell>()?;
+    // m.add_submodule(&readable)?;
+
+    // m.py()
+    //     .import("sys")?
+    //     .getattr("modules")?
+    //     .set_item("report_core.readable", readable)?;
+
     Ok(())
 }
