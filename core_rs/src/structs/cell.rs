@@ -40,6 +40,27 @@ impl Cell {
         }
     }
 
+    pub fn extract(
+        coordinate: Coordinate,
+        value: Option<String>,
+        formula: Option<String>,
+        data_type: &str,
+    ) -> Self {
+        let mut cell_val = CellValue::default();
+
+        if let Some(val) = value {
+            cell_val.set_value(val);
+        }
+
+        Cell {
+            coordinate,
+            value: Box::new(cell_val),
+            data_type: data_type.into(),
+            formula,
+            ..Default::default()
+        }
+    }
+
     #[inline]
     pub(crate) fn remove_formula(&mut self) {
         self.formula = None;

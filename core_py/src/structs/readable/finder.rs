@@ -3,7 +3,10 @@ use std::sync::Arc;
 use core_rs::structs::{finder::Finder, sheet::Sheet};
 
 use parking_lot::RwLock;
-use pyo3::{prelude::*, types::PyString};
+use pyo3::{
+    prelude::*,
+    types::{PyList, PyString},
+};
 
 use super::sheet::WrapperSheet;
 
@@ -30,8 +33,15 @@ impl WrapperFinder {
     }
 
     #[new]
-    pub fn new() -> Self {
-        Self(Arc::new(RwLock::new(Finder::default())))
+    pub fn new(sheets: &Bound<'_, PyList>) -> PyResult<Self> {
+        Python::with_gil(|_py| {
+            let sheets: Vec<Sheet> = sheets
+                .iter()
+                .map(|s| WrapperSheet::from(&s).0.read().clone())
+                .collect();
+
+            Ok(Self(Arc::new(RwLock::new(Finder::new(sheets)))))
+        })
     }
 
     #[getter]

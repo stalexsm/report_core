@@ -47,6 +47,13 @@ pub struct Cells {
 }
 
 impl Cells {
+    pub fn new(map: HashMap<(u32, u16), Arc<RwLock<Cell>>>) -> Self {
+        Self {
+            map,
+            ..Default::default()
+        }
+    }
+
     /// Метод для получения коллекции ячеек
     #[inline]
     pub fn get_collection(&self) -> Vec<&Arc<RwLock<Cell>>> {

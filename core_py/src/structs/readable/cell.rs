@@ -1,13 +1,52 @@
 use std::sync::Arc;
 
-use core_rs::{structs::cell::Cell, traits::ReadableCell};
+use core_rs::{
+    structs::{cell::Cell, coordinate::Coordinate},
+    traits::ReadableCell,
+};
 use parking_lot::RwLock;
-use pyo3::{prelude::*, types::PyString};
+use pyo3::{
+    prelude::*,
+    types::{PyDict, PyString},
+};
+
+macro_rules! extract_from_py {
+    ($obj:expr, $attr:ident, $type:ty) => {{
+        let value: $type = if $obj.is_instance_of::<PyDict>() {
+            $obj.get_item(stringify!($attr)).unwrap().extract().unwrap()
+        } else {
+            $obj.getattr(stringify!($attr)).unwrap().extract().unwrap()
+        };
+
+        value
+    }};
+}
 
 #[pyclass]
 #[pyo3(module = "readable", name = "ReadableCell")]
 #[derive(Debug, Clone)]
 pub struct WrapperCell(pub(crate) Arc<RwLock<Cell>>);
+
+impl From<&Bound<'_, PyAny>> for WrapperCell {
+    fn from(obj: &Bound<'_, PyAny>) -> Self {
+        Python::with_gil(|_py| {
+            let row = extract_from_py!(obj, row, u32);
+            let column = extract_from_py!(obj, column, u16);
+            let value = extract_from_py!(obj, value, String);
+            let formula = extract_from_py!(obj, formula, Option<String>);
+            let data_type = extract_from_py!(obj, data_type, String);
+
+            let cell = Cell::extract(
+                Coordinate::new(row, column),
+                Some(value),
+                formula,
+                &data_type,
+            );
+
+            Self(Arc::new(RwLock::new(cell)))
+        })
+    }
+}
 
 #[pymethods]
 impl WrapperCell {

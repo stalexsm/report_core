@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::Result;
 use parking_lot::RwLock;
@@ -27,6 +27,20 @@ impl Sheet {
             name: name.to_string(),
             sheet_state: "visible".into(),
             ..Default::default()
+        }
+    }
+
+    pub fn extract(
+        name: &str,
+        sheet_state: &str,
+        range: Vec<Range>,
+        map: HashMap<(u32, u16), Arc<RwLock<Cell>>>,
+    ) -> Self {
+        Sheet {
+            name: name.to_string(),
+            sheet_state: sheet_state.into(),
+            merge_cells: MergeCells::new(range),
+            cells: Cells::new(map),
         }
     }
 }

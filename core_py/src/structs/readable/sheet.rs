@@ -1,18 +1,63 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 
 use core_rs::{
-    structs::{coordinate::Coordinate, range::MergedRange, sheet::Sheet},
-    traits::ReadableSheet,
+    structs::{
+        cell::Cell,
+        coordinate::Coordinate,
+        range::{MergedRange, Range},
+        sheet::Sheet,
+    },
+    traits::{ReadableCell, ReadableSheet},
 };
 use parking_lot::RwLock;
-use pyo3::{prelude::*, types::PyString};
+use pyo3::{
+    prelude::*,
+    types::{PyDict, PyString},
+};
 
 use super::cell::WrapperCell;
+
+macro_rules! extract_from_py {
+    ($obj:expr, $attr:ident, $type:ty) => {{
+        let value: $type = if $obj.is_instance_of::<PyDict>() {
+            $obj.get_item(stringify!($attr)).unwrap().extract().unwrap()
+        } else {
+            $obj.getattr(stringify!($attr)).unwrap().extract().unwrap()
+        };
+
+        value
+    }};
+}
 
 #[pyclass]
 #[pyo3(module = "readable", name = "ReadableSheet")]
 #[derive(Debug, Clone)]
 pub struct WrapperSheet(pub(crate) Arc<RwLock<Sheet>>);
+
+impl From<&Bound<'_, PyAny>> for WrapperSheet {
+    fn from(obj: &Bound<'_, PyAny>) -> Self {
+        Python::with_gil(|_py| {
+            let name = extract_from_py!(obj, name, String);
+            let sheet_state = extract_from_py!(obj, sheet_state, String);
+            let merge_cells = extract_from_py!(obj, merge_cells, Vec<(u32, u32, u16, u16)>);
+            let cells = extract_from_py!(obj, cells, Vec<WrapperCell>);
+
+            let cells: HashMap<(u32, u16), Arc<RwLock<Cell>>> = cells
+                .into_iter()
+                .map(|c| {
+                    let guard = c.0.read();
+                    let coord = guard.get_coordinate();
+
+                    ((coord.row, coord.column), c.0.clone())
+                })
+                .collect();
+            let merge_cells: Vec<Range> = merge_cells.into_iter().map(Range::from).collect();
+
+            let sheet = Sheet::extract(&name, &sheet_state, merge_cells, cells);
+            Self(Arc::new(RwLock::new(sheet)))
+        })
+    }
+}
 
 #[pymethods]
 impl WrapperSheet {
