@@ -6,6 +6,44 @@ use fancy_regex::{escape, Regex};
 use parking_lot::RwLock;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
+pub fn find_cell_by_coords<T: ReadableCell + Send + Sync>(
+    row: u32,
+    col: u16,
+    cells: Vec<&Arc<RwLock<T>>>,
+) -> Result<Option<&Arc<RwLock<T>>>> {
+    let cell = cells.par_iter().find_map_first(|cell| {
+        let guard = cell.read();
+        let coord = guard.get_coordinate();
+
+        if coord.row == row && coord.column == col {
+            Some(*cell)
+        } else {
+            None
+        }
+    });
+
+    Ok(cell)
+}
+
+pub fn find_value_by_coords<T: ReadableCell + Send + Sync>(
+    row: u32,
+    col: u16,
+    cells: Vec<&Arc<RwLock<T>>>,
+) -> Result<Option<String>> {
+    let cell = cells.par_iter().find_map_first(|cell| {
+        let guard = cell.read();
+        let coord = guard.get_coordinate();
+
+        if coord.row == row && coord.column == col {
+            Some(guard.get_value())
+        } else {
+            None
+        }
+    });
+
+    Ok(cell)
+}
+
 pub fn find_cell_by_regex<T: ReadableCell + Send + Sync>(
     regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
