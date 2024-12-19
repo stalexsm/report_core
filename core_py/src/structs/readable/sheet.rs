@@ -57,6 +57,7 @@ impl From<&Bound<'_, PyAny>> for WrapperSheet {
     fn from(obj: &Bound<'_, PyAny>) -> Self {
         Python::with_gil(|_py| {
             let name = extract_from_py!(obj, name, String);
+            let sheet_state = extract_from_py!(obj, sheet_state, String);
             let merge_cells = extract_from_py!(obj, merge_cells, Vec<(u32, u32, u16, u16)>)
                 .into_iter()
                 .map(Range::from)
@@ -64,7 +65,7 @@ impl From<&Bound<'_, PyAny>> for WrapperSheet {
 
             let map = extract_cells(obj);
 
-            let sheet = Sheet::extract(&name, "visible", merge_cells, map);
+            let sheet = Sheet::extract(&name, &sheet_state, merge_cells, map);
             Self(Arc::new(RwLock::new(sheet)))
         })
     }

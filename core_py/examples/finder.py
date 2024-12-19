@@ -1,5 +1,5 @@
 from report_core import Service
-from report_core.readable import Finder
+from report_core.readable import Finder, find_cell_by_letter
 import time
 
 from uuid import UUID, uuid4
@@ -28,6 +28,7 @@ class Cell:
 class Sheet:
     id: int = 1
     name: str = "Тестовый лист"
+    sheet_state: str = "visible"
     merge_cells: list[tuple[int, int, int, int]] = []
     cells: list[Cell] = []
 
@@ -49,6 +50,9 @@ class S10406(Service):
 
             cell = sheet.find_cell_by_letter("A1")
             print("Find", cell)
+
+            cell = find_cell_by_letter("A1", sheet.cells)
+            print("Find With F", cell)
 
         return "Summary"
 

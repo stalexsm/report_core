@@ -1,5 +1,11 @@
+pub(crate) mod funcs;
 pub(crate) mod structs;
 
+use funcs::{
+    find_cell_by_coords, find_cell_by_letter, find_cell_by_regex, find_cells_between_regex,
+    find_cells_by_regex, find_cells_for_cols_by_regex, find_cells_for_rows_by_regex,
+    find_cells_multi_regex, find_cells_range_cols, find_cells_range_rows, find_value_by_coords,
+};
 use pyo3::prelude::*;
 use structs::{
     book::WrapperBook,
@@ -66,6 +72,20 @@ fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     readable.add_class::<finder::WrapperFinder>()?;
     readable.add_class::<sheet::WrapperSheet>()?;
     readable.add_class::<cell::WrapperCell>()?;
+
+    // funcs
+    readable.add_function(wrap_pyfunction!(find_cell_by_coords, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_value_by_coords, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_cell_by_regex, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_cell_by_letter, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_cells_by_regex, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_cells_for_rows_by_regex, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_cells_for_cols_by_regex, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_cells_multi_regex, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_cells_between_regex, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_cells_range_rows, &readable)?)?;
+    readable.add_function(wrap_pyfunction!(find_cells_range_cols, &readable)?)?;
+
     m.add_submodule(&readable)?;
 
     m.py()
