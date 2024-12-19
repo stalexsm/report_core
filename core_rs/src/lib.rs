@@ -1,4 +1,5 @@
 pub mod datatype;
+pub mod funcs;
 pub mod structs;
 pub mod traits;
 pub mod utils;
