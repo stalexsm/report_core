@@ -23,7 +23,7 @@ macro_rules! extract_from_py {
 }
 
 #[pyclass]
-#[pyo3(module = "readable", name = "ReadableCell")]
+#[pyo3(module = "report_core.readable", name = "ReadableCell")]
 #[derive(Debug, Clone)]
 pub struct WrapperCell(pub(crate) Arc<RwLock<Cell>>);
 

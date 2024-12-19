@@ -8,11 +8,7 @@ use funcs::{
 };
 use pyo3::prelude::*;
 use structs::{
-    book::WrapperBook,
-    cell::{self, WrapperCell},
-    readable::finder,
-    service::WrapperService,
-    sheet::{self, WrapperSheet},
+    book::WrapperBook, cell::WrapperCell, readable, service::WrapperService, sheet::WrapperSheet,
 };
 
 /// Преобразование номера колонки в букву.
@@ -69,9 +65,9 @@ fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Sub Module
     let readable = PyModule::new(m.py(), "readable")?;
-    readable.add_class::<finder::WrapperFinder>()?;
-    readable.add_class::<sheet::WrapperSheet>()?;
-    readable.add_class::<cell::WrapperCell>()?;
+    readable.add_class::<readable::finder::WrapperFinder>()?;
+    readable.add_class::<readable::sheet::WrapperSheet>()?;
+    readable.add_class::<readable::cell::WrapperCell>()?;
 
     // funcs
     readable.add_function(wrap_pyfunction!(find_cell_by_coords, &readable)?)?;

@@ -11,7 +11,7 @@ use pyo3::{
 use super::sheet::WrapperSheet;
 
 #[pyclass]
-#[pyo3(module = "report_core", name = "Finder")]
+#[pyo3(module = "report_core.readable", name = "Finder")]
 #[derive(Debug, Clone)]
 pub struct WrapperFinder(pub(crate) Arc<RwLock<Finder<Sheet>>>);
 

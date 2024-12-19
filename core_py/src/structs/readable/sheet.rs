@@ -49,7 +49,7 @@ fn extract_cells(obj: &Bound<'_, PyAny>) -> HashMap<(u32, u16), Arc<RwLock<Cell>
 }
 
 #[pyclass]
-#[pyo3(module = "readable", name = "ReadableSheet")]
+#[pyo3(module = "report_core.readable", name = "ReadableSheet")]
 #[derive(Debug, Clone)]
 pub struct WrapperSheet(pub(crate) Arc<RwLock<Sheet>>);
 
