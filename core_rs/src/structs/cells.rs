@@ -220,6 +220,11 @@ impl Cells {
     }
 
     #[inline]
+    pub fn find_cell_by_coords(&self, row: u32, col: u16) -> Result<Option<&Arc<RwLock<Cell>>>> {
+        Ok(self.map.get(&(row, col)))
+    }
+
+    #[inline]
     pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();
 

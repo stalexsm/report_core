@@ -51,6 +51,9 @@ class S10406(Service):
             cell = sheet.find_cell_by_letter("A1")
             print("Find", cell)
 
+            cell = sheet.find_cell_by_coords(1, 1)
+            print("Find By Coords", cell)
+
             cell = find_cell_by_letter("A1", sheet.cells)
             print("Find With F", cell)
 

@@ -185,6 +185,17 @@ impl WrapperSheet {
         })
     }
 
+    pub fn find_cell_by_coords(&self, row: u32, col: u16) -> PyResult<Option<WrapperCell>> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            match slf.find_cell_by_coords(row, col) {
+                Ok(cell) => Ok(cell.map(|c| WrapperCell(c.clone()))),
+                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
+            }
+        })
+    }
+
     pub fn find_cell_by_letter(&self, letter: &str) -> PyResult<Option<WrapperCell>> {
         Python::with_gil(|_py| {
             let slf = self.0.read();

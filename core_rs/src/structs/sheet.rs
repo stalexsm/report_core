@@ -104,6 +104,11 @@ impl ReadableSheet for Sheet {
     }
 
     #[inline]
+    fn find_cell_by_coords(&self, row: u32, col: u16) -> Result<Option<&Arc<RwLock<Cell>>>> {
+        self.cells.find_cell_by_coords(row, col)
+    }
+
+    #[inline]
     fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         self.cells.find_cell_by_letter(letter)
     }
@@ -338,6 +343,16 @@ mod tests {
 
         assert!(cell.is_some());
         assert_eq!(cell.unwrap().read().get_value(), "Yop! 3:3");
+    }
+
+    #[test]
+    pub fn find_cell_by_coords() {
+        let sheet = sheet();
+
+        let cell = sheet.cells.find_cell_by_coords(1, 1).unwrap();
+
+        assert!(cell.is_some());
+        assert_eq!(cell.unwrap().read().get_value(), "Yop! 1:1");
     }
 
     #[test]
