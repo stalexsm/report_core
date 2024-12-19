@@ -16,6 +16,7 @@ class S10406(Service):
                     cell.value = "100"
                     cell.formula = "SUM(A1:A5)"
                     cell.style = "Style A"
+                    cell.hidden_value = "Hidden"
 
         print(sheet)
 
@@ -25,6 +26,7 @@ class S10406(Service):
             print(cell.formula)
             print(cell.style)
             print(cell.letter)
+            print(cell.hidden_value)
 
         fmt = self._fmt_0(**kwargs)
         print(fmt)

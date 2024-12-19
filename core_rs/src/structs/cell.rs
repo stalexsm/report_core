@@ -165,6 +165,11 @@ impl ReadableCell for Cell {
     }
 
     #[inline]
+    fn get_hidden_value(&self) -> Option<String> {
+        self.hidden_value.clone()
+    }
+
+    #[inline]
     fn get_style(&self) -> Option<Style> {
         self.style.clone()
     }
@@ -249,6 +254,19 @@ mod tests {
         };
 
         assert_eq!(cell.get_formula().unwrap(), "=A1".to_string())
+    }
+
+    #[test]
+    fn get_hidden_value() {
+        let cell = Cell {
+            coordinate: Coordinate::new(1, 1),
+            formula: Some("=A1".to_string()),
+            data_type: "f".to_string(),
+            hidden_value: Some("Hidden".to_string()),
+            ..Default::default()
+        };
+
+        assert_eq!(cell.get_hidden_value().unwrap(), "Hidden".to_string())
     }
 
     #[test]

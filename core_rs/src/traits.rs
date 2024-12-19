@@ -12,6 +12,7 @@ pub trait ReadableCell {
     fn get_value(&self) -> String;
     fn get_formula(&self) -> Option<String>;
     fn get_data_type(&self) -> String;
+    fn get_hidden_value(&self) -> Option<String>;
     fn get_style(&self) -> Option<Style>;
     fn is_formula(&self) -> bool;
     fn is_value_bool(&self) -> bool;

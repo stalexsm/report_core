@@ -89,6 +89,15 @@ impl WrapperCell {
     }
 
     #[getter]
+    pub fn get_hidden_value(&self) -> PyResult<Option<String>> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            Ok(slf.get_hidden_value())
+        })
+    }
+
+    #[getter]
     pub fn is_formula(&self) -> PyResult<bool> {
         Python::with_gil(|_py| {
             let slf = self.0.read();
@@ -167,6 +176,16 @@ impl WrapperCell {
         Python::with_gil(|_py| {
             let mut slf = self.0.write();
             slf.set_style(value);
+
+            Ok(())
+        })
+    }
+
+    #[setter]
+    pub fn set_hidden_value(&self, value: &str) -> PyResult<()> {
+        Python::with_gil(|_py| {
+            let mut slf = self.0.write();
+            slf.set_hidden_value(value);
 
             Ok(())
         })
