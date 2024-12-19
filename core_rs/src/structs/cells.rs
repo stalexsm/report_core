@@ -1,5 +1,5 @@
 use anyhow::Result;
-use fancy_regex::Regex;
+use fancy_regex::{escape, Regex};
 use parking_lot::RwLock;
 use rayon::{
     iter::{IntoParallelRefIterator, ParallelIterator},
@@ -212,7 +212,7 @@ impl Cells {
     pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();
 
-        let re = Regex::new(regex)?;
+        let re = Regex::new(&escape(regex))?;
         Ok(cells.par_iter().find_map_first(|cell| {
             let guard = cell.read();
             if re.is_match(&guard.get_value()).unwrap_or(false) {
@@ -243,7 +243,7 @@ impl Cells {
     pub fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();
 
-        let re = Regex::new(regex)?;
+        let re = Regex::new(&escape(regex))?;
         Ok(cells
             .par_iter()
             .filter_map(|cell| {
@@ -264,7 +264,7 @@ impl Cells {
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();
 
-        let re = Regex::new(regex)?;
+        let re = Regex::new(&escape(regex))?;
         Ok(cells
             .par_iter()
             .filter_map(|cell| {
@@ -290,7 +290,7 @@ impl Cells {
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();
 
-        let re = Regex::new(regex)?;
+        let re = Regex::new(&escape(regex))?;
         Ok(cells
             .par_iter()
             .filter_map(|cell| {
@@ -316,8 +316,8 @@ impl Cells {
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();
 
-        let before_regex = Regex::new(before_regex)?;
-        let after_regex = Regex::new(after_regex)?;
+        let before_regex = Regex::new(&escape(before_regex))?;
+        let after_regex = Regex::new(&escape(after_regex))?;
 
         let mut b = false;
         Ok(cells
@@ -344,8 +344,8 @@ impl Cells {
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();
 
-        let before_regex = Regex::new(before_regex)?;
-        let after_regex = Regex::new(after_regex)?;
+        let before_regex = Regex::new(&escape(before_regex))?;
+        let after_regex = Regex::new(&escape(after_regex))?;
 
         let mut b = false;
         let rows_idx = cells

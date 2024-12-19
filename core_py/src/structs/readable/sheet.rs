@@ -64,7 +64,7 @@ impl From<&Bound<'_, PyAny>> for WrapperSheet {
 
             let map = extract_cells(obj);
 
-            let sheet = Sheet::extract(&name, "visible".into(), merge_cells, map);
+            let sheet = Sheet::extract(&name, "visible", merge_cells, map);
             Self(Arc::new(RwLock::new(sheet)))
         })
     }

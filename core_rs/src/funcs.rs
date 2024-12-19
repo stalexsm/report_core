@@ -178,11 +178,11 @@ pub fn find_cells_between_regex<'a, T: ReadableCell + Send + Sync>(
         .collect())
 }
 
-pub fn find_cells_range_rows<'a, T: ReadableCell + Send + Sync>(
+pub fn find_cells_range_rows<T: ReadableCell + Send + Sync>(
     start_row: u32,
     end_row: u32,
-    cells: Vec<&'a Arc<RwLock<T>>>,
-) -> Result<Vec<&'a Arc<RwLock<T>>>> {
+    cells: Vec<&Arc<RwLock<T>>>,
+) -> Result<Vec<&Arc<RwLock<T>>>> {
     Ok(cells
         .par_iter()
         .filter_map(|cell| {
@@ -197,11 +197,11 @@ pub fn find_cells_range_rows<'a, T: ReadableCell + Send + Sync>(
         .collect())
 }
 
-pub fn find_cells_range_cols<'a, T: ReadableCell + Send + Sync>(
+pub fn find_cells_range_cols<T: ReadableCell + Send + Sync>(
     start_col: u16,
     end_col: u16,
-    cells: Vec<&'a Arc<RwLock<T>>>,
-) -> Result<Vec<&'a Arc<RwLock<T>>>> {
+    cells: Vec<&Arc<RwLock<T>>>,
+) -> Result<Vec<&Arc<RwLock<T>>>> {
     Ok(cells
         .par_iter()
         .filter_map(|cell| {
