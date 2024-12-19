@@ -7,14 +7,24 @@
 
 ## Основные компоненты
 
-- `XLSXBook`: Представляет книгу отчета Excel.
-- `XLSXSheet`: Представляет лист Excel для создания новых листов отчета.
-- `XLSXSheetCell`: Представляет ячейку в листе Excel для создания новых ячеек отчета.
-- `XLSXSheetRead`: Представляет лист Excel для чтения существующих листов отчета.
-- `XLSXSheetCellRead`: Представляет ячейку в листе Excel для чтения существующих ячеек отчета.
 - `Service`: Базовый класс для создания сервисов обработки данных и создания отчетов.
-- `HelperSheet`: Помощник для работы с несколькими листами и ячейками.
-- `HelperCell`: Помощник для работы с ячейками.
+- `Book`: Представляет книгу отчета Excel.
+- `Sheet`: Представляет лист Excel для создания новых листов отчета.
+- `Cell`: Представляет ячейку в листе Excel для создания новых ячеек отчета.
+- `Finder`: Помощник для работы с несколькими листами и ячейками.
+- `ReadableSheet`: Представляет лист Excel для чтения существующих листов отчета.
+- `ReadableCell`: Представляет ячейку в листе Excel для чтения существующих ячеек отчета.
+- `find_cell_by_coords`: Поиск ячейки в листе Excel по координатам.
+- `find_value_by_coords`: Поиск значения в листе Excel по координатам.
+- `find_cell_by_regex`: Поиск ячейки в листе Excel по регулярному выражению
+- `find_cell_by_letter`: Поиск ячейки в листе Excel по букве
+- `find_cells_by_regex`: Поиск ячеек в листе Excel по регулярному выражению
+- `find_cells_for_rows_by_regex`: Поиск ячеек в листе Excel по регулярному выражению до определеной колонки
+- `find_cells_for_cols_by_regex`: Поиск ячеек в листе Excel по регулярному выражению до определеной строки
+- `find_cells_multi_regex`: Поиск ячеек в листе Excel по нескольким регулярным выражениям
+- `find_cells_between_regex`: Поиск ячеек в листе Excel между двумя регулярными выражениями
+- `find_cells_range_rows`: Поиск ячеек в листе Excel по диапазону строк
+- `find_cells_range_cols`: Поиск ячеек в листе Excel по диапазону столбцов
 - `column_number_to_letter`: Функция для преобразования колонки с row в букву (1 -> A).
 - `get_letter_coordinate`: Функция для получения координаты ячейки в стиле A1.
 
@@ -30,39 +40,57 @@
 ## Пример использования
 
 ```python
-from report_core import  Service, HelperSheet, XLSXBook
-
-class MyService(Service):
-    def summary_0(self, sheets, /, **kwargs) -> XLSXBook:
-        """Данный метод предназначен для формирования отчета"""
-
-        book = XLSXBook()
-        new_sheet = book.add_sheet("Отчет")
-
-        h = HelperSheet(sheets)
-        sheet = h.find_sheet_by_pattern("Страница с данными")
-
-        if sheet:
-            cell = sheet.find_cell_pattern_regex("Итого:")
-            if cell:
-                total = float(cell.value)
-                print(f"Итоговая сумма: {total}")
-
-        # Вызовем метод форматирования
-        book = self.fmt_0(book, year=2024)
-
-        return book
+from report_core import Service
+import time
 
 
-    def fmt_0(self, sheets, /, **kwargs):
-        """Данный метод предназначен для форматирования отчета"""
-        return sheets
+class S10406(Service):
+    def summary_0(self, sheets, **kwargs):
+        sheet = self._add_sheet("Sheet1")
 
-# Использование
-service = MyService(uow="my_unit_of_work")
-sheets = [...]  # Ваши данные листов
+        print(sheet)
 
-processed_sheets = service.summary_0(sheets)
+        for r in range(1, 6):
+            for c in range(1, 6):
+                cell = sheet.cell(r, c, f"Dynamic value: r{r}:c{c}")
+
+                if r == 5 and c == 5:
+                    cell.value = "100"
+                    cell.formula = "SUM(A1:A5)"
+                    cell.style = "Style A"
+
+        print(sheet)
+
+        cell = sheet.find_cell_by_letter("E5")
+        if cell:
+            print(cell.value)
+            print(cell.formula)
+            print(cell.style)
+            print(cell.letter)
+
+        fmt = self._fmt_0(**kwargs)
+        print(fmt)
+
+        return "Summary"
+
+    def _fmt_0(self, **kwargs):
+        for s in self._sheets:
+            print("Fmt --> ", s)
+
+        return "Fmt"
+
+
+def main():
+    s = S10406("uow")
+    s.summary_0([])
+
+    print(s)
+    result = s.to_json()
+
+    print(result)
+
+if __name__ == "__main__":
+    main()
 ```
 
 ## Установка

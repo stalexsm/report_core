@@ -15,9 +15,11 @@ repository.workspace = true
 name = "report_core"
 crate-type = ["cdylib"]
 
+
 [features]
 # must be enabled when building with `cargo build`, maturin enables this automatically
 extension-module = ["pyo3/extension-module"]
+
 
 [dependencies]
 core_rs = { path = "../core_rs" }
