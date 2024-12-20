@@ -30,6 +30,7 @@ impl Sheet {
         }
     }
 
+    #[inline]
     pub fn extract(
         name: &str,
         sheet_state: &str,

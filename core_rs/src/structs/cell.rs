@@ -40,6 +40,7 @@ impl Cell {
         }
     }
 
+    #[inline]
     pub fn extract(
         coordinate: Coordinate,
         value: Option<String>,

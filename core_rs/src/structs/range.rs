@@ -30,6 +30,7 @@ impl From<(u32, u32, u16, u16)> for Range {
 }
 
 impl From<Range> for (u32, u32, u16, u16) {
+    #[inline]
     fn from(range: Range) -> Self {
         (
             range.start_row,
@@ -41,6 +42,7 @@ impl From<Range> for (u32, u32, u16, u16) {
 }
 
 impl From<&Range> for (u32, u32, u16, u16) {
+    #[inline]
     fn from(range: &Range) -> Self {
         (
             range.start_row,

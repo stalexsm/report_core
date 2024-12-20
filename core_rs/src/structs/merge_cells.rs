@@ -15,11 +15,13 @@ impl MergeCells {
     }
 
     /// Метод для получения коллекции диапазонов слияний
+    #[inline]
     pub fn get_collection(&self) -> &[Range] {
         &self.range
     }
 
     /// Метод для добавления диапазона слияния
+    #[inline]
     pub fn add_range(&mut self, range: Range) {
         self.range.push(range);
     }

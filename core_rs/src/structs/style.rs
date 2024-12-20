@@ -13,6 +13,7 @@ impl Style {
         }
     }
 
+    #[inline]
     pub fn get_id(&self) -> String {
         self.id.to_string()
     }
