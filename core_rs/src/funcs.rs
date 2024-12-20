@@ -256,3 +256,41 @@ pub fn find_cells_range_cols<T: ReadableCell + Send + Sync>(
         })
         .collect())
 }
+
+pub fn find_values_by_col_rows<T: ReadableCell + Send + Sync>(
+    col: u16,
+    rows: Vec<u32>,
+    cells: Vec<&Arc<RwLock<T>>>,
+) -> Result<Vec<String>> {
+    Ok(cells
+        .par_iter()
+        .filter_map(|cell| {
+            let guard = cell.read();
+            let coord = guard.get_coordinate();
+            if coord.column == col && rows.contains(&coord.row) {
+                Some(guard.get_value())
+            } else {
+                None
+            }
+        })
+        .collect())
+}
+
+pub fn find_values_by_row_cols<T: ReadableCell + Send + Sync>(
+    row: u32,
+    cols: Vec<u16>,
+    cells: Vec<&Arc<RwLock<T>>>,
+) -> Result<Vec<String>> {
+    Ok(cells
+        .par_iter()
+        .filter_map(|cell| {
+            let guard = cell.read();
+            let coord = guard.get_coordinate();
+            if coord.row == row && cols.contains(&coord.column) {
+                Some(guard.get_value())
+            } else {
+                None
+            }
+        })
+        .collect())
+}

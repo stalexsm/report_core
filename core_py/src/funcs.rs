@@ -211,3 +211,37 @@ pub(crate) fn find_cells_range_cols(
         }
     })
 }
+
+#[inline]
+#[pyfunction]
+pub(crate) fn find_values_by_col_rows(
+    col: u16,
+    rows: Vec<u32>,
+    cells: Vec<WrapperCell>,
+) -> PyResult<Vec<String>> {
+    Python::with_gil(|_py| {
+        let cells = cells.iter().map(|c| &c.0).collect();
+
+        match funcs::find_values_by_col_rows(col, rows, cells) {
+            Ok(cells) => Ok(cells),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+        }
+    })
+}
+
+#[inline]
+#[pyfunction]
+pub(crate) fn find_values_by_row_cols(
+    row: u32,
+    cols: Vec<u16>,
+    cells: Vec<WrapperCell>,
+) -> PyResult<Vec<String>> {
+    Python::with_gil(|_py| {
+        let cells = cells.iter().map(|c| &c.0).collect();
+
+        match funcs::find_values_by_row_cols(row, cols, cells) {
+            Ok(cells) => Ok(cells),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+        }
+    })
+}

@@ -356,4 +356,26 @@ impl WrapperSheet {
             }
         })
     }
+
+    pub fn find_values_by_col_rows(&self, col: u16, rows: Vec<u32>) -> PyResult<Vec<String>> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            match slf.find_values_by_col_rows(col, rows) {
+                Ok(values) => Ok(values),
+                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
+            }
+        })
+    }
+
+    pub fn find_values_by_row_cols(&self, row: u32, cols: Vec<u16>) -> PyResult<Vec<String>> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            match slf.find_values_by_row_cols(row, cols) {
+                Ok(values) => Ok(values),
+                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
+            }
+        })
+    }
 }

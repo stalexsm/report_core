@@ -57,6 +57,12 @@ class S10406(Service):
             cell = find_cell_by_letter("A1", sheet.cells)
             print("Find With F", cell)
 
+            cells = sheet.find_values_by_col_rows(1, [1, 2])
+            print("Find Values By Col Rows", cells)
+
+            cells = sheet.find_values_by_row_cols(1, [1, 2])
+            print("Find Values By Row Cols", cells)
+
         return "Summary"
 
     def _fmt_0(self, **kwargs):

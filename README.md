@@ -25,6 +25,8 @@
 - `find_cells_between_regex`: Поиск ячеек в листе Excel между двумя регулярными выражениями
 - `find_cells_range_rows`: Поиск ячеек в листе Excel по диапазону строк
 - `find_cells_range_cols`: Поиск ячеек в листе Excel по диапазону столбцов
+- `find_values_by_col_rows`: Поиск значений ячеек в листе Excel по диапазону строк и столбца
+- `find_values_by_row_cols`: Поиск значений ячеек в листе Excel по диапазону столбцов и строки
 - `column_number_to_letter`: Функция для преобразования колонки с row в букву (1 -> A).
 - `get_letter_coordinate`: Функция для получения координаты ячейки в стиле A1.
 

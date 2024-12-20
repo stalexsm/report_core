@@ -172,6 +172,16 @@ impl ReadableSheet for Sheet {
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells.find_cells_range_cols(start_col, end_col)
     }
+
+    #[inline]
+    fn find_values_by_col_rows(&self, col: u16, rows: Vec<u32>) -> Result<Vec<String>> {
+        self.cells.find_values_by_col_rows(col, rows)
+    }
+
+    #[inline]
+    fn find_values_by_row_cols(&self, row: u32, cols: Vec<u16>) -> Result<Vec<String>> {
+        self.cells.find_values_by_row_cols(row, cols)
+    }
 }
 
 impl WriteableSheet for Sheet {
@@ -461,6 +471,30 @@ mod tests {
             .unwrap();
 
         assert_eq!(cells.len(), 10);
+    }
+
+    #[test]
+    pub fn find_values_by_row_cols() {
+        let sheet = sheet();
+
+        let row = 1;
+        let cols = vec![1, 2];
+
+        let cells = sheet.cells.find_values_by_row_cols(row, cols).unwrap();
+
+        assert_eq!(cells.len(), 2);
+    }
+
+    #[test]
+    pub fn find_values_by_col_rows() {
+        let sheet = sheet();
+
+        let col = 2;
+        let rows = vec![1, 2, 3];
+
+        let cells = sheet.cells.find_values_by_col_rows(col, rows).unwrap();
+
+        assert_eq!(cells.len(), 3);
     }
 
     #[test]

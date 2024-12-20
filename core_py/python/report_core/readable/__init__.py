@@ -13,6 +13,8 @@ from ._readable import (  # type: ignore
     find_cells_between_regex,
     find_cells_range_rows,
     find_cells_range_cols,
+    find_values_by_col_rows,
+    find_values_by_row_cols,
 )
 
 
@@ -31,4 +33,6 @@ __all__ = [
     "find_cells_between_regex",
     "find_cells_range_rows",
     "find_cells_range_cols",
+    "find_values_by_col_rows",
+    "find_values_by_row_cols",
 ]

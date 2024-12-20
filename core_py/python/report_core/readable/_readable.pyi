@@ -55,6 +55,12 @@ class ReadableSheet:
     def find_cells_range_cols(
         self, start_col: int, end_col: int
     ) -> Sequence[ReadableCell]: ...
+    def find_values_by_col_rows(
+        self, col: int, rows: Sequence[int]
+    ) -> Sequence[str]: ...
+    def find_values_by_row_cols(
+        self, row: int, cols: Sequence[int]
+    ) -> Sequence[str]: ...
 
 class ReadableCell:
     value: str
@@ -115,3 +121,9 @@ def find_cells_range_rows(
 def find_cells_range_cols(
     start_col: int, end_col: int, cells: Sequence[ReadableCell]
 ) -> Sequence[ReadableCell]: ...
+def find_values_by_col_rows(
+    col: int, rows: Sequence[int], cells: Sequence[ReadableCell]
+) -> Sequence[str]: ...
+def find_values_by_row_cols(
+    row: int, cols: Sequence[int], cells: Sequence[ReadableCell]
+) -> Sequence[str]: ...

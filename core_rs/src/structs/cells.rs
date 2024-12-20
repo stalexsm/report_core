@@ -13,7 +13,8 @@ use crate::{
     funcs::{
         find_cell_by_letter, find_cell_by_regex, find_cells_between_regex, find_cells_by_regex,
         find_cells_for_cols_by_regex, find_cells_for_rows_by_regex, find_cells_multi_regex,
-        find_cells_range_cols, find_cells_range_rows,
+        find_cells_range_cols, find_cells_range_rows, find_values_by_col_rows,
+        find_values_by_row_cols,
     },
     traits::{ReadableCell, WriteableCell},
     MAX_COL, MAX_ROW,
@@ -282,6 +283,7 @@ impl Cells {
         find_cells_between_regex(before_regex.into(), after_regex.into(), cells)
     }
 
+    #[inline]
     pub fn find_cells_range_rows(
         &self,
         start_row: u32,
@@ -292,6 +294,7 @@ impl Cells {
         find_cells_range_rows(start_row, end_row, cells)
     }
 
+    #[inline]
     pub fn find_cells_range_cols(
         &self,
         start_col: u16,
@@ -300,5 +303,19 @@ impl Cells {
         let cells = self.get_collection_sorted();
 
         find_cells_range_cols(start_col, end_col, cells)
+    }
+
+    #[inline]
+    pub fn find_values_by_col_rows(&self, col: u16, rows: Vec<u32>) -> Result<Vec<String>> {
+        let cells = self.get_collection_sorted();
+
+        find_values_by_col_rows(col, rows, cells)
+    }
+
+    #[inline]
+    pub fn find_values_by_row_cols(&self, row: u32, cols: Vec<u16>) -> Result<Vec<String>> {
+        let cells = self.get_collection_sorted();
+
+        find_values_by_row_cols(row, cols, cells)
     }
 }
