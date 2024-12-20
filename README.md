@@ -1,5 +1,5 @@
 # __report-core__
-[![CI](https://github.com/stalexsm/report_core/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/stalexsm/report_core/actions/workflows/CI.yml)
+[![CI](https://github.com/stalexsm/report_core/actions/workflows/CI.yml/badge.svg?event=push)](https://github.com/stalexsm/report_core/actions/workflows/CI.yml)
 [![pypi](https://img.shields.io/pypi/v/report_core.svg)](https://pypi.python.org/pypi/report-core)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/report-core.svg)](https://pypi.python.org/pypi/report-core/)
 
