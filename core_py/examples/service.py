@@ -47,8 +47,8 @@ def main():
     s.summary_0([])
 
     print(s)
-    result = s.to_json()
 
+    result = s.to_dict()
     print(result)
 
     print(f"Выполнено за: {time.time() - start_time:.3f} сек.")

@@ -179,6 +179,17 @@ class Service(ABC):
             str
         """
 
+    @final
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Преобразование книги в dict
+        ---
+
+        Returns:
+        ---
+            dict[str, Any]
+        """
+
 class Book:
     sheets: Sequence[Sheet]
 

@@ -133,4 +133,21 @@ impl WrapperService {
             }
         })
     }
+
+    pub fn to_dict(&self) -> PyResult<Py<PyAny>> {
+        Python::with_gil(|py| {
+            let res = self.inner.read().to_json();
+            match res {
+                Ok(s) => {
+                    let py_module_json = py.import("json")?;
+                    let py_dict = py_module_json.getattr("loads")?.call1((s,))?;
+
+                    Ok(py_dict.into())
+                }
+                Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
+                    e.to_string(),
+                )),
+            }
+        })
+    }
 }
