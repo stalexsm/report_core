@@ -61,7 +61,7 @@ impl From<&Bound<'_, PyAny>> for WrapperSheet {
             let merge_cells = extract_from_py!(obj, merge_cells, Option<Vec<(u32, u32, u16, u16)>>)
                 .unwrap_or_default()
                 .into_iter()
-                .map(|coords| Range::from(coords))
+                .map(Range::from)
                 .collect();
 
             let map = extract_cells(obj);
