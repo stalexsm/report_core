@@ -58,9 +58,10 @@ impl From<&Bound<'_, PyAny>> for WrapperSheet {
         Python::with_gil(|_py| {
             let name = extract_from_py!(obj, name, String);
             let sheet_state = extract_from_py!(obj, sheet_state, String);
-            let merge_cells = extract_from_py!(obj, merge_cells, Vec<(u32, u32, u16, u16)>)
+            let merge_cells = extract_from_py!(obj, merge_cells, Option<Vec<(u32, u32, u16, u16)>>)
+                .unwrap_or_default()
                 .into_iter()
-                .map(Range::from)
+                .map(|coords| Range::from(coords))
                 .collect();
 
             let map = extract_cells(obj);

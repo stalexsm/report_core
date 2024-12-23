@@ -18,7 +18,7 @@ class Finder:
 class ReadableSheet:
     name: str
     cells: Sequence[ReadableCell]
-    merged_cells: Sequence[tuple[int, int, int, int]]
+    merge_cells: Sequence[tuple[int, int, int, int]]
 
     def __repr__(self) -> str: ...
     @property

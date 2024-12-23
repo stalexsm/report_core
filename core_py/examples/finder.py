@@ -29,7 +29,7 @@ class Sheet:
     id: int = 1
     name: str = "Тестовый лист"
     sheet_state: str = "visible"
-    merge_cells: list[tuple[int, int, int, int]] = []
+    merge_cells: list[tuple[int, int, int, int]] | None = None
     cells: list[Cell] = []
 
     def __init__(self, name: str, cells: list[Cell]):
@@ -62,6 +62,8 @@ class S10406(Service):
 
             cells = sheet.find_values_by_row_cols(1, [1, 2])
             print("Find Values By Row Cols", cells)
+
+            print("Merge Cells", sheet.merge_cells)
 
         return "Summary"
 
