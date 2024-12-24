@@ -1,10 +1,13 @@
-use serde::Serialize;
-
 use super::range::Range;
+use serde::Serialize;
 
 #[derive(Clone, Default, Debug, Serialize)]
 pub struct MergeCells {
-    #[serde(rename = "merge_cells", skip_serializing_if = "<[_]>::is_empty")]
+    #[serde(
+        rename = "merge_cells",
+        serialize_with = "serialize_vec_range",
+        skip_serializing_if = "<[_]>::is_empty"
+    )]
     range: Vec<Range>,
 }
 
@@ -25,4 +28,13 @@ impl MergeCells {
     pub fn add_range(&mut self, range: Range) {
         self.range.push(range);
     }
+}
+
+// Для сериализации
+fn serialize_vec_range<S>(ranges: &[Range], serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    let tuples: Vec<(u32, u32, u16, u16)> = ranges.iter().map(|r| r.into()).collect();
+    tuples.serialize(serializer)
 }

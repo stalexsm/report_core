@@ -18,6 +18,9 @@ class S10406(Service):
                     cell.style = "Style A"
                     cell.hidden_value = "Hidden"
 
+        # Добавляем слияние ячеек
+        sheet.add_merge_cells(1, 2, 1, 2)
+
         print(sheet)
 
         cell = sheet.find_cell_by_letter("E5")
