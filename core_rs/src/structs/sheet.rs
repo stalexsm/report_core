@@ -198,7 +198,7 @@ impl WriteableSheet for Sheet {
 
     #[inline]
     fn cell(&mut self, coordinate: Coordinate, value: Option<&str>) -> &Arc<RwLock<Cell>> {
-        self.cells.cell(coordinate, value.unwrap_or(""))
+        self.cells.cell(coordinate, value)
     }
 
     #[inline]

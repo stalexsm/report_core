@@ -155,20 +155,19 @@ impl Cells {
     }
 
     #[inline]
-    pub fn cell<T>(&mut self, coordinate: T, value: &str) -> &Arc<RwLock<Cell>>
+    pub fn cell<T>(&mut self, coordinate: T, value: Option<&str>) -> &Arc<RwLock<Cell>>
     where
         T: Into<Coordinate>,
     {
         let Coordinate { row, column } = coordinate.into();
 
         let cell = self.map.entry((row, column)).or_insert_with(|| {
-            Arc::new(RwLock::new(Cell::new(
-                Coordinate::new(row, column),
-                Some(value),
-            )))
+            Arc::new(RwLock::new(Cell::new(Coordinate::new(row, column), value)))
         });
 
-        cell.write().set_value(value);
+        if let Some(value) = value {
+            cell.write().set_value(value);
+        }
 
         cell
     }
