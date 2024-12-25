@@ -49,6 +49,15 @@ impl WrapperBook {
     pub fn add_sheet(&self, name: String) -> PyResult<WrapperSheet> {
         Python::with_gil(|_py| {
             let sheet = self.0.write().add_sheet(&name);
+
+            Ok(WrapperSheet(sheet))
+        })
+    }
+
+    pub fn copy_sheet(&self, sheet: WrapperSheet) -> PyResult<WrapperSheet> {
+        Python::with_gil(|_py| {
+            let sheet = self.0.write().copy_sheet(sheet.0);
+
             Ok(WrapperSheet(sheet))
         })
     }

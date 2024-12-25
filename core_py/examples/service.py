@@ -34,6 +34,9 @@ class S10406(Service):
         fmt = self._fmt_0(**kwargs)
         print(fmt)
 
+        sheet2 = self._copy_sheet(sheet)
+        print(sheet2)
+
         return "Summary"
 
     def _fmt_0(self, **kwargs):

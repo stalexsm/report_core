@@ -26,6 +26,13 @@ impl Service {
     }
 
     #[inline]
+    pub fn copy_sheet(&mut self, sheet: Arc<RwLock<Sheet>>) -> Arc<RwLock<Sheet>> {
+        let sheet = self.book.write().copy_sheet(sheet);
+
+        sheet
+    }
+
+    #[inline]
     pub fn get_sheet_name(&self, name: &str) -> Option<Arc<RwLock<Sheet>>> {
         self.book.read().get_sheet_name(name).cloned()
     }

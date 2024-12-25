@@ -100,6 +100,15 @@ impl WrapperService {
         })
     }
 
+    #[pyo3(name = "_copy_sheet")]
+    pub fn copy_sheet(&self, sheet: WrapperSheet) -> PyResult<WrapperSheet> {
+        Python::with_gil(|_py| {
+            let sheet = self.inner.write().copy_sheet(sheet.0);
+
+            Ok(WrapperSheet(sheet))
+        })
+    }
+
     #[pyo3(name = "_get_sheet_index")]
     pub fn get_sheet_index(&self, idx: i32) -> PyResult<Option<WrapperSheet>> {
         Python::with_gil(|_py| {

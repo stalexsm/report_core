@@ -125,6 +125,21 @@ class Service(ABC):
         """
 
     @final
+    def _copy_sheet(self, sheet: Sheet) -> Sheet:
+        """
+        Корирование листа в книгу
+        ---
+
+        Arguments:
+        ---
+            sheet: Sheet
+                Лист
+        Returns:
+        ---
+            Sheet
+        """
+
+    @final
     def _get_sheet_index(self, idx: int) -> Sheet | None:
         """
         Получение листа по индексу
@@ -215,6 +230,20 @@ class Book:
         ---
             name: str
                 Имя листа
+        Returns:
+        ---
+            Sheet
+        """
+
+    def copy_sheet(self, sheet: Sheet) -> Sheet:
+        """
+        Корирование листа в книгу
+        ---
+
+        Arguments:
+        ---
+            sheet: Sheet
+                Лист
         Returns:
         ---
             Sheet

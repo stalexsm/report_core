@@ -5,7 +5,7 @@ use parking_lot::RwLock;
 use serde::Serialize;
 use serde_json::Value;
 
-use crate::traits::ReadableSheet;
+use crate::traits::{ReadableSheet, WriteableSheet};
 
 use super::sheet::Sheet;
 
@@ -25,6 +25,18 @@ impl Book {
         self.sheets.push(Arc::clone(&sheet));
 
         sheet
+    }
+
+    #[inline]
+    pub fn copy_sheet(&mut self, sheet: Arc<RwLock<Sheet>>) -> Arc<RwLock<Sheet>> {
+        let new_sheet = Arc::new(RwLock::new((*sheet.read()).clone()));
+
+        let mut guard = new_sheet.write();
+        guard.set_name(&format!("Sheet {}", self.sheets.len() + 1));
+        drop(guard);
+
+        self.sheets.push(Arc::clone(&new_sheet));
+        new_sheet
     }
 
     #[inline]
@@ -87,6 +99,17 @@ mod tests {
         book.add_sheet("ЦП");
 
         assert_eq!(book.sheets.len(), 1);
+    }
+
+    #[test]
+    fn test_copy_sheet() {
+        let mut book = test_book();
+        let sheet = book.get_sheet_index(0).unwrap();
+
+        let sheet2 = book.copy_sheet(sheet.clone());
+
+        assert_eq!(book.sheets.len(), 2);
+        assert_eq!(sheet2.read().get_name(), "Sheet 2");
     }
 
     #[test]
