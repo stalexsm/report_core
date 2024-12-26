@@ -29,7 +29,7 @@ class Sheet:
     id: int = 1
     name: str = "Тестовый лист"
     sheet_state: str = "visible"
-    merge_cells: list[tuple[int, int, int, int]] | None = None
+    merge_cells: list[list[int, int, int, int]] | None = None
     cells: list[Cell] = []
 
     def __init__(self, name: str, cells: list[Cell]):
@@ -87,7 +87,7 @@ def main():
             )
 
     sheet = Sheet(name="Тестовый лист", cells=cells)
-    sheet.merge_cells = [[1, 1, 10, 10]]
+    sheet.merge_cells = [[1, 2, 1, 2]]
 
     start_time = time.time()
     s = S10406("uow")
