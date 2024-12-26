@@ -18,6 +18,9 @@ pub struct Sheet {
     merge_cells: MergeCells,
     #[serde(flatten)]
     cells: Cells,
+    // row_dimensions: Rows,
+    // column_dimensions: Columns,
+    // comments: Vec<Comment>,
 }
 
 impl Sheet {
@@ -42,6 +45,7 @@ impl Sheet {
             sheet_state: sheet_state.into(),
             merge_cells: MergeCells::new(range),
             cells: Cells::new(map),
+            // ..Default::default()
         }
     }
 }
