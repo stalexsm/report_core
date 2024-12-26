@@ -29,7 +29,7 @@ class Sheet:
     id: int = 1
     name: str = "Тестовый лист"
     sheet_state: str = "visible"
-    merge_cells: list[list[int, int, int, int]] | None = None
+    merge_cells: list[list[int]] | None = None
     cells: list[Cell] = []
 
     def __init__(self, name: str, cells: list[Cell]):
