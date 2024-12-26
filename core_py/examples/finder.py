@@ -87,6 +87,7 @@ def main():
             )
 
     sheet = Sheet(name="Тестовый лист", cells=cells)
+    sheet.merge_cells = [[1, 1, 10, 10]]
 
     start_time = time.time()
     s = S10406("uow")
