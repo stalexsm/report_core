@@ -7,8 +7,8 @@ use serde::Serialize;
 use crate::traits::{ReadableSheet, WriteableSheet};
 
 use super::{
-    cell::Cell, cells::Cells, columns::Columns, coordinate::Coordinate, merge_cells::MergeCells,
-    range::Range, rows::Rows,
+    cell::Cell, cells::Cells, columns::Columns, comment::Comment, coordinate::Coordinate,
+    merge_cells::MergeCells, range::Range, rows::Rows,
 };
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -21,7 +21,7 @@ pub struct Sheet {
     cells: Cells,
     row_dimensions: Rows,
     column_dimensions: Columns,
-    // comments: Vec<Comment>,
+    comments: Vec<Arc<RwLock<Comment>>>,
 }
 
 impl Sheet {
@@ -125,6 +125,11 @@ impl ReadableSheet for Sheet {
     }
 
     #[inline]
+    fn get_comments(&self) -> &[Arc<RwLock<Comment>>] {
+        &self.comments
+    }
+
+    #[inline]
     fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         self.cells.find_cell_by_regex(regex)
     }
@@ -219,6 +224,12 @@ impl WriteableSheet for Sheet {
     #[inline]
     fn add_merge_range(&mut self, range: Range) {
         self.merge_cells.add_range(range);
+    }
+
+    #[inline]
+    fn add_comments(&mut self, value: Comment) {
+        let value = Arc::new(RwLock::new(value));
+        self.comments.push(value);
     }
 
     #[inline]
@@ -558,9 +569,24 @@ mod tests {
     #[test]
     pub fn get_merge_cell_collection() {
         let sheet = sheet();
-
         let range = sheet.get_merge_cell_collection();
 
         assert_eq!(range.len(), 0);
+    }
+
+    #[test]
+    pub fn get_comments() {
+        let sheet = sheet();
+        let comments = sheet.get_comments();
+
+        assert_eq!(comments.len(), 0);
+    }
+
+    #[test]
+    pub fn add_comments() {
+        let mut sheet = sheet();
+        sheet.add_comments(Comment::new(Coordinate::new(1, 1), "A.C"));
+
+        assert_eq!(sheet.get_comments().len(), 1);
     }
 }

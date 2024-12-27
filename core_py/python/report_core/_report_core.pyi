@@ -308,6 +308,9 @@ class Sheet:
     merge_cells: Sequence[tuple[int, int, int, int]]
     cells: Sequence[Cell]
     sheet_state: str
+    row_dimensions: dict[str, dict[str, Any]]
+    column_dimensions: dict[str, dict[str, Any]]
+    comments: Sequence[Comment]
 
     @final
     def add_merge_cells(
@@ -331,6 +334,24 @@ class Sheet:
                 Начальная колонка
             end_col: int
                 Конечная колонка
+        """
+
+    @final
+    def add_comment(self, row: int, col: int, text: str, author: str) -> None:
+        """
+        Добавление комментария в ячейку
+        ---
+
+        Arguments:
+        ---
+            row: int
+                Строка ячейки
+            col: int
+                Колонка ячейки
+            text: str
+                Текст комментария
+            author: str
+                Автор комментария
         """
 
     @property
@@ -896,4 +917,23 @@ class Cell:
             value: datetime
                 Значение ячейки
 
+        """
+
+class Comment:
+    """Тип данных комментарий."""
+
+    row: int
+    column: int
+    author: str
+    text: str | None
+
+    @property
+    def coordinate(self) -> tuple[int, int]:
+        """
+        Получение координаты комментария
+        ---
+
+        Returns:
+        ---
+            (int, int)
         """

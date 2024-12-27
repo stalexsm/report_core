@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use core_rs::{
     structs::{
+        comment::Comment,
         coordinate::Coordinate,
         range::{MergedRange, Range},
         sheet::Sheet,
@@ -11,7 +12,7 @@ use core_rs::{
 use parking_lot::RwLock;
 use pyo3::prelude::*;
 
-use super::cell::WrapperCell;
+use super::{cell::WrapperCell, comment::WrapperComment};
 
 #[pyclass]
 #[pyo3(module = "report_core", name = "Sheet")]
@@ -111,6 +112,33 @@ impl WrapperSheet {
             self.0.write().add_merge_range(range);
 
             Ok(())
+        })
+    }
+
+    pub fn add_comment(&mut self, row: u32, col: u16, text: &str, author: &str) -> PyResult<()> {
+        Python::with_gil(|_py| {
+            let coord = Coordinate::new(row, col);
+            let mut comment = Comment::new(coord, author);
+            comment.set_text(text);
+
+            self.0.write().add_comments(comment);
+
+            Ok(())
+        })
+    }
+
+    #[getter]
+    pub fn get_comments(&self) -> PyResult<Vec<WrapperComment>> {
+        Python::with_gil(|_py| {
+            let comments = self
+                .0
+                .read()
+                .get_comments()
+                .iter()
+                .map(|c| WrapperComment(c.clone()))
+                .collect();
+
+            Ok(comments)
         })
     }
 

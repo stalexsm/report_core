@@ -4,7 +4,9 @@ use anyhow::Result;
 use chrono::NaiveDateTime;
 use parking_lot::RwLock;
 
-use crate::structs::{cell::Cell, coordinate::Coordinate, range::Range, style::Style};
+use crate::structs::{
+    cell::Cell, comment::Comment, coordinate::Coordinate, range::Range, style::Style,
+};
 
 pub trait ReadableCell {
     fn get_coordinate(&self) -> &Coordinate;
@@ -58,6 +60,7 @@ pub trait ReadableSheet {
     fn get_hidden_by_row(&self, row_num: u32) -> &bool;
     fn get_width_by_column(&self, col_num: u16) -> &f64;
     fn get_hidden_by_column(&self, col_num: u16) -> &bool;
+    fn get_comments(&self) -> &[Arc<RwLock<Comment>>];
 
     fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>>;
     fn find_cell_by_coords(&self, row: u32, col: u16) -> Result<Option<&Arc<RwLock<Cell>>>>;
@@ -100,6 +103,7 @@ pub trait ReadableSheet {
 pub trait WriteableSheet {
     fn set_name(&mut self, name: &str);
     fn add_merge_range(&mut self, range: Range);
+    fn add_comments(&mut self, value: Comment);
     fn cell(&mut self, coordinate: Coordinate, value: Option<&str>) -> &Arc<RwLock<Cell>>;
     fn delete_cols(&mut self, idx: u16, amount: u16);
     fn delete_rows(&mut self, idx: u32, amount: u32);

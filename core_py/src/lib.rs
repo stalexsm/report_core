@@ -9,7 +9,8 @@ use funcs::{
 };
 use pyo3::prelude::*;
 use structs::{
-    book::WrapperBook, cell::WrapperCell, readable, service::WrapperService, sheet::WrapperSheet,
+    book::WrapperBook, cell::WrapperCell, comment::WrapperComment, readable,
+    service::WrapperService, sheet::WrapperSheet,
 };
 
 /// Преобразование номера колонки в букву.
@@ -57,7 +58,14 @@ macro_rules! add_classes {
 fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("__version__", version())?;
     // classes
-    add_classes!(m, WrapperService, WrapperBook, WrapperSheet, WrapperCell);
+    add_classes!(
+        m,
+        WrapperService,
+        WrapperBook,
+        WrapperSheet,
+        WrapperCell,
+        WrapperComment
+    );
 
     // functions
     m.add_function(wrap_pyfunction!(version, m)?)?;

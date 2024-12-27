@@ -26,6 +26,14 @@ class S10406(Service):
 
         print(sheet)
 
+        sheet.add_comment(1, 1, "Комментарий к ячейке", "Автор")
+        for comment in sheet.comments:
+            print("Comment:", comment.coordinate)
+            print("Comment:", comment.text)
+            print("Comment:", comment.author)
+            print("Comment:", comment.row)
+            print("Comment:", comment.column)
+
         cell = sheet.find_cell_by_letter("E5")
         if cell:
             print(cell.value)
