@@ -308,8 +308,6 @@ class Sheet:
     merge_cells: Sequence[tuple[int, int, int, int]]
     cells: Sequence[Cell]
     sheet_state: str
-    row_dimensions: dict[str, dict[str, Any]]
-    column_dimensions: dict[str, dict[str, Any]]
     comments: Sequence[Comment]
 
     @final
