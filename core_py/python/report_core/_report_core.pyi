@@ -397,6 +397,77 @@ class Sheet:
         ---
             str
         """
+    @final
+    def set_height_row(self, row_num: int, val: float) -> None:
+        """
+        Метод установки высоты ячеек
+        ---
+
+        Arguments:
+        ---
+            row_num: int
+                Номер строки
+            val: float
+                Высота ячейки
+
+        Returns:
+        ---
+            None
+        """
+
+    @final
+    def set_hidden_row(self, row_num: int, val: bool) -> None:
+        """
+        Метод установки скрытости строки
+        ---
+
+        Arguments:
+        ---
+            row_num: int
+                Номер строки
+            val: bool
+                Скрытость строки
+
+        Returns:
+        ---
+            None
+        """
+
+    @final
+    def set_width_column(self, col_num: int, val: float) -> None:
+        """
+        Метод установки ширины колонки
+        ---
+
+        Arguments:
+        ---
+            col_num: int
+                Номер колонки
+            val: float
+                ширина колонки
+
+        Returns:
+        ---
+            None
+        """
+
+    @final
+    def set_hidden_column(self, col_num: int, val: bool) -> None:
+        """
+        Метод установки скрытости колонки
+        ---
+
+        Arguments:
+        ---
+            col_num: int
+                Номер колонки
+            val: bool
+                Скрытость колонки
+
+        Returns:
+        ---
+            None
+        """
 
     @final
     def delete_cols(self, idx: int, cols: int) -> None:
@@ -454,6 +525,70 @@ class Sheet:
         ---
             Sequence[Cell]
 
+        """
+
+    @final
+    def get_height_by_row(self, row_num: int) -> float:
+        """
+        Метод для получения высоты строки
+        ---
+
+        Arguments:
+        ---
+            row_num: int
+                Номер строки
+
+        Returns:
+        ---
+            float
+        """
+
+    @final
+    def get_hidden_by_row(self, row_num: int) -> bool:
+        """
+        Метод для получения скрытости строки
+        ---
+
+        Arguments:
+        ---
+            row_num: int
+                Номер строки
+
+        Returns:
+        ---
+            bool
+        """
+
+    @final
+    def get_width_by_column(self, col_num: int) -> float:
+        """
+        Метод для получения ширины колонки
+        ---
+
+        Arguments:
+        ---
+            col_num: int
+                Номер колонки
+
+        Returns:
+        ---
+            float
+        """
+
+    @final
+    def get_hidden_by_column(self, col_num: int) -> bool:
+        """
+        Метод для получения скрытости колонки
+        ---
+
+        Arguments:
+        ---
+            col_num: int
+                Номер колонки
+
+        Returns:
+        ---
+            None
         """
 
     @final

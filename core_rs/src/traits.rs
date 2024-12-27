@@ -54,6 +54,10 @@ pub trait ReadableSheet {
         end_col: Option<u16>,
     ) -> impl Iterator<Item = &Arc<RwLock<Cell>>>;
     fn get_merge_cell_collection(&self) -> &[Range];
+    fn get_height_by_row(&self, row_num: u32) -> &f64;
+    fn get_hidden_by_row(&self, row_num: u32) -> &bool;
+    fn get_width_by_column(&self, col_num: u16) -> &f64;
+    fn get_hidden_by_column(&self, col_num: u16) -> &bool;
 
     fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>>;
     fn find_cell_by_coords(&self, row: u32, col: u16) -> Result<Option<&Arc<RwLock<Cell>>>>;
@@ -99,4 +103,8 @@ pub trait WriteableSheet {
     fn cell(&mut self, coordinate: Coordinate, value: Option<&str>) -> &Arc<RwLock<Cell>>;
     fn delete_cols(&mut self, idx: u16, amount: u16);
     fn delete_rows(&mut self, idx: u32, amount: u32);
+    fn set_height_row(&mut self, row_num: u32, val: f64);
+    fn set_hidden_row(&mut self, row_num: u32, val: bool);
+    fn set_width_column(&mut self, col_num: u16, val: f64);
+    fn set_hidden_column(&mut self, col_num: u16, val: bool);
 }

@@ -153,6 +153,42 @@ impl WrapperSheet {
         })
     }
 
+    pub fn set_height_row(&self, row_num: u32, val: f64) -> PyResult<()> {
+        Python::with_gil(|_py| {
+            let mut slf = self.0.write();
+
+            slf.set_height_row(row_num, val);
+            Ok(())
+        })
+    }
+
+    pub fn set_hidden_row(&self, row_num: u32, val: bool) -> PyResult<()> {
+        Python::with_gil(|_py| {
+            let mut slf = self.0.write();
+
+            slf.set_hidden_row(row_num, val);
+            Ok(())
+        })
+    }
+
+    pub fn set_width_column(&self, col_num: u16, val: f64) -> PyResult<()> {
+        Python::with_gil(|_py| {
+            let mut slf = self.0.write();
+
+            slf.set_width_column(col_num, val);
+            Ok(())
+        })
+    }
+
+    pub fn set_hidden_column(&self, col_num: u16, val: bool) -> PyResult<()> {
+        Python::with_gil(|_py| {
+            let mut slf = self.0.write();
+
+            slf.set_hidden_column(col_num, val);
+            Ok(())
+        })
+    }
+
     #[pyo3(signature = (start_row=None, end_row=None, start_col=None, end_col=None))]
     pub fn get_cells_by_range(
         &self,
@@ -170,6 +206,42 @@ impl WrapperSheet {
                 .collect::<Vec<_>>();
 
             Ok(cells)
+        })
+    }
+
+    pub fn get_height_by_row(&self, row_num: u32) -> PyResult<f64> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            let val = slf.get_height_by_row(row_num);
+            Ok(*val)
+        })
+    }
+
+    pub fn get_hidden_by_row(&self, row_num: u32) -> PyResult<bool> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            let val = slf.get_hidden_by_row(row_num);
+            Ok(*val)
+        })
+    }
+
+    pub fn get_width_by_column(&self, col_num: u16) -> PyResult<f64> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            let val = slf.get_width_by_column(col_num);
+            Ok(*val)
+        })
+    }
+
+    pub fn get_hidden_by_column(&self, col_num: u16) -> PyResult<bool> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            let val = slf.get_hidden_by_column(col_num);
+            Ok(*val)
         })
     }
 

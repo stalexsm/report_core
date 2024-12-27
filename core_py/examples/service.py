@@ -21,6 +21,9 @@ class S10406(Service):
         # Добавляем слияние ячеек
         sheet.add_merge_cells(1, 2, 1, 2)
 
+        sheet.set_height_row(1, 75.0)
+        sheet.set_width_column(1, 100.0)
+
         print(sheet)
 
         cell = sheet.find_cell_by_letter("E5")

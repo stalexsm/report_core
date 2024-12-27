@@ -7,7 +7,8 @@ use serde::Serialize;
 use crate::traits::{ReadableSheet, WriteableSheet};
 
 use super::{
-    cell::Cell, cells::Cells, coordinate::Coordinate, merge_cells::MergeCells, range::Range,
+    cell::Cell, cells::Cells, columns::Columns, coordinate::Coordinate, merge_cells::MergeCells,
+    range::Range, rows::Rows,
 };
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -18,8 +19,8 @@ pub struct Sheet {
     merge_cells: MergeCells,
     #[serde(flatten)]
     cells: Cells,
-    // row_dimensions: Rows,
-    // column_dimensions: Columns,
+    row_dimensions: Rows,
+    column_dimensions: Columns,
     // comments: Vec<Comment>,
 }
 
@@ -45,7 +46,7 @@ impl Sheet {
             sheet_state: sheet_state.into(),
             merge_cells: MergeCells::new(range),
             cells: Cells::new(map),
-            // ..Default::default()
+            ..Default::default()
         }
     }
 }
@@ -96,6 +97,26 @@ impl ReadableSheet for Sheet {
     ) -> impl Iterator<Item = &Arc<RwLock<Cell>>> {
         self.cells
             .get_cell_collection_by_range(start_row, end_row, start_col, end_col)
+    }
+
+    #[inline]
+    fn get_height_by_row(&self, row_num: u32) -> &f64 {
+        self.row_dimensions.get_heignt(row_num)
+    }
+
+    #[inline]
+    fn get_hidden_by_row(&self, row_num: u32) -> &bool {
+        self.row_dimensions.get_hidden(row_num)
+    }
+
+    #[inline]
+    fn get_width_by_column(&self, col_num: u16) -> &f64 {
+        self.column_dimensions.get_width(col_num)
+    }
+
+    #[inline]
+    fn get_hidden_by_column(&self, col_num: u16) -> &bool {
+        self.column_dimensions.get_hidden(col_num)
     }
 
     #[inline]
@@ -213,6 +234,26 @@ impl WriteableSheet for Sheet {
     #[inline]
     fn delete_rows(&mut self, idx: u32, amount: u32) {
         self.cells.delete_rows(idx, amount);
+    }
+
+    #[inline]
+    fn set_height_row(&mut self, row_num: u32, val: f64) {
+        self.row_dimensions.set_height(row_num, val);
+    }
+
+    #[inline]
+    fn set_hidden_row(&mut self, row_num: u32, val: bool) {
+        self.row_dimensions.set_hidden(row_num, val)
+    }
+
+    #[inline]
+    fn set_width_column(&mut self, col_num: u16, val: f64) {
+        self.column_dimensions.set_width(col_num, val);
+    }
+
+    #[inline]
+    fn set_hidden_column(&mut self, col_num: u16, val: bool) {
+        self.column_dimensions.set_hidden(col_num, val)
     }
 }
 
