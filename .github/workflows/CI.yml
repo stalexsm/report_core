@@ -29,17 +29,20 @@ jobs:
             target: x86_64
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path Cargo.toml
+          args: --release --out ../dist --find-interpreter --manifest-path Cargo.toml
           sccache: "true"
           manylinux: auto
           working-directory: ./core_py
+
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -53,20 +56,24 @@ jobs:
         platform:
           - runner: macos-13
             target: x86_64
+
           - runner: macos-14
             target: aarch64
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path Cargo.toml
+          args: --release --out ../dist --find-interpreter --manifest-path Cargo.toml
           sccache: "true"
           working-directory: ./core_py
+
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -77,12 +84,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
+
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
-          args: --out dist --manifest-path Cargo.toml
+          args: --out ../dist --manifest-path Cargo.toml
           working-directory: ./core_py
+
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
@@ -103,13 +112,23 @@ jobs:
       attestations: write
     steps:
       - uses: actions/download-artifact@v4
+
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: "wheels-*/*"
+
       - uses: actions/setup-python@v5
         with:
           python-version: 3.x
+
+      # Добавляем проверку metadata
+      - name: Check metadata
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install twine
+          twine check wheels-*/*
+
       - name: Publish to PyPI
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: PyO3/maturin-action@v1
