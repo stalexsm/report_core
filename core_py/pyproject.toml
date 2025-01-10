@@ -28,3 +28,8 @@ python-source = "python"
 module-name = "report_core._report_core"
 bindings = "pyo3"
 strip = true
+
+
+[project.urls]
+homepage = "https://github.com/stalexsm/report_core"
+repository = "https://github.com/stalexsm/report_core"
