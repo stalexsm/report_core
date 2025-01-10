@@ -36,7 +36,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path ./core_py/Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path ./core_py/Cargo.toml --workspace
           sccache: "true"
           manylinux: auto
       - name: Upload wheels
@@ -63,7 +63,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out dist --find-interpreter --manifest-path ./core_py/Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path ./core_py/Cargo.toml --workspace
           sccache: "true"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -72,14 +72,14 @@ jobs:
           path: dist
 
   sdist:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
-          args: --out dist --manifest-path ./core_py/Cargo.toml
+          args: --out dist --manifest-path ./core_py/Cargo.toml --workspace
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
@@ -88,7 +88,7 @@ jobs:
 
   release:
     name: Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: ${{ startsWith(github.ref, 'refs/tags/') }}
     needs: [linux, macos, sdist]
     permissions:
