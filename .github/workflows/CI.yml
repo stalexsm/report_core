@@ -39,6 +39,7 @@ jobs:
           args: --release --out dist --find-interpreter --manifest-path ./core_py/Cargo.toml --workspace
           sccache: "true"
           manylinux: auto
+          working-directory: .
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -65,6 +66,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           args: --release --out dist --find-interpreter --manifest-path ./core_py/Cargo.toml --workspace
           sccache: "true"
+          working-directory: .
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -80,6 +82,7 @@ jobs:
         with:
           command: sdist
           args: --out dist --manifest-path ./core_py/Cargo.toml --workspace
+          working-directory: .
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
