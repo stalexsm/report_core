@@ -49,10 +49,9 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ../dist --find-interpreter --manifest-path Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path ./core_py/Cargo.toml
           sccache: "true"
           manylinux: auto
-          working-directory: ./core_py
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -81,9 +80,8 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ../dist --find-interpreter --manifest-path Cargo.toml
+          args: --release --out dist --find-interpreter --manifest-path ./core_py/Cargo.toml
           sccache: "true"
-          working-directory: ./core_py
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -100,8 +98,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
-          args: --out ../dist --manifest-path Cargo.toml
-          working-directory: ./core_py
+          args: --out dist --manifest-path ./core_py/Cargo.toml
 
       - name: Upload sdist
         uses: actions/upload-artifact@v4
