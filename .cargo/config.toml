@@ -1,6 +1,5 @@
 [build]
 rustflags = []
-target-dir = "target"
 
 # see https://pyo3.rs/main/building_and_distribution.html#macos
 [target.x86_64-apple-darwin]
