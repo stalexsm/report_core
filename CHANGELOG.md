@@ -1,4 +1,4 @@
-## 0.5.0 (2024-12-28)
+## 0.5.1 (2025-01-13)
 
 ### Feat
 
@@ -12,6 +12,7 @@
 
 ### Fix
 
+- Добавдение новых tagret для компиляции версии под Linux, Mac, Windows и Musllinux
 - Убрал из py слоя row_row_dimensions и column_dimensions
 - Правки в python example тип list для merge_cells
 - Внес правки в получение данных из python для merge_cells
