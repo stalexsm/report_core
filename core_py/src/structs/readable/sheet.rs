@@ -158,12 +158,13 @@ impl WrapperSheet {
     #[pyo3(signature = (start_row=None, end_row=None, start_col=None, end_col=None))]
     pub fn get_cells_by_range(
         &self,
+        py: Python<'_>,
         start_row: Option<u32>,
         end_row: Option<u32>,
         start_col: Option<u16>,
         end_col: Option<u16>,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             let cells = slf
@@ -175,8 +176,8 @@ impl WrapperSheet {
         })
     }
 
-    pub fn find_cell_by_regex(&self, regex: &str) -> PyResult<Option<WrapperCell>> {
-        Python::with_gil(|_py| {
+    pub fn find_cell_by_regex(&self, py: Python<'_>, regex: &str) -> PyResult<Option<WrapperCell>> {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cell_by_regex(regex) {
@@ -186,8 +187,13 @@ impl WrapperSheet {
         })
     }
 
-    pub fn find_cell_by_coords(&self, row: u32, col: u16) -> PyResult<Option<WrapperCell>> {
-        Python::with_gil(|_py| {
+    pub fn find_cell_by_coords(
+        &self,
+        py: Python<'_>,
+        row: u32,
+        col: u16,
+    ) -> PyResult<Option<WrapperCell>> {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cell_by_coords(row, col) {
@@ -197,8 +203,12 @@ impl WrapperSheet {
         })
     }
 
-    pub fn find_cell_by_letter(&self, letter: &str) -> PyResult<Option<WrapperCell>> {
-        Python::with_gil(|_py| {
+    pub fn find_cell_by_letter(
+        &self,
+        py: Python<'_>,
+        letter: &str,
+    ) -> PyResult<Option<WrapperCell>> {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cell_by_letter(letter) {
@@ -208,8 +218,8 @@ impl WrapperSheet {
         })
     }
 
-    pub fn find_cells_by_regex(&self, regex: &str) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+    pub fn find_cells_by_regex(&self, py: Python<'_>, regex: &str) -> PyResult<Vec<WrapperCell>> {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cells_by_regex(regex) {
@@ -228,10 +238,11 @@ impl WrapperSheet {
 
     pub fn find_cells_for_rows_by_regex(
         &self,
+        py: Python<'_>,
         regex: &str,
         col_stop: u16,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cells_for_rows_by_regex(regex, col_stop) {
@@ -250,10 +261,11 @@ impl WrapperSheet {
 
     pub fn find_cells_for_cols_by_regex(
         &self,
+        py: Python<'_>,
         regex: &str,
         row_stop: u32,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cells_for_cols_by_regex(regex, row_stop) {
@@ -272,10 +284,11 @@ impl WrapperSheet {
 
     pub fn find_cells_multi_regex(
         &self,
+        py: Python<'_>,
         before_regex: &str,
         after_regex: &str,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cells_multi_regex(before_regex, after_regex) {
@@ -294,10 +307,11 @@ impl WrapperSheet {
 
     pub fn find_cells_between_regex(
         &self,
+        py: Python<'_>,
         before_regex: &str,
         after_regex: &str,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cells_between_regex(before_regex, after_regex) {
@@ -316,10 +330,11 @@ impl WrapperSheet {
 
     pub fn find_cells_range_rows(
         &self,
+        py: Python<'_>,
         start_row: u32,
         end_row: u32,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cells_range_rows(start_row, end_row) {
@@ -338,10 +353,11 @@ impl WrapperSheet {
 
     pub fn find_cells_range_cols(
         &self,
+        py: Python<'_>,
         start_col: u16,
         end_col: u16,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_cells_range_cols(start_col, end_col) {
@@ -358,8 +374,13 @@ impl WrapperSheet {
         })
     }
 
-    pub fn find_values_by_col_rows(&self, col: u16, rows: Vec<u32>) -> PyResult<Vec<String>> {
-        Python::with_gil(|_py| {
+    pub fn find_values_by_col_rows(
+        &self,
+        py: Python<'_>,
+        col: u16,
+        rows: Vec<u32>,
+    ) -> PyResult<Vec<String>> {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_values_by_col_rows(col, rows) {
@@ -369,8 +390,13 @@ impl WrapperSheet {
         })
     }
 
-    pub fn find_values_by_row_cols(&self, row: u32, cols: Vec<u16>) -> PyResult<Vec<String>> {
-        Python::with_gil(|_py| {
+    pub fn find_values_by_row_cols(
+        &self,
+        py: Python<'_>,
+        row: u32,
+        cols: Vec<u16>,
+    ) -> PyResult<Vec<String>> {
+        py.allow_threads(|| {
             let slf = self.0.read();
 
             match slf.find_values_by_row_cols(row, cols) {
