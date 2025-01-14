@@ -10,9 +10,14 @@ __all__ = (
     "column_number_to_letter",
     "get_letter_coordinate",
     "version",
+    "DEFAULT_ROW_HEIGHT",
+    "DEFAULT_COLUMN_WIDTH",
 )
 
 __version__: str
+
+DEFAULT_ROW_HEIGHT: float  # ~ 20 пикселей
+DEFAULT_COLUMN_WIDTH: float  # ~ 64 пикселя
 
 def column_number_to_letter(column: int) -> str:
     """

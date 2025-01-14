@@ -6,6 +6,8 @@ from ._report_core import (
     column_number_to_letter,
     get_letter_coordinate,
     version,
+    DEFAULT_COLUMN_WIDTH,
+    DEFAULT_ROW_HEIGHT,
 )
 
 
@@ -17,4 +19,6 @@ __all__ = (
     "column_number_to_letter",
     "get_letter_coordinate",
     "version",
+    "DEFAULT_ROW_HEIGHT",
+    "DEFAULT_COLUMN_WIDTH",
 )

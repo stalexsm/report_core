@@ -1,6 +1,7 @@
 pub(crate) mod funcs;
 pub(crate) mod structs;
 
+use core_rs::{DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT};
 use funcs::{
     find_cell_by_coords, find_cell_by_letter, find_cell_by_regex, find_cells_between_regex,
     find_cells_by_regex, find_cells_for_cols_by_regex, find_cells_for_rows_by_regex,
@@ -71,6 +72,10 @@ fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(version, m)?)?;
     m.add_function(wrap_pyfunction!(column_number_to_letter, m)?)?;
     m.add_function(wrap_pyfunction!(get_letter_coordinate, m)?)?;
+
+    // constants
+    m.add("DEFAULT_ROW_HEIGHT", DEFAULT_ROW_HEIGHT)?;
+    m.add("DEFAULT_COLUMN_WIDTH", DEFAULT_COLUMN_WIDTH)?;
 
     // Sub Module
     let readable = PyModule::new(m.py(), "readable")?;

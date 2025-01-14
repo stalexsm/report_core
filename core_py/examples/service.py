@@ -1,9 +1,12 @@
-from report_core import Service
+from report_core import Service, DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT
 import time
 
 
 class S10406(Service):
     def summary_0(self, sheets, **kwargs):
+        print("DEFAULT_COLUMN_WIDTH", DEFAULT_COLUMN_WIDTH)
+        print("DEFAULT_ROW_HEIGHT", DEFAULT_ROW_HEIGHT)
+
         sheet = self._add_sheet("Sheet1")
 
         print(sheet)
