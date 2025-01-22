@@ -149,7 +149,8 @@ impl WrapperService {
             match res {
                 Ok(s) => {
                     let py_module_json = py.import("json")?;
-                    let py_dict = py_module_json.getattr("loads")?.call1((s,))?;
+                    let py_fn_loads = py_module_json.getattr("loads")?;
+                    let py_dict = py_fn_loads.call1((s,))?;
 
                     Ok(py_dict.into())
                 }
