@@ -61,6 +61,7 @@ class ReadableSheet:
     def find_values_by_row_cols(
         self, row: int, cols: Sequence[int]
     ) -> Sequence[str]: ...
+    def find_value_by_coords(self, row: int, col: int) -> str | None: ...
 
 class ReadableCell:
     value: str

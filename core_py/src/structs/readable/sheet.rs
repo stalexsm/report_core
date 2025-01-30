@@ -405,4 +405,20 @@ impl WrapperSheet {
             }
         })
     }
+
+    pub fn find_value_by_coords(
+        &self,
+        py: Python<'_>,
+        row: u32,
+        col: u16,
+    ) -> PyResult<Option<String>> {
+        py.allow_threads(|| {
+            let slf = self.0.read();
+
+            match slf.find_value_by_coords(row, col) {
+                Ok(value) => Ok(value),
+                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
+            }
+        })
+    }
 }

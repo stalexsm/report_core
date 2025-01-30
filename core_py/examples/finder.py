@@ -52,7 +52,10 @@ class S10406(Service):
             print("Find", cell)
 
             cell = sheet.find_cell_by_coords(1, 1)
-            print("Find By Coords", cell)
+            print("Find Cell By Coords", cell)
+
+            value = sheet.find_value_by_coords(1, 1)
+            print("Find Value By Coords", value)
 
             cell = find_cell_by_letter("A1", sheet.cells)
             print("Find With F", cell)

@@ -213,6 +213,11 @@ impl ReadableSheet for Sheet {
     fn find_values_by_row_cols(&self, row: u32, cols: Vec<u16>) -> Result<Vec<String>> {
         self.cells.find_values_by_row_cols(row, cols)
     }
+
+    #[inline]
+    fn find_value_by_coords(&self, row: u32, col: u16) -> Result<Option<String>> {
+        self.cells.find_value_by_coords(row, col)
+    }
 }
 
 impl WriteableSheet for Sheet {
@@ -552,6 +557,15 @@ mod tests {
         let cells = sheet.cells.find_values_by_col_rows(col, rows).unwrap();
 
         assert_eq!(cells.len(), 3);
+    }
+
+    #[test]
+    pub fn find_value_by_coords() {
+        let sheet = sheet();
+
+        let value = sheet.cells.find_value_by_coords(1, 1).unwrap();
+
+        assert_eq!(value, Some(format!("Yop! {}:{}", 1, 1)));
     }
 
     #[test]

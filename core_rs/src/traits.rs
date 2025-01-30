@@ -98,6 +98,7 @@ pub trait ReadableSheet {
     ) -> Result<Vec<&Arc<RwLock<Cell>>>>;
     fn find_values_by_col_rows(&self, col: u16, rows: Vec<u32>) -> Result<Vec<String>>;
     fn find_values_by_row_cols(&self, row: u32, cols: Vec<u16>) -> Result<Vec<String>>;
+    fn find_value_by_coords(&self, row: u32, col: u16) -> Result<Option<String>>;
 }
 
 pub trait WriteableSheet {

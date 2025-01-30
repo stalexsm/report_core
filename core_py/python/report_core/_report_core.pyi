@@ -789,6 +789,28 @@ class Sheet:
             Sequence[Cell]
         """
 
+    @final
+    def find_value_by_coords(
+        self,
+        row: int,
+        col: int,
+    ) -> str | None:
+        """
+        Функция для поиска значения ячейки по координатам
+        ---
+
+        Arguments:
+        ---
+            row: int
+                Индекс строки
+            col: int
+                Индекс колонки
+
+        Returns:
+        ---
+            str | None
+        """
+
 class Cell:
     """Тип данных ячеек листа с которыми работает парсер."""
 

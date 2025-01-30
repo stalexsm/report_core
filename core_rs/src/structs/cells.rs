@@ -317,4 +317,14 @@ impl Cells {
 
         find_values_by_row_cols(row, cols, cells)
     }
+
+    #[inline]
+    pub fn find_value_by_coords(&self, row: u32, col: u16) -> Result<Option<String>> {
+        let value = self.map.get(&(row, col)).map(|cell| {
+            let guard = cell.read();
+            guard.get_value().to_string()
+        });
+
+        Ok(value)
+    }
 }
