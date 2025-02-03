@@ -33,4 +33,4 @@ parking_lot.workspace = true
 
 
 [build-dependencies]
-pyo3-build-config = "0.23.3"
+pyo3-build-config = "0.23.4"
