@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Sequence, final, Self
+from typing import Any, Self, Sequence, final
 
 __all__ = (
     "__version__",
