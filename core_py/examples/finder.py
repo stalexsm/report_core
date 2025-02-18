@@ -1,8 +1,8 @@
+import time
+from uuid import UUID, uuid4
+
 from report_core import Service
 from report_core.readable import Finder, find_cell_by_letter
-import time
-
-from uuid import UUID, uuid4
 
 
 class Cell:
@@ -81,13 +81,20 @@ def main():
     cells = []
     for row in range(1, 11):
         for col in range(1, 11):
-            cells.append(
-                Cell(
+            if row == 2 and col == 5:
+                cell = Cell(
+                    row,
+                    col,
+                    value=None,
+                )
+            else:
+                cell = Cell(
                     row,
                     col,
                     value=f"Привет: {row} {col}",
-                ),
-            )
+                )
+
+            cells.append(cell)
 
     sheet = Sheet(name="Тестовый лист", cells=cells)
     sheet.merge_cells = [[1, 2, 1, 2]]

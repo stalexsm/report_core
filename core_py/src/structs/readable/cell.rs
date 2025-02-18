@@ -32,16 +32,11 @@ impl From<&Bound<'_, PyAny>> for WrapperCell {
         Python::with_gil(|_py| {
             let row = extract_from_py!(obj, row, u32);
             let column = extract_from_py!(obj, column, u16);
-            let value = extract_from_py!(obj, value, String);
+            let value = extract_from_py!(obj, value, Option<String>);
             let formula = extract_from_py!(obj, formula, Option<String>);
             let data_type = extract_from_py!(obj, data_type, String);
 
-            let cell = Cell::extract(
-                Coordinate::new(row, column),
-                Some(value),
-                formula,
-                &data_type,
-            );
+            let cell = Cell::extract(Coordinate::new(row, column), value, formula, &data_type);
 
             Self(Arc::new(RwLock::new(cell)))
         })
