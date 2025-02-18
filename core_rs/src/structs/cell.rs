@@ -49,8 +49,17 @@ impl Cell {
     ) -> Self {
         let mut cell_val = CellValue::default();
 
-        if let Some(val) = value {
-            cell_val.set_value(val);
+        match data_type {
+            "s" => {
+                if let Some(val) = value {
+                    cell_val.set_value_str(&val);
+                }
+            }
+            _ => {
+                if let Some(val) = value {
+                    cell_val.set_value(&val);
+                }
+            }
         }
 
         Cell {

@@ -1,5 +1,6 @@
-from report_core import Service, DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT
 import time
+
+from report_core import DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT, Service
 
 
 class S10406(Service):

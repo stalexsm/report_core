@@ -18,11 +18,13 @@ class Cell:
         row: int,
         col: int,
         value: str | None = None,
+        data_type: str = "s",
     ):
         self.id = uuid4()
         self.row = row
         self.column = col
         self.value = value
+        self.data_type = data_type
 
 
 class Sheet:
@@ -68,6 +70,16 @@ class S10406(Service):
 
             print("Merge Cells", sheet.merge_cells)
 
+            cell = sheet.find_cell_by_coords(2, 2)
+            if cell:
+                print("Value None", cell.value)
+            cell = sheet.find_cell_by_coords(3, 3)
+            if cell:
+                print("Value str", cell.value)
+            cell = sheet.find_cell_by_coords(4, 4)
+            if cell:
+                print("Value int", cell.value)
+
         return "Summary"
 
     def _fmt_0(self, **kwargs):
@@ -81,11 +93,25 @@ def main():
     cells = []
     for row in range(1, 11):
         for col in range(1, 11):
-            if row == 2 and col == 5:
+            if row == 2 and col == 2:
                 cell = Cell(
                     row,
                     col,
                     value=None,
+                )
+            elif row == 3 and col == 3:
+                cell = Cell(
+                    row,
+                    col,
+                    value="099",
+                )
+
+            elif row == 4 and col == 4:
+                cell = Cell(
+                    row,
+                    col,
+                    value="099",
+                    data_type="n",
                 )
             else:
                 cell = Cell(
