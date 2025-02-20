@@ -66,7 +66,7 @@ pub fn find_cell_by_str<T: ReadableCell + Send + Sync>(
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Option<&Arc<RwLock<T>>>> {
     let cell = cells.par_iter().find_map_first(|cell| {
-        if cell.read().get_value() == value {
+        if cell.read().get_value().trim() == value.trim() {
             Some(*cell)
         } else {
             None
@@ -120,7 +120,7 @@ pub fn find_cells_by_str<T: ReadableCell + Send + Sync>(
     Ok(cells
         .par_iter()
         .filter_map(|cell| {
-            if cell.read().get_value() == value {
+            if cell.read().get_value().trim() == value.trim() {
                 Some(*cell)
             } else {
                 None
