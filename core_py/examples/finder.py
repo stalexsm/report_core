@@ -80,6 +80,14 @@ class S10406(Service):
             if cell:
                 print("Value int", cell.value)
 
+            cell = sheet.find_cell_by_str("099")
+            if cell:
+                print("Value Find By Str", cell.value)
+
+            cells = sheet.find_cells_by_str("099")
+            if cell:
+                print("Value Find By Str", cells)
+
         return "Summary"
 
     def _fmt_0(self, **kwargs):

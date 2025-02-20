@@ -632,6 +632,22 @@ class Sheet:
         """
 
     @final
+    def find_cell_by_str(self, value: str) -> Cell | None:
+        """
+        Функция для получения ячейки по строковому значению.
+        ---
+
+        Arguments:
+        ---
+            value: str
+                строка (значение)
+
+        Returns:
+        ---
+            Cell | None
+        """
+
+    @final
     def find_cell_by_letter(self, letter: str) -> Cell | None:
         """
         Функция для получения ячейки по буквенной координате (A1).
@@ -657,6 +673,22 @@ class Sheet:
         ---
             regex: str
                 Шаблон (регулярное значение)
+
+        Returns:
+        ---
+             Sequence[Cell]
+        """
+
+    @final
+    def find_cells_by_str(self, value: str) -> Sequence[Cell]:
+        """
+        Функция для получения ячеек по строковому значению).
+        ---
+
+        Arguments:
+        ---
+            value: str
+                строка (значение)
 
         Returns:
         ---

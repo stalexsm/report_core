@@ -63,9 +63,11 @@ pub trait ReadableSheet {
     fn get_comments(&self) -> &[Arc<RwLock<Comment>>];
 
     fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>>;
+    fn find_cell_by_str(&self, value: &str) -> Result<Option<&Arc<RwLock<Cell>>>>;
     fn find_cell_by_coords(&self, row: u32, col: u16) -> Result<Option<&Arc<RwLock<Cell>>>>;
     fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>>;
     fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Arc<RwLock<Cell>>>>;
+    fn find_cells_by_str(&self, value: &str) -> Result<Vec<&Arc<RwLock<Cell>>>>;
     fn find_cells_for_rows_by_regex(
         &self,
         regex: &str,

@@ -284,6 +284,17 @@ impl WrapperSheet {
         })
     }
 
+    pub fn find_cell_by_str(&self, value: &str) -> PyResult<Option<WrapperCell>> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            match slf.find_cell_by_str(value) {
+                Ok(cell) => Ok(cell.map(|c| WrapperCell(c.clone()))),
+                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
+            }
+        })
+    }
+
     pub fn find_cell_by_letter(&self, letter: &str) -> PyResult<Option<WrapperCell>> {
         Python::with_gil(|_py| {
             let slf = self.0.read();
@@ -300,6 +311,24 @@ impl WrapperSheet {
             let slf = self.0.read();
 
             match slf.find_cells_by_regex(regex) {
+                Ok(cells) => {
+                    let cells = cells
+                        .into_iter()
+                        .map(|cell| WrapperCell(cell.clone()))
+                        .collect();
+
+                    Ok(cells)
+                }
+                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
+            }
+        })
+    }
+
+    pub fn find_cells_by_str(&self, value: &str) -> PyResult<Vec<WrapperCell>> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+
+            match slf.find_cells_by_str(value) {
                 Ok(cells) => {
                     let cells = cells
                         .into_iter()

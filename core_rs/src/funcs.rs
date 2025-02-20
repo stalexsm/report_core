@@ -61,6 +61,21 @@ pub fn find_cell_by_regex<T: ReadableCell + Send + Sync>(
     Ok(cell)
 }
 
+pub fn find_cell_by_str<T: ReadableCell + Send + Sync>(
+    value: String,
+    cells: Vec<&Arc<RwLock<T>>>,
+) -> Result<Option<&Arc<RwLock<T>>>> {
+    let cell = cells.par_iter().find_map_first(|cell| {
+        if cell.read().get_value() == value {
+            Some(*cell)
+        } else {
+            None
+        }
+    });
+
+    Ok(cell)
+}
+
 pub fn find_cell_by_letter<T: ReadableCell + Send + Sync>(
     letter: String,
     cells: Vec<&Arc<RwLock<T>>>,
@@ -90,6 +105,22 @@ pub fn find_cells_by_regex<T: ReadableCell + Send + Sync>(
         .par_iter()
         .filter_map(|cell| {
             if re.is_match(&cell.read().get_value()).unwrap_or(false) {
+                Some(*cell)
+            } else {
+                None
+            }
+        })
+        .collect())
+}
+
+pub fn find_cells_by_str<T: ReadableCell + Send + Sync>(
+    value: String,
+    cells: Vec<&Arc<RwLock<T>>>,
+) -> Result<Vec<&Arc<RwLock<T>>>> {
+    Ok(cells
+        .par_iter()
+        .filter_map(|cell| {
+            if cell.read().get_value() == value {
                 Some(*cell)
             } else {
                 None

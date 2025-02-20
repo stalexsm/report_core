@@ -11,10 +11,10 @@ use super::{cell::Cell, coordinate::Coordinate};
 use crate::{
     datatype::CellValue,
     funcs::{
-        find_cell_by_letter, find_cell_by_regex, find_cells_between_regex, find_cells_by_regex,
-        find_cells_for_cols_by_regex, find_cells_for_rows_by_regex, find_cells_multi_regex,
-        find_cells_range_cols, find_cells_range_rows, find_values_by_col_rows,
-        find_values_by_row_cols,
+        find_cell_by_letter, find_cell_by_regex, find_cell_by_str, find_cells_between_regex,
+        find_cells_by_regex, find_cells_by_str, find_cells_for_cols_by_regex,
+        find_cells_for_rows_by_regex, find_cells_multi_regex, find_cells_range_cols,
+        find_cells_range_rows, find_values_by_col_rows, find_values_by_row_cols,
     },
     traits::{ReadableCell, WriteableCell},
     MAX_COL, MAX_ROW,
@@ -220,6 +220,13 @@ impl Cells {
     }
 
     #[inline]
+    pub fn find_cell_by_str(&self, value: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
+        let cells = self.get_collection_sorted();
+
+        find_cell_by_str(value.into(), cells)
+    }
+
+    #[inline]
     pub fn find_cell_by_coords(&self, row: u32, col: u16) -> Result<Option<&Arc<RwLock<Cell>>>> {
         Ok(self.map.get(&(row, col)))
     }
@@ -236,6 +243,13 @@ impl Cells {
         let cells = self.get_collection_sorted();
 
         find_cells_by_regex(regex.into(), cells)
+    }
+
+    #[inline]
+    pub fn find_cells_by_str(&self, value: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
+        let cells = self.get_collection_sorted();
+
+        find_cells_by_str(value.into(), cells)
     }
 
     #[inline]

@@ -77,6 +77,29 @@ pub(crate) fn find_cell_by_regex(
 
 #[inline]
 #[pyfunction]
+pub(crate) fn find_cell_by_str(
+    py: Python<'_>,
+    value: String,
+    cells: Vec<WrapperCell>,
+) -> PyResult<Option<WrapperCell>> {
+    py.allow_threads(|| {
+        let cells = cells.iter().map(|c| &c.0).collect();
+
+        match funcs::find_cell_by_str(value, cells) {
+            Ok(cell) => {
+                if let Some(cell) = cell {
+                    Ok(Some(WrapperCell(cell.clone())))
+                } else {
+                    Ok(None)
+                }
+            }
+            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+        }
+    })
+}
+
+#[inline]
+#[pyfunction]
 pub(crate) fn find_cell_by_letter(
     py: Python<'_>,
     letter: String,
@@ -109,6 +132,23 @@ pub(crate) fn find_cells_by_regex(
         let cells = cells.iter().map(|c| &c.0).collect();
 
         match funcs::find_cells_by_regex(regex, cells) {
+            Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+        }
+    })
+}
+
+#[inline]
+#[pyfunction]
+pub(crate) fn find_cells_by_str(
+    py: Python<'_>,
+    value: String,
+    cells: Vec<WrapperCell>,
+) -> PyResult<Vec<WrapperCell>> {
+    py.allow_threads(|| {
+        let cells = cells.iter().map(|c| &c.0).collect();
+
+        match funcs::find_cells_by_str(value, cells) {
             Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
             Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
         }

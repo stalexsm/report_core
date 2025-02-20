@@ -135,6 +135,11 @@ impl ReadableSheet for Sheet {
     }
 
     #[inline]
+    fn find_cell_by_str(&self, value: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
+        self.cells.find_cell_by_regex(value)
+    }
+
+    #[inline]
     fn find_cell_by_coords(&self, row: u32, col: u16) -> Result<Option<&Arc<RwLock<Cell>>>> {
         self.cells.find_cell_by_coords(row, col)
     }
@@ -147,6 +152,11 @@ impl ReadableSheet for Sheet {
     #[inline]
     fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
         self.cells.find_cells_by_regex(regex)
+    }
+
+    #[inline]
+    fn find_cells_by_str(&self, value: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
+        self.cells.find_cells_by_str(value)
     }
 
     #[inline]
@@ -418,6 +428,17 @@ mod tests {
     }
 
     #[test]
+    pub fn find_cell_by_str() {
+        let sheet = sheet();
+        let regex = "Yop! 3:3";
+
+        let cell = sheet.cells.find_cell_by_str(regex).unwrap();
+
+        assert!(cell.is_some());
+        assert_eq!(cell.unwrap().read().get_value(), "Yop! 3:3");
+    }
+
+    #[test]
     pub fn find_cell_by_coords() {
         let sheet = sheet();
 
@@ -444,6 +465,16 @@ mod tests {
         let regex = "Yop! 2:2";
 
         let cells = sheet.cells.find_cells_by_regex(regex).unwrap();
+
+        assert_eq!(cells.len(), 1);
+    }
+
+    #[test]
+    pub fn find_cells_by_str() {
+        let sheet = sheet();
+        let regex = "Yop! 2:2";
+
+        let cells = sheet.cells.find_cells_by_str(regex).unwrap();
 
         assert_eq!(cells.len(), 1);
     }

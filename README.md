@@ -7,7 +7,6 @@
 
 ## Установка
 
-```poetry add report-core``` OR
 ```pip install report-core```
 
 ## Основные компоненты
@@ -24,8 +23,10 @@
   - `find_cell_by_coords`: Поиск ячейки в листе Excel по координатам.
   - `find_value_by_coords`: Поиск значения в листе Excel по координатам.
   - `find_cell_by_regex`: Поиск ячейки в листе Excel по регулярному выражению
+  - `find_cell_by_str`: Поиск ячейки в листе Excel по строке
   - `find_cell_by_letter`: Поиск ячейки в листе Excel по букве
   - `find_cells_by_regex`: Поиск ячеек в листе Excel по регулярному выражению
+  - `find_cells_by_str`: Поиск ячеек в листе Excel по строке
   - `find_cells_for_rows_by_regex`: Поиск ячеек в листе Excel по регулярному выражению до определеной колонки
   - `find_cells_for_cols_by_regex`: Поиск ячеек в листе Excel по регулярному выражению до определеной строки
   - `find_cells_multi_regex`: Поиск ячеек в листе Excel по нескольким регулярным выражениям
