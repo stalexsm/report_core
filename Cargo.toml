@@ -1,12 +1,12 @@
 [workspace]
-resolver = "2"
+resolver = "3"
 members = ["core_rs", "core_py"]
 
 
 [workspace.package]
 description = "Вспомогательное ядро для построения отчетов на основе XLSX."
 version = "0.7.1"
-edition = "2021"
+edition = "2024"
 
 authors = ["Alexandr Starovoitov <stalex.info@yandex.ru>"]
 
