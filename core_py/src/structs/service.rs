@@ -15,7 +15,7 @@ use super::sheet::WrapperSheet;
 #[pyo3(module = "report_core", name = "Service", subclass)]
 #[derive(Debug, Clone)]
 pub struct WrapperService {
-    _uow: PyObject,
+    _conn_db: PyObject,
     inner: Arc<RwLock<Service>>,
 }
 
@@ -37,8 +37,8 @@ impl WrapperService {
     }
 
     #[getter]
-    pub fn _uow(&self) -> PyResult<PyObject> {
-        Python::with_gil(|_py| Ok(self._uow.clone()))
+    pub fn _conn_db(&self) -> PyResult<PyObject> {
+        Python::with_gil(|_py| Ok(self._conn_db.clone()))
     }
 
     #[pyo3(text_signature = "($self, sheets, / **kwargs=None)")]
@@ -68,11 +68,14 @@ impl WrapperService {
     }
 
     #[new]
-    fn new(uow: PyObject) -> PyResult<Self> {
+    fn new(conn_db: PyObject) -> PyResult<Self> {
         Python::with_gil(|_py| {
             let inner = Arc::new(RwLock::new(Service::new()));
 
-            Ok(Self { _uow: uow, inner })
+            Ok(Self {
+                _conn_db: conn_db,
+                inner,
+            })
         })
     }
 

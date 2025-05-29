@@ -64,10 +64,11 @@ class S10406(Service):
 def main():
     start_time = time.time()
 
-    s = S10406("uow")
+    s = S10406("conn_or_session")
     s.summary_0([])
 
     print(s)
+    print(s._conn_db)
 
     result = s.to_dict()
     print(result)

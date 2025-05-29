@@ -34,7 +34,10 @@ def column_number_to_letter(column: int) -> str:
         str
     """
 
-def get_letter_coordinate(row: int, column: int) -> str:
+def get_letter_coordinate(
+    row: int,
+    column: int,
+) -> str:
     """
     Функция для получения координаты ячейки в стиле A1
     -------------------------------------------------
@@ -66,22 +69,30 @@ def version() -> str:
 class Service(ABC):
     """Сервис"""
 
-    _uow: Any
+    _conn_db: Any
 
-    def __init__(self: Self, uow: Any) -> None:
+    def __init__(
+        self: Self,
+        _conn_db: Any,
+    ) -> None:
         """
         Инициализация парсера
         ---------------------
 
         Arguments:
         ---------
-            uow: Any
-                UoW для работы с базой данных
+            _conn_db: Any
+                _conn_db для работы с базой данных
         """
         ...
 
     @abstractmethod
-    def summary_0(self: Self, sheets: Sequence[Any], /, **kwargs: Any) -> Any:
+    def summary_0(
+        self: Self,
+        sheets: Sequence[Any],
+        /,
+        **kwargs: Any,
+    ) -> Any:
         """
         Данный метод для реализации генерации данных сервиса
         ----------------------------------------------------
@@ -99,7 +110,11 @@ class Service(ABC):
         """
 
     @abstractmethod
-    def _fmt_0(self: Self, /, **kwargs: Any) -> Any:
+    def _fmt_0(
+        self: Self,
+        /,
+        **kwargs: Any,
+    ) -> Any:
         """
         Данный метод для форматирования отчета сервиса.
         ----------------------------------------------
@@ -115,7 +130,10 @@ class Service(ABC):
         """
 
     @final
-    def _add_sheet(self, name: str) -> Sheet:
+    def _add_sheet(
+        self,
+        name: str,
+    ) -> Sheet:
         """
         Добавление листа в книгу
         ---
@@ -130,7 +148,10 @@ class Service(ABC):
         """
 
     @final
-    def _copy_sheet(self, sheet: Sheet) -> Sheet:
+    def _copy_sheet(
+        self,
+        sheet: Sheet,
+    ) -> Sheet:
         """
         Корирование листа в книгу
         ---
@@ -145,7 +166,10 @@ class Service(ABC):
         """
 
     @final
-    def _get_sheet_index(self, idx: int) -> Sheet | None:
+    def _get_sheet_index(
+        self,
+        idx: int,
+    ) -> Sheet | None:
         """
         Получение листа по индексу
         ---
@@ -162,7 +186,10 @@ class Service(ABC):
         """
 
     @final
-    def _get_sheet_name(self, name: str) -> Sheet | None:
+    def _get_sheet_name(
+        self,
+        name: str,
+    ) -> Sheet | None:
         """
         Получение листа по названию
         ---
@@ -226,7 +253,10 @@ class Book:
         """
         ...
 
-    def add_sheet(self, name: str) -> Sheet:
+    def add_sheet(
+        self,
+        name: str,
+    ) -> Sheet:
         """
         Добавление листа в книгу
         ---
@@ -240,7 +270,10 @@ class Book:
             Sheet
         """
 
-    def copy_sheet(self, sheet: Sheet) -> Sheet:
+    def copy_sheet(
+        self,
+        sheet: Sheet,
+    ) -> Sheet:
         """
         Корирование листа в книгу
         ---
@@ -254,7 +287,10 @@ class Book:
             Sheet
         """
 
-    def get_sheet_index(self, idx: int) -> Sheet | None:
+    def get_sheet_index(
+        self,
+        idx: int,
+    ) -> Sheet | None:
         """
         Получение листа по индексу
         ---
@@ -270,7 +306,10 @@ class Book:
 
         """
 
-    def get_sheet_name(self, name: str) -> Sheet | None:
+    def get_sheet_name(
+        self,
+        name: str,
+    ) -> Sheet | None:
         """
         Получение листа по названию
         ---
