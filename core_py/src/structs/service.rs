@@ -6,7 +6,7 @@ use parking_lot::RwLock;
 use pyo3::{
     exceptions::PyNotImplementedError,
     prelude::*,
-    types::{PyList, PyString},
+    types::{PyDict, PyList, PyString},
 };
 
 use super::sheet::WrapperSheet;
@@ -41,12 +41,13 @@ impl WrapperService {
         Python::with_gil(|_py| Ok(self._conn_db.clone()))
     }
 
-    #[pyo3(text_signature = "($self, sheets, / **kwargs=None)")]
+    #[pyo3(signature = (sheets, /, **kwargs))]
+    #[allow(unused)]
     pub fn summary_0(
         &self,
-        _sheets: &Bound<'_, PyList>,
-        _kwargs: &Bound<'_, PyAny>,
-    ) -> PyResult<&Bound<'_, PyObject>> {
+        sheets: &Bound<'_, PyList>,
+        kwargs: Option<&Bound<'_, PyDict>>,
+    ) -> PyResult<&Bound<'_, PyAny>> {
         Python::with_gil(|_py| {
             Err(PyNotImplementedError::new_err(
                 "Method 'summary_0' is not implemented",
@@ -54,12 +55,9 @@ impl WrapperService {
         })
     }
 
-    #[pyo3(text_signature = "($self, sheets, /, **kwargs=None)")]
-    pub fn _fmt_0(
-        &self,
-        _book: &Bound<'_, PyAny>,
-        _kwargs: &Bound<'_, PyAny>,
-    ) -> PyResult<&Bound<'_, PyObject>> {
+    #[pyo3(signature = (**kwargs))]
+    #[allow(unused)]
+    pub fn _fmt_0(&self, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<&Bound<'_, PyAny>> {
         Python::with_gil(|_py| {
             Err(PyNotImplementedError::new_err(
                 "Method 'fmt_0' is not implemented",

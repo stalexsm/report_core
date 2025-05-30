@@ -20,16 +20,12 @@ impl Service {
 
     #[inline]
     pub fn add_sheet(&mut self, name: &str) -> Arc<RwLock<Sheet>> {
-        let sheet = self.book.write().add_sheet(name);
-
-        sheet
+        self.book.write().add_sheet(name)
     }
 
     #[inline]
     pub fn copy_sheet(&mut self, sheet: Arc<RwLock<Sheet>>) -> Arc<RwLock<Sheet>> {
-        let sheet = self.book.write().copy_sheet(sheet);
-
-        sheet
+        self.book.write().copy_sheet(sheet)
     }
 
     #[inline]

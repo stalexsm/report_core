@@ -109,7 +109,6 @@ class Service(ABC):
             Any
         """
 
-    @abstractmethod
     def _fmt_0(
         self: Self,
         /,
