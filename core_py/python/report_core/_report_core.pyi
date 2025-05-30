@@ -7,6 +7,8 @@ __all__ = (
     "Book",
     "Sheet",
     "Cell",
+    "Service",
+    "Comment",
     "column_number_to_letter",
     "get_letter_coordinate",
     "version",
