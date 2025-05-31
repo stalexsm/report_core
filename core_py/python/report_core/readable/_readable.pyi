@@ -1,18 +1,24 @@
-from typing import Any, Sequence
+from typing import Any, Sequence, final
 
 class Finder:
     sheets: Sequence[ReadableSheet]
 
     def __repr__(self) -> str: ...
+    @final
     def __init__(self, sheets: Sequence[Any]) -> None: ...
+    @final
     def get_sheet_index(self, idx: int) -> ReadableSheet | None: ...
+    @final
     def get_sheets_without_names(
         self, name_list: list[str]
     ) -> Sequence[ReadableSheet]: ...
+    @final
     def get_sheets_with_names(
         self, name_list: list[str]
     ) -> Sequence[ReadableSheet]: ...
+    @final
     def find_sheet_by_name(self, name: str) -> ReadableSheet | None: ...
+    @final
     def find_sheet_by_regex(self, pattern: str) -> ReadableSheet | None: ...
 
 class ReadableSheet:
@@ -25,7 +31,9 @@ class ReadableSheet:
     def max_row(self) -> int: ...
     @property
     def max_column(self) -> int: ...
+    @final
     def get_value_cell(self, row: int, column: int) -> str: ...
+    @final
     def get_cells_by_range(
         self,
         start_row: int | None = None,
@@ -33,36 +41,51 @@ class ReadableSheet:
         start_column: int | None = None,
         end_column: int | None = None,
     ) -> Sequence[ReadableCell]: ...
+    @final
     def find_cell_by_regex(self, regex: str) -> ReadableCell | None: ...
+    @final
     def find_cell_by_str(self, value: str) -> ReadableCell | None: ...
+    @final
     def find_cell_by_coords(self, row: int, col: int) -> ReadableCell | None: ...
+    @final
     def find_cell_by_letter(self, letter: str) -> ReadableCell | None: ...
+    @final
     def find_cells_by_regex(self, regex: str) -> Sequence[ReadableCell]: ...
+    @final
     def find_cells_by_str(self, value: str) -> Sequence[ReadableCell]: ...
+    @final
     def find_cells_for_rows_by_regex(
         self, regex: str, col_stop: int
     ) -> Sequence[ReadableCell]: ...
+    @final
     def find_cells_for_cols_by_regex(
         self, regex: str, row_stop: int
     ) -> Sequence[ReadableCell]: ...
+    @final
     def find_cells_multi_regex(
         self, before_regex: str, after_regex: str
     ) -> Sequence[ReadableCell]: ...
+    @final
     def find_cells_between_regex(
         self, before_regex: str, after_regex: str
     ) -> Sequence[ReadableCell]: ...
+    @final
     def find_cells_range_rows(
         self, start_row: int, end_row: int
     ) -> Sequence[ReadableCell]: ...
+    @final
     def find_cells_range_cols(
         self, start_col: int, end_col: int
     ) -> Sequence[ReadableCell]: ...
+    @final
     def find_values_by_col_rows(
         self, col: int, rows: Sequence[int]
     ) -> Sequence[str]: ...
+    @final
     def find_values_by_row_cols(
         self, row: int, cols: Sequence[int]
     ) -> Sequence[str]: ...
+    @final
     def find_value_by_coords(self, row: int, col: int) -> str | None: ...
 
 class ReadableCell:
