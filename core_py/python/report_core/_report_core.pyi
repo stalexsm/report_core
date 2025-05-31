@@ -73,6 +73,7 @@ class Service(ABC):
 
     _conn_db: Any
 
+    @final
     def __init__(
         self: Self,
         _conn_db: Any,
@@ -241,6 +242,7 @@ class Service(ABC):
 class Book:
     sheets: Sequence[Sheet]
 
+    @final
     def __init__(self) -> None:
         """
         Инициализация Книги
@@ -254,6 +256,7 @@ class Book:
         """
         ...
 
+    @final
     def add_sheet(
         self,
         name: str,
@@ -271,6 +274,7 @@ class Book:
             Sheet
         """
 
+    @final
     def copy_sheet(
         self,
         sheet: Sheet,
@@ -288,6 +292,7 @@ class Book:
             Sheet
         """
 
+    @final
     def get_sheet_index(
         self,
         idx: int,
@@ -306,7 +311,7 @@ class Book:
             Sheet | None
 
         """
-
+    @final
     def get_sheet_name(
         self,
         name: str,
@@ -325,6 +330,7 @@ class Book:
             Sheet | None
         """
 
+    @final
     def to_json(self) -> str:
         """
         Преобразование книги в json
