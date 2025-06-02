@@ -1,3 +1,16 @@
+## 0.7.2 (2025-06-02)
+
+### Fix
+
+- Add @final decorator to all Finder and Sheet methods
+- Add @final decorators to Book and Service methods
+- Export Service and Comment types
+- Fix service type hints and simplify method returns
+
+### Refactor
+
+- Rename uow property to conn_db in Service class
+
 ## 0.7.1 (2025-02-20)
 
 ### Fix
