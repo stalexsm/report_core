@@ -84,6 +84,7 @@ fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     readable.add_class::<readable::cell::WrapperCell>()?;
 
     // funcs
+    readable.add_function(wrap_pyfunction!(readable::create_finder, &readable)?)?;
     readable.add_function(wrap_pyfunction!(find_cell_by_coords, &readable)?)?;
     readable.add_function(wrap_pyfunction!(find_value_by_coords, &readable)?)?;
     readable.add_function(wrap_pyfunction!(find_cell_by_regex, &readable)?)?;

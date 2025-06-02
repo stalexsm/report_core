@@ -2,7 +2,7 @@ import time
 from uuid import UUID, uuid4
 
 from report_core import Service
-from report_core.readable import Finder, find_cell_by_letter
+from report_core.readable import create_finder, find_cell_by_letter
 
 
 class Cell:
@@ -41,7 +41,8 @@ class Sheet:
 
 class S10406(Service):
     def summary_0(self, sheets, **kwargs):
-        f = Finder(sheets)
+        f = create_finder(sheets)
+        print("create_finder", f)
 
         sheet = f.find_sheet_by_name("Тестовый лист")
         print(sheet)
