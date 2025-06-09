@@ -571,10 +571,10 @@ class Sheet:
     @final
     def get_cells_by_range(
         self,
-        min_row: int | None = None,
-        max_row: int | None = None,
-        min_col: int | None = None,
-        max_col: int | None = None,
+        start_row: int | None = None,
+        end_row: int | None = None,
+        start_col: int | None = None,
+        end_col: int | None = None,
     ) -> Sequence[Cell]:
         """
         Получить список всех ячеек в заданном диапазоне.
@@ -582,13 +582,13 @@ class Sheet:
 
         Arguments:
         ---
-            min_row: int | None
+            start_row: int | None
                 Номер начальной строки
-            max_row: int | None
+            end_row: int | None
                 Номер конечной строки
-            min_col: int | None
+            start_col: int | None
                 Номер начальной колонки
-            max_col: int | None
+            end_col: int | None
                 Номер конечной колонки
 
         Returns:

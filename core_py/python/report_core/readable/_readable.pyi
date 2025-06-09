@@ -38,8 +38,8 @@ class ReadableSheet:
         self,
         start_row: int | None = None,
         end_row: int | None = None,
-        start_column: int | None = None,
-        end_column: int | None = None,
+        start_col: int | None = None,
+        end_col: int | None = None,
     ) -> Sequence[ReadableCell]: ...
     @final
     def find_cell_by_regex(self, regex: str) -> ReadableCell | None: ...
