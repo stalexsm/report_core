@@ -52,6 +52,23 @@ impl WrapperSheet {
     }
 
     #[getter]
+    pub fn sheet_state(&self) -> PyResult<String> {
+        Python::with_gil(|_py| {
+            let slf = self.0.read();
+            Ok(slf.get_sheet_state())
+        })
+    }
+
+    pub fn set_sheet_state(&self, state: &str) -> PyResult<()> {
+        Python::with_gil(|_py| {
+            let mut slf = self.0.write();
+            slf.set_sheet_state(state);
+
+            Ok(())
+        })
+    }
+
+    #[getter]
     pub fn get_max_row(&self) -> PyResult<u32> {
         Python::with_gil(|_py| {
             let slf = self.0.read();

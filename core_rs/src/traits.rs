@@ -40,6 +40,7 @@ pub trait ReadableSheet {
     type Cell: ReadableCell + Clone + Send; // добавляем дополнительные
 
     fn get_name(&self) -> String;
+    fn get_sheet_state(&self) -> String;
 
     fn get_cell_collection(&self) -> Vec<&Arc<RwLock<Cell>>>;
     fn get_cell_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>>;
@@ -105,6 +106,7 @@ pub trait ReadableSheet {
 
 pub trait WriteableSheet {
     fn set_name(&mut self, name: &str);
+    fn set_sheet_state(&mut self, state: &str);
     fn add_merge_range(&mut self, range: Range);
     fn add_comments(&mut self, value: Comment);
     fn cell(&mut self, coordinate: Coordinate, value: Option<&str>) -> &Arc<RwLock<Cell>>;

@@ -23,6 +23,7 @@ class Finder:
 
 class ReadableSheet:
     name: str
+    sheet_state: str
     cells: Sequence[ReadableCell]
     merge_cells: Sequence[tuple[int, int, int, int]]
 

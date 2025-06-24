@@ -52,6 +52,10 @@ class S10406(Service):
         sheet2 = self._copy_sheet(sheet)
         print(sheet2)
 
+        print("sheet_state:", sheet.sheet_state)
+        sheet.set_sheet_state("hidden")
+        print("sheet_state:", sheet.sheet_state)
+
         return "summary_0"
 
     def _fmt_0(self, **kwargs):

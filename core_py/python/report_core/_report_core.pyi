@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Self, Sequence, final
+from typing import Any, Literal, Self, Sequence, final
 
 __all__ = (
     "__version__",
@@ -360,6 +360,26 @@ class Sheet:
     cells: Sequence[Cell]
     sheet_state: str
     comments: Sequence[Comment]
+
+    @final
+    def set_sheet_state(
+        self,
+        state: Literal[
+            "visible",
+            "hidden",
+        ],
+    ) -> None:
+        """
+        Метод установки видисмости листа
+        ---
+        Arguments:
+        ---
+            state: str
+                Тип видимости
+        Returns:
+        ---
+            None
+        """
 
     @final
     def add_merge_cells(

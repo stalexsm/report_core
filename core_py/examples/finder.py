@@ -48,6 +48,8 @@ class S10406(Service):
         print(sheet)
 
         if sheet:
+            print("shet_state:", sheet.sheet_state)
+
             for c in sheet.cells:
                 print(c)
 

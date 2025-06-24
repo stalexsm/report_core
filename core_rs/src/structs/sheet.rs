@@ -60,6 +60,11 @@ impl ReadableSheet for Sheet {
     }
 
     #[inline]
+    fn get_sheet_state(&self) -> String {
+        self.sheet_state.to_string()
+    }
+
+    #[inline]
     fn get_cell_collection(&self) -> Vec<&Arc<RwLock<Cell>>> {
         self.cells.get_collection()
     }
@@ -234,6 +239,11 @@ impl WriteableSheet for Sheet {
     #[inline]
     fn set_name(&mut self, name: &str) {
         self.name = name.to_string();
+    }
+
+    #[inline]
+    fn set_sheet_state(&mut self, state: &str) {
+        self.sheet_state = state.into();
     }
 
     #[inline]
