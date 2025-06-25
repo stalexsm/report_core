@@ -72,14 +72,14 @@ mod tests {
 
     #[test]
     fn new_finder() {
-        let f = Finder::new(vec![Sheet::new("A")]);
+        let f = Finder::new(vec![Sheet::new("A", "visible")]);
 
         assert_eq!(f.sheets.len(), 1)
     }
 
     #[test]
     fn find_sheet_by_name() {
-        let f = Finder::new(vec![Sheet::new("A")]);
+        let f = Finder::new(vec![Sheet::new("A", "visible")]);
 
         let f = f.find_sheet_by_name("A").unwrap();
         let f = f.read();
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn find_sheet_by_regex() {
-        let f = Finder::new(vec![Sheet::new("A")]);
+        let f = Finder::new(vec![Sheet::new("A", "visible")]);
 
         let f = f.find_sheet_by_regex("A").unwrap();
         let f = f.read();
@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn get_sheet_index() {
-        let f = Finder::new(vec![Sheet::new("A")]);
+        let f = Finder::new(vec![Sheet::new("A", "visible")]);
 
         let f = f.get_sheet_index(0).unwrap();
         let f = f.read();
@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn get_sheets_without_names() {
-        let f = Finder::new(vec![Sheet::new("A")]);
+        let f = Finder::new(vec![Sheet::new("A", "visible")]);
 
         let f = f.get_sheets_without_names(vec!["A"]);
 
@@ -118,7 +118,7 @@ mod tests {
 
     #[test]
     fn get_sheets_with_names() {
-        let f = Finder::new(vec![Sheet::new("A")]);
+        let f = Finder::new(vec![Sheet::new("A", "visible")]);
 
         let f = f.get_sheets_with_names(vec!["A"]);
 

@@ -11,6 +11,7 @@ class S10406(Service):
         sheet = self._add_sheet("Sheet1")
 
         print(sheet)
+        print(sheet, sheet.sheet_state)
 
         for r in range(1, 6):
             for c in range(1, 6):
@@ -50,6 +51,8 @@ class S10406(Service):
         print(fmt)
 
         sheet2 = self._copy_sheet(sheet)
+        print("Copy Sheet:", sheet2.name)
+
         print(sheet2)
 
         print("sheet_state:", sheet.sheet_state)

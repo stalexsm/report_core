@@ -135,6 +135,7 @@ class Service(ABC):
     def _add_sheet(
         self,
         name: str,
+        sheet_state: str = "visible",
     ) -> Sheet:
         """
         Добавление листа в книгу
@@ -144,6 +145,8 @@ class Service(ABC):
         ---
             name: str
                 Имя листа
+            sheet_state: str
+                Состояние и видимость листа
         Returns:
         ---
             Sheet
@@ -260,6 +263,7 @@ class Book:
     def add_sheet(
         self,
         name: str,
+        sheet_state: str = "visible",
     ) -> Sheet:
         """
         Добавление листа в книгу
@@ -269,6 +273,8 @@ class Book:
         ---
             name: str
                 Имя листа
+            sheet_state: str
+                Состояние и видимость листа
         Returns:
         ---
             Sheet

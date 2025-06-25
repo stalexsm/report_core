@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use parking_lot::RwLock;
 use serde::Serialize;
 use serde_json::Value;
@@ -20,8 +20,8 @@ impl Book {
     }
 
     #[inline]
-    pub fn add_sheet(&mut self, name: &str) -> Arc<RwLock<Sheet>> {
-        let sheet = Arc::new(RwLock::new(Sheet::new(name)));
+    pub fn add_sheet(&mut self, name: &str, sheet_state: &str) -> Arc<RwLock<Sheet>> {
+        let sheet = Arc::new(RwLock::new(Sheet::new(name, sheet_state)));
         self.sheets.push(Arc::clone(&sheet));
 
         sheet
@@ -81,7 +81,7 @@ mod tests {
 
     fn test_book() -> Book {
         let mut book = Book::new();
-        book.add_sheet("ЦП");
+        book.add_sheet("ЦП", "visible");
 
         book
     }
@@ -96,7 +96,7 @@ mod tests {
     #[test]
     fn test_add_sheet() {
         let mut book = Book::new();
-        book.add_sheet("ЦП");
+        book.add_sheet("ЦП", "visible");
 
         assert_eq!(book.sheets.len(), 1);
     }

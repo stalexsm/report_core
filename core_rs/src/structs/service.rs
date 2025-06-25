@@ -19,8 +19,8 @@ impl Service {
     }
 
     #[inline]
-    pub fn add_sheet(&mut self, name: &str) -> Arc<RwLock<Sheet>> {
-        self.book.write().add_sheet(name)
+    pub fn add_sheet(&mut self, name: &str, sheet_state: &str) -> Arc<RwLock<Sheet>> {
+        self.book.write().add_sheet(name, sheet_state)
     }
 
     #[inline]

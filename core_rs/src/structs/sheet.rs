@@ -26,10 +26,10 @@ pub struct Sheet {
 
 impl Sheet {
     /// Интициализирует лист с заданным именем
-    pub fn new(name: &str) -> Self {
+    pub fn new(name: &str, sheet_state: &str) -> Self {
         Sheet {
             name: name.to_string(),
-            sheet_state: "visible".into(),
+            sheet_state: sheet_state.into(),
             ..Default::default()
         }
     }
@@ -300,7 +300,7 @@ mod tests {
     use super::*;
 
     fn sheet() -> Sheet {
-        let mut sheet = Sheet::new("A");
+        let mut sheet = Sheet::new("A", "visible");
 
         for r in 1..=5 {
             for c in 1..=5 {
@@ -316,7 +316,7 @@ mod tests {
 
     #[test]
     fn new_sheet() {
-        let sheet = Sheet::new("test");
+        let sheet = Sheet::new("test", "visible");
 
         assert_eq!(sheet.name, "test");
     }
@@ -337,7 +337,7 @@ mod tests {
 
     #[test]
     fn write_cell() {
-        let mut sheet = Sheet::new("A");
+        let mut sheet = Sheet::new("A", "visible");
         sheet.cell(Coordinate::new(1, 1), Some("Привет, мир!"));
 
         assert_eq!(sheet.get_cell_collection().len(), 1);
@@ -345,7 +345,7 @@ mod tests {
 
     #[test]
     fn get_cell_collection() {
-        let mut sheet = Sheet::new("A");
+        let mut sheet = Sheet::new("A", "visible");
         sheet.cell(Coordinate::new(1, 1), Some("Привет, мир!"));
 
         assert_eq!(sheet.get_cell_collection().len(), 1);
@@ -353,7 +353,7 @@ mod tests {
 
     #[test]
     fn get_cell_collection_sorted() {
-        let mut sheet = Sheet::new("A");
+        let mut sheet = Sheet::new("A", "visible");
         sheet.cell(Coordinate::new(1, 1), Some("Привет, мир!"));
 
         assert_eq!(sheet.get_cell_collection_sorted().len(), 1);
@@ -361,7 +361,7 @@ mod tests {
 
     #[test]
     fn get_cell_value() {
-        let mut sheet = Sheet::new("A");
+        let mut sheet = Sheet::new("A", "visible");
         let coord = Coordinate::new(1, 1);
 
         sheet.cell(coord.clone(), Some("Привет, мир!"));
@@ -371,7 +371,7 @@ mod tests {
 
     #[test]
     fn get_cell_collection_by_range() {
-        let mut sheet = Sheet::new("A");
+        let mut sheet = Sheet::new("A", "visible");
 
         for r in 1..=5 {
             for c in 1..=5 {
@@ -392,7 +392,7 @@ mod tests {
 
     #[test]
     fn delete_rows() {
-        let mut sheet = Sheet::new("A");
+        let mut sheet = Sheet::new("A", "visible");
 
         for r in 1..=5 {
             for c in 1..=5 {
@@ -410,7 +410,7 @@ mod tests {
 
     #[test]
     fn delete_cols() {
-        let mut sheet = Sheet::new("A");
+        let mut sheet = Sheet::new("A", "visible");
 
         for r in 1..=5 {
             for c in 1..=5 {

@@ -46,9 +46,10 @@ impl WrapperBook {
         Self(Arc::new(RwLock::new(Book::new())))
     }
 
-    pub fn add_sheet(&self, name: String) -> PyResult<WrapperSheet> {
+    #[pyo3(signature = (name, sheet_state="visible"))]
+    pub fn add_sheet(&self, name: &str, sheet_state: &str) -> PyResult<WrapperSheet> {
         Python::with_gil(|_py| {
-            let sheet = self.0.write().add_sheet(&name);
+            let sheet = self.0.write().add_sheet(name, sheet_state);
 
             Ok(WrapperSheet(sheet))
         })
