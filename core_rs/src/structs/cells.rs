@@ -168,7 +168,7 @@ impl Cells {
         if let Some(value) = value {
             cell.write().set_value(value);
         } else {
-            cell.write().set_data_type("General");
+            cell.write().set_data_type("s");
         }
 
         cell
