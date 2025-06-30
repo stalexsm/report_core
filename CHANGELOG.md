@@ -1,3 +1,9 @@
+## 0.9.1 (2025-06-30)
+
+### Fix
+
+- Set default data type for empty cells to "s"
+
 ## 0.9.0 (2025-06-30)
 
 ### Feat
