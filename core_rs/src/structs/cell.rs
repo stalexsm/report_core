@@ -77,6 +77,11 @@ impl Cell {
         // Сбросим и тип данных
         self.data_type = self.value.get_data_type().to_string();
     }
+
+    #[inline]
+    pub(crate) fn set_data_type(&mut self, val: &str) {
+        self.data_type = val.to_string()
+    }
 }
 
 impl WriteableCell for Cell {
@@ -289,6 +294,16 @@ mod tests {
         };
 
         assert_eq!(cell.get_data_type(), "f".to_string())
+    }
+
+    #[test]
+    fn set_data_type() {
+        let val = "";
+
+        let mut cell = cell();
+        cell.set_data_type(val);
+
+        assert_eq!(cell.get_data_type(), val)
     }
 
     #[test]

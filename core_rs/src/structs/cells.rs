@@ -9,6 +9,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use super::{cell::Cell, coordinate::Coordinate};
 use crate::{
+    MAX_COL, MAX_ROW,
     datatype::CellValue,
     funcs::{
         find_cell_by_letter, find_cell_by_regex, find_cell_by_str, find_cells_between_regex,
@@ -17,7 +18,6 @@ use crate::{
         find_cells_range_rows, find_values_by_col_rows, find_values_by_row_cols,
     },
     traits::{ReadableCell, WriteableCell},
-    MAX_COL, MAX_ROW,
 };
 
 /// Вспомоогательная функция для сериализации HashMap только Value, как вектор.
@@ -167,6 +167,8 @@ impl Cells {
 
         if let Some(value) = value {
             cell.write().set_value(value);
+        } else {
+            cell.write().set_data_type("General");
         }
 
         cell

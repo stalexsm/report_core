@@ -26,7 +26,7 @@ impl CellRawValue {
             Self::Numeric(_) => "n",
             Self::Bool(_) => "b",
             Self::Datetime(_) => "d",
-            _ => "",
+            _ => "General",
         }
     }
 
