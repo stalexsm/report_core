@@ -1,3 +1,9 @@
+## 0.9.2 (2025-07-03)
+
+### Fix
+
+- Remove skip_serializing_if attribute from MergeCells range
+
 ## 0.9.1 (2025-06-30)
 
 ### Fix
