@@ -3,11 +3,7 @@ use serde::Serialize;
 
 #[derive(Clone, Default, Debug, Serialize)]
 pub struct MergeCells {
-    #[serde(
-        rename = "merge_cells",
-        serialize_with = "serialize_vec_range",
-        skip_serializing_if = "<[_]>::is_empty"
-    )]
+    #[serde(rename = "merge_cells", serialize_with = "serialize_vec_range")]
     range: Vec<Range>,
 }
 

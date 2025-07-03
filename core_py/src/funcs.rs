@@ -22,7 +22,7 @@ pub(crate) fn find_cell_by_coords(
                     Ok(None)
                 }
             }
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -47,7 +47,7 @@ pub(crate) fn find_value_by_coords(
                     Ok(None)
                 }
             }
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -70,7 +70,7 @@ pub(crate) fn find_cell_by_regex(
                     Ok(None)
                 }
             }
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -93,7 +93,7 @@ pub(crate) fn find_cell_by_str(
                     Ok(None)
                 }
             }
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -116,7 +116,7 @@ pub(crate) fn find_cell_by_letter(
                     Ok(None)
                 }
             }
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -133,7 +133,7 @@ pub(crate) fn find_cells_by_regex(
 
         match funcs::find_cells_by_regex(regex, cells) {
             Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -150,7 +150,7 @@ pub(crate) fn find_cells_by_str(
 
         match funcs::find_cells_by_str(value, cells) {
             Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -168,7 +168,7 @@ pub(crate) fn find_cells_for_rows_by_regex(
 
         match funcs::find_cells_for_rows_by_regex(regex, col_stop, cells) {
             Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -186,7 +186,7 @@ pub(crate) fn find_cells_for_cols_by_regex(
 
         match funcs::find_cells_for_cols_by_regex(regex, row_stop, cells) {
             Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -204,7 +204,7 @@ pub(crate) fn find_cells_multi_regex(
 
         match funcs::find_cells_multi_regex(before_regex, after_regex, cells) {
             Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -222,7 +222,7 @@ pub(crate) fn find_cells_between_regex(
 
         match funcs::find_cells_between_regex(before_regex, after_regex, cells) {
             Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -240,7 +240,7 @@ pub(crate) fn find_cells_range_rows(
 
         match funcs::find_cells_range_rows(start_row, end_row, cells) {
             Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -258,7 +258,7 @@ pub(crate) fn find_cells_range_cols(
 
         match funcs::find_cells_range_cols(start_col, end_col, cells) {
             Ok(cells) => Ok(cells.into_iter().map(|c| WrapperCell(c.clone())).collect()),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -276,7 +276,7 @@ pub(crate) fn find_values_by_col_rows(
 
         match funcs::find_values_by_col_rows(col, rows, cells) {
             Ok(cells) => Ok(cells),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }
@@ -294,7 +294,7 @@ pub(crate) fn find_values_by_row_cols(
 
         match funcs::find_values_by_row_cols(row, cols, cells) {
             Ok(cells) => Ok(cells),
-            Err(e) => Err(PyRuntimeError::new_err(format!("{}", e))),
+            Err(e) => Err(PyRuntimeError::new_err(format!("{e}"))),
         }
     })
 }

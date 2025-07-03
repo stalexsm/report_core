@@ -305,7 +305,7 @@ mod tests {
         for r in 1..=5 {
             for c in 1..=5 {
                 let coord = Coordinate::new(r, c);
-                let val = format!("Yop! {}:{}", r, c);
+                let val = format!("Yop! {r}:{c}");
 
                 sheet.cell(coord, Some(&val));
             }
@@ -376,7 +376,7 @@ mod tests {
         for r in 1..=5 {
             for c in 1..=5 {
                 let coord = Coordinate::new(r, c);
-                let val = format!("Привет, мир! {}:{}", r, c);
+                let val = format!("Привет, мир! {r}:{c}");
 
                 sheet.cell(coord, Some(&val));
             }
@@ -397,7 +397,7 @@ mod tests {
         for r in 1..=5 {
             for c in 1..=5 {
                 let coord = Coordinate::new(r, c);
-                let val = format!("Привет, мир! {}:{}", r, c);
+                let val = format!("Привет, мир! {r}:{c}");
 
                 sheet.cell(coord, Some(&val));
             }
@@ -415,7 +415,7 @@ mod tests {
         for r in 1..=5 {
             for c in 1..=5 {
                 let coord = Coordinate::new(r, c);
-                let val = format!("Привет, мир! {}:{}", r, c);
+                let val = format!("Привет, мир! {r}:{c}");
 
                 sheet.cell(coord, Some(&val));
             }
