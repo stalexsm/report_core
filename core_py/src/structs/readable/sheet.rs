@@ -31,7 +31,13 @@ macro_rules! extract_from_py {
 
 fn extract_cells(obj: &Bound<'_, PyAny>) -> HashMap<(u32, u16), Arc<RwLock<Cell>>> {
     Python::with_gil(|_py| {
-        let cells_attr = obj.getattr("cells").unwrap();
+        // проверяем, словарь или класс
+        let cells_attr = if obj.is_instance_of::<PyDict>() {
+            obj.get_item("cells").unwrap()
+        } else {
+            obj.getattr("cells").unwrap()
+        };
+
         let cells_list = cells_attr.downcast::<PyList>().unwrap();
         let map: HashMap<(u32, u16), Arc<RwLock<Cell>>> = cells_list
             .iter()
