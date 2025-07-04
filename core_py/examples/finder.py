@@ -1,4 +1,5 @@
 import time
+from typing import Any
 from uuid import UUID, uuid4
 
 from report_core import Service
@@ -9,7 +10,7 @@ class Cell:
     id: UUID
     row: int
     column: int
-    value: str | None = None
+    value: Any = None
     data_type: str = "s"
     formula: str | None = None
 
@@ -17,7 +18,7 @@ class Cell:
         self,
         row: int,
         col: int,
-        value: str | None = None,
+        value: Any = None,
         data_type: str = "s",
     ):
         self.id = uuid4()
