@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{structs::coordinate::Coordinate, traits::ReadableCell};
 use anyhow::Result;
-use fancy_regex::{escape, Regex};
+use fancy_regex::{Regex, escape};
 use parking_lot::RwLock;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 

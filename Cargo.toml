@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["core_rs", "core_py"]
+members = ["crates/core_rs", "core_pyo3"]
 
 
 [workspace.package]
@@ -28,3 +28,7 @@ lazy_static = "1.5.0"
 lto = "fat"
 codegen-units = 1
 strip = true
+
+
+[workspace.metadata.release]
+tag-name = "v{{version}}"

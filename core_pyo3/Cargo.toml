@@ -1,5 +1,5 @@
 [package]
-name = "core_py"
+name = "core_pyo3"
 
 description.workspace = true
 version.workspace = true
@@ -22,7 +22,7 @@ extension-module = ["pyo3/extension-module"]
 
 
 [dependencies]
-core_rs = { path = "../core_rs" }
+core_rs = { path = "../crates/core_rs" }
 
 anyhow.workspace = true
 chrono.workspace = true
