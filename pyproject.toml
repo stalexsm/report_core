@@ -1,7 +1,7 @@
 [project]
-name = "report-core-dev"
+name = "report_core_dev"
 version = "0.9.4"
-description = "report-core-root-pyproject"
+description = "report-core-root"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = []
