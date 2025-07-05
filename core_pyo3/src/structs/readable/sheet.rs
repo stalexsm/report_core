@@ -1,5 +1,6 @@
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
+use ahash::HashMap;
 use core_rs::{
     structs::{
         cell::Cell,

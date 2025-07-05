@@ -1,5 +1,5 @@
+use ahash::HashMap;
 use serde::Serialize;
-use std::collections::HashMap;
 
 use super::column::Column;
 use crate::DEFAULT_COLUMN_WIDTH;
@@ -14,7 +14,7 @@ pub(crate) struct Columns {
 impl Default for Columns {
     fn default() -> Self {
         Self {
-            columns: HashMap::new(),
+            columns: HashMap::default(),
             default_width: DEFAULT_COLUMN_WIDTH,
         }
     }

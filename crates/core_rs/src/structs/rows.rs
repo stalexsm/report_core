@@ -1,5 +1,5 @@
+use ahash::HashMap;
 use serde::Serialize;
-use std::collections::HashMap;
 
 use crate::DEFAULT_ROW_HEIGHT;
 
@@ -15,7 +15,7 @@ pub(crate) struct Rows {
 impl Default for Rows {
     fn default() -> Self {
         Self {
-            rows: HashMap::new(),
+            rows: HashMap::default(),
             default_height: DEFAULT_ROW_HEIGHT,
         }
     }
