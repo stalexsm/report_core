@@ -28,6 +28,7 @@ ahash = { version = "0.8.12", features = ["serde"] }
 pyo3-build-config = "0.25.1"
 pyo3 = { version = "0.25.1", features = [
     "anyhow",
+    "auto-initialize",
     "chrono",
     "extension-module",
     "generate-import-lib",

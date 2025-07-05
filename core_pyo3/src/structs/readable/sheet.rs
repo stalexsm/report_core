@@ -195,10 +195,9 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cell_by_regex(regex) {
-                Ok(cell) => Ok(cell.map(|c| WrapperCell(c.clone()))),
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(slf
+                .find_cell_by_regex(regex)?
+                .map(|c| WrapperCell(c.clone())))
         })
     }
 
@@ -206,10 +205,7 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cell_by_str(value) {
-                Ok(cell) => Ok(cell.map(|c| WrapperCell(c.clone()))),
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(slf.find_cell_by_str(value)?.map(|c| WrapperCell(c.clone())))
         })
     }
 
@@ -222,10 +218,9 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cell_by_coords(row, col) {
-                Ok(cell) => Ok(cell.map(|c| WrapperCell(c.clone()))),
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(slf
+                .find_cell_by_coords(row, col)?
+                .map(|c| WrapperCell(c.clone())))
         })
     }
 
@@ -237,10 +232,9 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cell_by_letter(letter) {
-                Ok(cell) => Ok(cell.map(|c| WrapperCell(c.clone()))),
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(slf
+                .find_cell_by_letter(letter)?
+                .map(|c| WrapperCell(c.clone())))
         })
     }
 
@@ -248,17 +242,13 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cells_by_regex(regex) {
-                Ok(cells) => {
-                    let cells = cells
-                        .into_iter()
-                        .map(|cell| WrapperCell(cell.clone()))
-                        .collect();
+            let wrapper_cells = slf
+                .find_cells_by_regex(regex)?
+                .into_iter()
+                .map(|cell| WrapperCell(cell.clone()))
+                .collect();
 
-                    Ok(cells)
-                }
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(wrapper_cells)
         })
     }
 
@@ -266,17 +256,13 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cells_by_str(value) {
-                Ok(cells) => {
-                    let cells = cells
-                        .into_iter()
-                        .map(|cell| WrapperCell(cell.clone()))
-                        .collect();
+            let wrapper_cells = slf
+                .find_cells_by_str(value)?
+                .into_iter()
+                .map(|cell| WrapperCell(cell.clone()))
+                .collect();
 
-                    Ok(cells)
-                }
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(wrapper_cells)
         })
     }
 
@@ -289,17 +275,13 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cells_for_rows_by_regex(regex, col_stop) {
-                Ok(cells) => {
-                    let cells = cells
-                        .into_iter()
-                        .map(|cell| WrapperCell(cell.clone()))
-                        .collect();
+            let wrapper_cells = slf
+                .find_cells_for_rows_by_regex(regex, col_stop)?
+                .into_iter()
+                .map(|cell| WrapperCell(cell.clone()))
+                .collect();
 
-                    Ok(cells)
-                }
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(wrapper_cells)
         })
     }
 
@@ -312,17 +294,13 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cells_for_cols_by_regex(regex, row_stop) {
-                Ok(cells) => {
-                    let cells = cells
-                        .into_iter()
-                        .map(|cell| WrapperCell(cell.clone()))
-                        .collect();
+            let wrapper_cells = slf
+                .find_cells_for_cols_by_regex(regex, row_stop)?
+                .into_iter()
+                .map(|cell| WrapperCell(cell.clone()))
+                .collect();
 
-                    Ok(cells)
-                }
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(wrapper_cells)
         })
     }
 
@@ -335,17 +313,13 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cells_multi_regex(before_regex, after_regex) {
-                Ok(cells) => {
-                    let cells = cells
-                        .into_iter()
-                        .map(|cell| WrapperCell(cell.clone()))
-                        .collect();
+            let wrapper_cells = slf
+                .find_cells_multi_regex(before_regex, after_regex)?
+                .into_iter()
+                .map(|cell| WrapperCell(cell.clone()))
+                .collect();
 
-                    Ok(cells)
-                }
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(wrapper_cells)
         })
     }
 
@@ -358,17 +332,13 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cells_between_regex(before_regex, after_regex) {
-                Ok(cells) => {
-                    let cells = cells
-                        .into_iter()
-                        .map(|cell| WrapperCell(cell.clone()))
-                        .collect();
+            let wrapper_cells = slf
+                .find_cells_between_regex(before_regex, after_regex)?
+                .into_iter()
+                .map(|cell| WrapperCell(cell.clone()))
+                .collect();
 
-                    Ok(cells)
-                }
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(wrapper_cells)
         })
     }
 
@@ -381,17 +351,13 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cells_range_rows(start_row, end_row) {
-                Ok(cells) => {
-                    let cells = cells
-                        .into_iter()
-                        .map(|cell| WrapperCell(cell.clone()))
-                        .collect();
+            let wrapper_cells = slf
+                .find_cells_range_rows(start_row, end_row)?
+                .into_iter()
+                .map(|cell| WrapperCell(cell.clone()))
+                .collect();
 
-                    Ok(cells)
-                }
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(wrapper_cells)
         })
     }
 
@@ -404,17 +370,13 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_cells_range_cols(start_col, end_col) {
-                Ok(cells) => {
-                    let cells = cells
-                        .into_iter()
-                        .map(|cell| WrapperCell(cell.clone()))
-                        .collect();
+            let wrapper_cells = slf
+                .find_cells_range_cols(start_col, end_col)?
+                .into_iter()
+                .map(|cell| WrapperCell(cell.clone()))
+                .collect();
 
-                    Ok(cells)
-                }
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(wrapper_cells)
         })
     }
 
@@ -427,10 +389,7 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_values_by_col_rows(col, rows) {
-                Ok(values) => Ok(values),
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(slf.find_values_by_col_rows(col, rows)?)
         })
     }
 
@@ -443,10 +402,7 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_values_by_row_cols(row, cols) {
-                Ok(values) => Ok(values),
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(slf.find_values_by_row_cols(row, cols)?)
         })
     }
 
@@ -459,10 +415,7 @@ impl WrapperSheet {
         py.allow_threads(|| {
             let slf = self.0.read();
 
-            match slf.find_value_by_coords(row, col) {
-                Ok(value) => Ok(value),
-                Err(e) => Err(pyo3::exceptions::PyRuntimeError::new_err(e.to_string())),
-            }
+            Ok(slf.find_value_by_coords(row, col)?)
         })
     }
 }

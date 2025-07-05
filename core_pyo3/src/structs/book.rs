@@ -84,31 +84,16 @@ impl WrapperBook {
     }
 
     pub fn to_json(&self) -> PyResult<String> {
-        Python::with_gil(|_py| {
-            let res = self.0.read().to_json();
-            match res {
-                Ok(s) => Ok(s),
-                Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                    e.to_string(),
-                )),
-            }
-        })
+        Python::with_gil(|_py| Ok(self.0.read().to_json()?))
     }
 
     pub fn to_dict(&self) -> PyResult<Py<PyAny>> {
         Python::with_gil(|py| {
-            let res = self.0.read().to_json();
-            match res {
-                Ok(s) => {
-                    let py_module_json = py.import("json")?;
-                    let py_dict = py_module_json.getattr("loads")?.call1((s,))?;
+            let s = self.0.read().to_json()?;
+            let py_module_json = py.import("json")?;
+            let py_dict = py_module_json.getattr("loads")?.call1((s,))?;
 
-                    Ok(py_dict.into())
-                }
-                Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                    e.to_string(),
-                )),
-            }
+            Ok(py_dict.into())
         })
     }
 }
