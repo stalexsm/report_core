@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use core_rs::structs::service::Service;
+use core_rs::structs::book::Book;
 
 use parking_lot::RwLock;
 use pyo3::{
@@ -16,7 +16,7 @@ use super::sheet::WrapperSheet;
 #[derive(Debug, Clone)]
 pub struct WrapperService {
     _conn_db: PyObject,
-    inner: Arc<RwLock<Service>>,
+    inner: Arc<RwLock<Book>>,
 }
 
 #[pymethods]
@@ -68,7 +68,7 @@ impl WrapperService {
     #[new]
     fn new(conn_db: PyObject) -> PyResult<Self> {
         Python::with_gil(|_py| {
-            let inner = Arc::new(RwLock::new(Service::new()));
+            let inner = Arc::new(RwLock::new(Book::new()));
 
             Ok(Self {
                 _conn_db: conn_db,
@@ -133,32 +133,17 @@ impl WrapperService {
     }
 
     pub fn to_json(&self) -> PyResult<String> {
-        Python::with_gil(|_py| {
-            let res = self.inner.read().to_json();
-            match res {
-                Ok(s) => Ok(s),
-                Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                    e.to_string(),
-                )),
-            }
-        })
+        Python::with_gil(|_py| Ok(self.inner.read().to_json()?))
     }
 
     pub fn to_dict(&self) -> PyResult<Py<PyAny>> {
         Python::with_gil(|py| {
-            let res = self.inner.read().to_json();
-            match res {
-                Ok(s) => {
-                    let py_module_json = py.import("json")?;
-                    let py_fn_loads = py_module_json.getattr("loads")?;
-                    let py_dict = py_fn_loads.call1((s,))?;
+            let s = self.inner.read().to_json()?;
+            let py_module_json = py.import("json")?;
+            let py_fn_loads = py_module_json.getattr("loads")?;
+            let py_dict = py_fn_loads.call1((s,))?;
 
-                    Ok(py_dict.into())
-                }
-                Err(e) => Err(PyErr::new::<pyo3::exceptions::PyValueError, _>(
-                    e.to_string(),
-                )),
-            }
+            Ok(py_dict.into())
         })
     }
 }

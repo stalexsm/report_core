@@ -10,6 +10,5 @@ pub mod merge_cells;
 pub mod range;
 pub mod row;
 pub mod rows;
-pub mod service;
 pub mod sheet;
 pub mod style;
