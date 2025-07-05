@@ -56,13 +56,13 @@ jobs:
           args: --release --out dist --find-interpreter
           sccache: "true"
           manylinux: auto
-          working-directory: ./core_py
+          working-directory: ./core_pyo3
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
           name: wheels-linux-${{ matrix.platform.target }}
-          path: core_py/dist
+          path: core_pyo3/dist
 
   musllinux:
     runs-on: ${{ matrix.platform.runner }}
@@ -100,7 +100,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
-          path: core_py/dist
+          path: core_pyo3/dist
 
   macos:
     runs-on: ${{ matrix.platform.runner }}
@@ -131,7 +131,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-macos-${{ matrix.platform.target }}
-          path: core_py/dist
+          path: core_pyo3/dist
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
@@ -162,7 +162,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-windows-${{ matrix.platform.target }}
-          path: core_py/dist
+          path: core_pyo3/dist
 
   sdist:
     runs-on: ubuntu-22.04
@@ -180,7 +180,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheels-sdist
-          path: core_py/dist
+          path: core_pyo3/dist
 
   release:
     name: Release
