@@ -1,5 +1,5 @@
 [package]
-name = "core_py"
+name = "core_pyo3"
 
 description.workspace = true
 version.workspace = true
@@ -22,22 +22,16 @@ extension-module = ["pyo3/extension-module"]
 
 
 [dependencies]
-core_rs = { path = "../core_rs" }
+core_rs = { path = "../crates/core_rs" }
 
 anyhow.workspace = true
 chrono.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 parking_lot.workspace = true
-
-pyo3 = { version = "0.25.0", features = [
-    "chrono",
-    "extension-module",
-    "generate-import-lib",
-    "py-clone",
-    "serde",
-] }
+pyo3.workspace = true
+ahash.workspace = true
 
 
 [build-dependencies]
-pyo3-build-config = "0.25.0"
+pyo3-build-config.workspace = true

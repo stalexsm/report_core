@@ -7,105 +7,10 @@ use core_rs::{
 use parking_lot::RwLock;
 use pyo3::{
     prelude::*,
-    types::{PyBool, PyDict, PyFloat, PyInt, PyString},
+    types::{PyDict, PyString},
 };
 
-// Универсальный enum для всех Python типов
-#[derive(Debug, Clone)]
-pub enum PyValue {
-    String(String),
-    Int(i64),
-    Float(f64),
-    Bool(bool),
-    None,
-}
-
-impl PyValue {
-    // Методы для конвертации в конкретные типы
-    pub fn as_string(&self) -> Option<String> {
-        match self {
-            PyValue::String(s) => Some(s.clone()),
-            PyValue::Int(i) => Some(i.to_string()),
-            PyValue::Float(f) => Some(f.to_string()),
-            PyValue::Bool(b) => Some(b.to_string()),
-            PyValue::None => None,
-        }
-    }
-
-    pub fn as_u32(&self) -> u32 {
-        match self {
-            PyValue::Int(i) => *i as u32,
-            PyValue::Float(f) => *f as u32,
-            PyValue::String(s) => s.parse().unwrap_or(0),
-            PyValue::Bool(b) => {
-                if *b {
-                    1
-                } else {
-                    0
-                }
-            }
-            PyValue::None => 0,
-        }
-    }
-
-    pub fn as_u16(&self) -> u16 {
-        match self {
-            PyValue::Int(i) => *i as u16,
-            PyValue::Float(f) => *f as u16,
-            PyValue::String(s) => s.parse().unwrap_or(0),
-            PyValue::Bool(b) => {
-                if *b {
-                    1
-                } else {
-                    0
-                }
-            }
-            PyValue::None => 0,
-        }
-    }
-
-    pub fn as_string_direct(&self) -> String {
-        match self {
-            PyValue::String(s) => s.to_string(),
-            PyValue::Int(i) => i.to_string(),
-            PyValue::Float(f) => f.to_string(),
-            PyValue::Bool(b) => b.to_string(),
-            PyValue::None => String::new(),
-        }
-    }
-}
-
-// Функция для автоматического извлечения Python значения
-fn extract_py_value_auto(py_value: &Bound<'_, PyAny>) -> PyValue {
-    if py_value.is_none() {
-        PyValue::None
-    } else if py_value.is_instance_of::<PyBool>() {
-        // Проверяем bool перед int, так как bool является подклассом int в Python
-        PyValue::Bool(py_value.extract::<bool>().unwrap())
-    } else if py_value.is_instance_of::<PyInt>() {
-        PyValue::Int(py_value.extract::<i64>().unwrap())
-    } else if py_value.is_instance_of::<PyFloat>() {
-        PyValue::Float(py_value.extract::<f64>().unwrap())
-    } else if py_value.is_instance_of::<PyString>() {
-        PyValue::String(py_value.extract::<String>().unwrap())
-    } else {
-        // Для любого другого типа пытаемся преобразовать в строку
-        PyValue::String(py_value.str().unwrap().to_string())
-    }
-}
-
-// Один универсальный макрос для извлечения любого атрибута
-macro_rules! py_extract {
-    ($obj:expr, $attr:ident) => {{
-        let py_value = if $obj.is_instance_of::<PyDict>() {
-            $obj.get_item(stringify!($attr)).unwrap()
-        } else {
-            $obj.getattr(stringify!($attr)).unwrap()
-        };
-
-        extract_py_value_auto(&py_value)
-    }};
-}
+use crate::py_extract;
 
 #[pyclass]
 #[pyo3(module = "report_core.readable", name = "ReadableCell")]

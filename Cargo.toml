@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["core_rs", "core_py"]
+members = ["crates/core_rs", "core_pyo3"]
 
 
 [workspace.package]
@@ -23,8 +23,27 @@ serde_json = "1.0.133"
 rayon = "1.10.0"
 parking_lot = { version = "0.12.3", features = ["serde"] }
 lazy_static = "1.5.0"
+ahash = { version = "0.8.12", features = ["serde"] }
+
+pyo3-build-config = "0.25.1"
+pyo3 = { version = "0.25.1", features = [
+    "anyhow",
+    "auto-initialize",
+    "chrono",
+    "extension-module",
+    "generate-import-lib",
+    "py-clone",
+    "serde",
+
+] }
+
+
 
 [profile.release]
 lto = "fat"
 codegen-units = 1
 strip = true
+
+
+[workspace.metadata.release]
+tag-name = "{{version}}"

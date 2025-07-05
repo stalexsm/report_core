@@ -1,3 +1,4 @@
+use ahash::HashMap;
 use anyhow::Result;
 use parking_lot::RwLock;
 use rayon::{
@@ -5,7 +6,7 @@ use rayon::{
     slice::ParallelSliceMut,
 };
 use serde::Serialize;
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use super::{cell::Cell, coordinate::Coordinate};
 use crate::{
