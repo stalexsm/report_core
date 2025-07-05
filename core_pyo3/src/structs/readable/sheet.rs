@@ -17,22 +17,11 @@ use pyo3::{
 };
 
 use super::cell::WrapperCell;
+use crate::py_extract;
 
-macro_rules! extract_from_py {
-    ($obj:expr, $attr:ident, $type:ty) => {{
-        let value: $type = if $obj.is_instance_of::<PyDict>() {
-            $obj.get_item(stringify!($attr)).unwrap().extract().unwrap()
-        } else {
-            $obj.getattr(stringify!($attr)).unwrap().extract().unwrap()
-        };
-
-        value
-    }};
-}
-
+/// Вспомогптельная функция для преобразования cells в rust тип
 fn extract_cells(obj: &Bound<'_, PyAny>) -> HashMap<(u32, u16), Arc<RwLock<Cell>>> {
     Python::with_gil(|_py| {
-        // проверяем, словарь или класс
         let cells_attr = if obj.is_instance_of::<PyDict>() {
             obj.get_item("cells").unwrap()
         } else {
@@ -40,18 +29,15 @@ fn extract_cells(obj: &Bound<'_, PyAny>) -> HashMap<(u32, u16), Arc<RwLock<Cell>
         };
 
         let cells_list = cells_attr.downcast::<PyList>().unwrap();
-        let map: HashMap<(u32, u16), Arc<RwLock<Cell>>> = cells_list
+        cells_list
             .iter()
             .map(|c| WrapperCell::from(&c))
             .map(|c| {
                 let guard = c.0.read();
                 let coord = guard.get_coordinate();
-
                 ((coord.row, coord.column), c.0.clone())
             })
-            .collect();
-
-        map
+            .collect()
     })
 }
 
@@ -63,12 +49,12 @@ pub struct WrapperSheet(pub(crate) Arc<RwLock<Sheet>>);
 impl From<&Bound<'_, PyAny>> for WrapperSheet {
     fn from(obj: &Bound<'_, PyAny>) -> Self {
         Python::with_gil(|_py| {
-            let name = extract_from_py!(obj, name, String);
-            let sheet_state = extract_from_py!(obj, sheet_state, String);
-            let merge_cells = extract_from_py!(obj, merge_cells, Option<Vec<[i32; 4]>>)
-                .unwrap_or_default()
+            let name = py_extract!(obj, name).as_string_direct();
+            let sheet_state = py_extract!(obj, sheet_state).as_string_direct();
+            let merge_cells = py_extract!(obj, merge_cells)
+                .as_u32_vec_array::<4>()
                 .into_iter()
-                .map(|v| Range::from((v[0] as u32, v[1] as u32, v[2] as u16, v[3] as u16)))
+                .map(|v| Range::new(v[0], v[1], v[2] as u16, v[3] as u16))
                 .collect();
 
             let map = extract_cells(obj);
