@@ -7,6 +7,8 @@ pub struct Row {
     row_num: u32,
     height: f64,
     hidden: bool,
+    collapsed: bool,
+    level: u32,
 }
 
 impl Row {

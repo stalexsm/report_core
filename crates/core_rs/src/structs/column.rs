@@ -7,6 +7,8 @@ pub struct Column {
     col_num: u16,
     width: f64,
     hidden: bool,
+    collapsed: bool,
+    level: u32,
 }
 
 impl Column {
