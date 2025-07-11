@@ -169,7 +169,10 @@ impl Cells {
         if let Some(value) = value {
             cell.write().set_value(value);
         } else {
-            cell.write().set_data_type("s");
+            let mut c = cell.write();
+            if !c.is_formula() {
+                c.set_data_type("s");
+            }
         }
 
         cell

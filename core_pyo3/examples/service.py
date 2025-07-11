@@ -23,7 +23,7 @@ class S10406(Service):
                     cell.style = "Style A"
                     cell.hidden_value = "Hidden"
 
-                sheet.cell(r, c, "")
+                sheet.cell(r, c)
 
         # Добавляем слияние ячеек
         sheet.add_merge_cells(1, 2, 1, 2)
