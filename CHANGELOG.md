@@ -1,3 +1,20 @@
+## 0.10.0 (2025-07-11)
+
+### Feat
+
+- Добваление в структуры dimensions новые аттрибуты level и collapsed.
+- Изменил сигнатуры функций Python, чтобы они принимали ссылки на PyList, и добавил вспомогательную функцию для правильного извлечения объектов WrapperCell из элементов списка Python.
+- Переработка проекта с оптимизациями.
+
+### Fix
+
+- data_type по умолчанию General -> s
+- Добавил проверку формулы перед установкой типа данных по умолчанию в string
+- Package name and description in pyproject.toml
+- Disable auto-initialize feature in pyo3
+- Downgrade pyo3-build-config to v0.25.0
+- Worlkflows, правки в указании директорий для сботки.
+
 ## 0.9.4 (2025-07-04)
 
 ### Fix
