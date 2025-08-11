@@ -8,6 +8,8 @@ description = "Вспомогательное ядро для построени
 version = "0.10.0"
 edition = "2024"
 
+rust-version = "1.98"
+
 authors = ["Alexandr Starovoitov <stalex.info@yandex.ru>"]
 
 readme = "README.md"
@@ -17,7 +19,7 @@ repository = "https://github.com/stalexsm/report_core.git"
 [workspace.dependencies]
 anyhow = "1.0.94"
 chrono = { version = "0.4.38", features = ["serde"] }
-fancy-regex = "0.14.0"
+fancy-regex = "0.16.1"
 serde = { version = "1.0.215", features = ["derive", "rc"] }
 serde_json = "1.0.133"
 rayon = "1.10.0"
