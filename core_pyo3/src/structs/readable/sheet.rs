@@ -21,7 +21,7 @@ use crate::py_extract;
 
 /// Вспомогптельная функция для преобразования cells в rust тип
 fn extract_cells(obj: &Bound<'_, PyAny>) -> HashMap<(u32, u16), Arc<RwLock<Cell>>> {
-    Python::with_gil(|_py| {
+    Python::attach(|_py| {
         let cells_attr = if obj.is_instance_of::<PyDict>() {
             obj.get_item("cells").unwrap()
         } else {
@@ -48,7 +48,7 @@ pub struct WrapperSheet(pub(crate) Arc<RwLock<Sheet>>);
 
 impl From<&Bound<'_, PyAny>> for WrapperSheet {
     fn from(obj: &Bound<'_, PyAny>) -> Self {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let name = py_extract!(obj, name).as_string_direct();
             let sheet_state = py_extract!(obj, sheet_state).as_string_direct();
             let merge_cells = py_extract!(obj, merge_cells)
@@ -68,7 +68,7 @@ impl From<&Bound<'_, PyAny>> for WrapperSheet {
 #[pymethods]
 impl WrapperSheet {
     pub fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let class_name: Bound<'_, PyString> = slf.get_type().qualname()?;
 
             let slf = slf.borrow();
@@ -85,7 +85,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn name(&self) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
             Ok(slf.get_name())
         })
@@ -93,7 +93,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn sheet_state(&self) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
             Ok(slf.get_sheet_state())
         })
@@ -101,7 +101,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn get_max_row(&self) -> PyResult<u32> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_max_row())
@@ -110,7 +110,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn get_max_column(&self) -> PyResult<u16> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_max_column())
@@ -119,7 +119,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn get_cells(&self) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf
@@ -134,7 +134,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn get_merge_cells(&self) -> PyResult<Vec<MergedRange>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let merged_cells = self
                 .0
                 .read()
@@ -148,7 +148,7 @@ impl WrapperSheet {
     }
 
     pub fn get_value_cell(&self, row: u32, col: u16) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let coord = Coordinate::from((row, col));
@@ -165,7 +165,7 @@ impl WrapperSheet {
         start_col: Option<u16>,
         end_col: Option<u16>,
     ) -> PyResult<Vec<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             let cells = slf
@@ -178,7 +178,7 @@ impl WrapperSheet {
     }
 
     pub fn find_cell_by_regex(&self, py: Python<'_>, regex: &str) -> PyResult<Option<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             Ok(slf
@@ -188,7 +188,7 @@ impl WrapperSheet {
     }
 
     pub fn find_cell_by_str(&self, py: Python<'_>, value: &str) -> PyResult<Option<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             Ok(slf.find_cell_by_str(value)?.map(|c| WrapperCell(c.clone())))
@@ -201,7 +201,7 @@ impl WrapperSheet {
         row: u32,
         col: u16,
     ) -> PyResult<Option<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             Ok(slf
@@ -215,7 +215,7 @@ impl WrapperSheet {
         py: Python<'_>,
         letter: &str,
     ) -> PyResult<Option<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             Ok(slf
@@ -225,7 +225,7 @@ impl WrapperSheet {
     }
 
     pub fn find_cells_by_regex(&self, py: Python<'_>, regex: &str) -> PyResult<Vec<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             let wrapper_cells = slf
@@ -239,7 +239,7 @@ impl WrapperSheet {
     }
 
     pub fn find_cells_by_str(&self, py: Python<'_>, value: &str) -> PyResult<Vec<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             let wrapper_cells = slf
@@ -258,7 +258,7 @@ impl WrapperSheet {
         regex: &str,
         col_stop: u16,
     ) -> PyResult<Vec<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             let wrapper_cells = slf
@@ -277,7 +277,7 @@ impl WrapperSheet {
         regex: &str,
         row_stop: u32,
     ) -> PyResult<Vec<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             let wrapper_cells = slf
@@ -296,7 +296,7 @@ impl WrapperSheet {
         before_regex: &str,
         after_regex: &str,
     ) -> PyResult<Vec<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             let wrapper_cells = slf
@@ -315,7 +315,7 @@ impl WrapperSheet {
         before_regex: &str,
         after_regex: &str,
     ) -> PyResult<Vec<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             let wrapper_cells = slf
@@ -334,7 +334,7 @@ impl WrapperSheet {
         start_row: u32,
         end_row: u32,
     ) -> PyResult<Vec<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             let wrapper_cells = slf
@@ -353,7 +353,7 @@ impl WrapperSheet {
         start_col: u16,
         end_col: u16,
     ) -> PyResult<Vec<WrapperCell>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             let wrapper_cells = slf
@@ -372,7 +372,7 @@ impl WrapperSheet {
         col: u16,
         rows: Vec<u32>,
     ) -> PyResult<Vec<String>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             Ok(slf.find_values_by_col_rows(col, rows)?)
@@ -385,7 +385,7 @@ impl WrapperSheet {
         row: u32,
         cols: Vec<u16>,
     ) -> PyResult<Vec<String>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             Ok(slf.find_values_by_row_cols(row, cols)?)
@@ -398,7 +398,7 @@ impl WrapperSheet {
         row: u32,
         col: u16,
     ) -> PyResult<Option<String>> {
-        py.allow_threads(|| {
+        py.detach(|| {
             let slf = self.0.read();
 
             Ok(slf.find_value_by_coords(row, col)?)

@@ -19,7 +19,7 @@ pub struct WrapperCell(pub(crate) Arc<RwLock<Cell>>);
 
 impl From<&Bound<'_, PyAny>> for WrapperCell {
     fn from(obj: &Bound<'_, PyAny>) -> Self {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let row = py_extract!(obj, row).as_u32();
             let column = py_extract!(obj, column).as_u16();
             let value = py_extract!(obj, value).as_string();
@@ -36,7 +36,7 @@ impl From<&Bound<'_, PyAny>> for WrapperCell {
 #[pymethods]
 impl WrapperCell {
     pub fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let class_name: Bound<'_, PyString> = slf.get_type().qualname()?;
 
             let slf = slf.borrow();
@@ -52,7 +52,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn row(&self) -> PyResult<u32> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_coordinate().row)
@@ -61,7 +61,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn column(&self) -> PyResult<u16> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_coordinate().column)
@@ -70,7 +70,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn letter(&self) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_letter())
@@ -79,7 +79,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn get_value(&self) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_value())
@@ -88,7 +88,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn get_formula(&self) -> PyResult<Option<String>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_formula())
@@ -97,7 +97,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn get_style(&self) -> PyResult<Option<String>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
             let style = slf.get_style().map(|s| s.get_id());
 
@@ -107,7 +107,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn get_data_type(&self) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_data_type())
@@ -116,7 +116,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn is_formula(&self) -> PyResult<bool> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.is_formula())
@@ -125,7 +125,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn is_value_bool(&self) -> PyResult<bool> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.is_value_bool())
@@ -134,7 +134,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn is_value_numeric(&self) -> PyResult<bool> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.is_value_numeric())
@@ -143,7 +143,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn is_value_integer(&self) -> PyResult<bool> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.is_value_integer())
@@ -152,7 +152,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn is_value_datetime(&self) -> PyResult<bool> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.is_value_datetime())
@@ -161,7 +161,7 @@ impl WrapperCell {
 
     #[getter]
     pub fn is_value_empty(&self) -> PyResult<bool> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.is_value_empty())

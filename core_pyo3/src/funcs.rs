@@ -27,7 +27,7 @@ pub(crate) fn find_cell_by_coords(
 ) -> PyResult<Option<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cell_by_coords(row, col, cells)?.map(|c| WrapperCell(c.clone())))
     })
@@ -43,7 +43,7 @@ pub(crate) fn find_value_by_coords(
 ) -> PyResult<Option<String>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cell_by_coords(row, col, cells)?.map(|c| {
             let guard = c.read();
@@ -61,7 +61,7 @@ pub(crate) fn find_cell_by_regex(
 ) -> PyResult<Option<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cell_by_regex(regex, cells)?.map(|c| WrapperCell(c.clone())))
     })
@@ -76,7 +76,7 @@ pub(crate) fn find_cell_by_str(
 ) -> PyResult<Option<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cell_by_str(value, cells)?.map(|c| WrapperCell(c.clone())))
     })
@@ -91,7 +91,7 @@ pub(crate) fn find_cell_by_letter(
 ) -> PyResult<Option<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cell_by_letter(letter, cells)?.map(|c| WrapperCell(c.clone())))
     })
@@ -106,7 +106,7 @@ pub(crate) fn find_cells_by_regex(
 ) -> PyResult<Vec<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_by_regex(regex, cells)?
             .into_iter()
@@ -124,7 +124,7 @@ pub(crate) fn find_cells_by_str(
 ) -> PyResult<Vec<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_by_str(value, cells)?
             .into_iter()
@@ -143,7 +143,7 @@ pub(crate) fn find_cells_for_rows_by_regex(
 ) -> PyResult<Vec<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_for_rows_by_regex(regex, col_stop, cells)?
             .into_iter()
@@ -162,7 +162,7 @@ pub(crate) fn find_cells_for_cols_by_regex(
 ) -> PyResult<Vec<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_for_cols_by_regex(regex, row_stop, cells)?
             .into_iter()
@@ -181,7 +181,7 @@ pub(crate) fn find_cells_multi_regex(
 ) -> PyResult<Vec<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(
             funcs::find_cells_multi_regex(before_regex, after_regex, cells)?
@@ -202,7 +202,7 @@ pub(crate) fn find_cells_between_regex(
 ) -> PyResult<Vec<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(
             funcs::find_cells_between_regex(before_regex, after_regex, cells)?
@@ -223,7 +223,7 @@ pub(crate) fn find_cells_range_rows(
 ) -> PyResult<Vec<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_range_rows(start_row, end_row, cells)?
             .into_iter()
@@ -242,7 +242,7 @@ pub(crate) fn find_cells_range_cols(
 ) -> PyResult<Vec<WrapperCell>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_range_cols(start_col, end_col, cells)?
             .into_iter()
@@ -261,7 +261,7 @@ pub(crate) fn find_values_by_col_rows(
 ) -> PyResult<Vec<String>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_values_by_col_rows(col, rows, cells)?)
     })
@@ -277,7 +277,7 @@ pub(crate) fn find_values_by_row_cols(
 ) -> PyResult<Vec<String>> {
     let cells = extract_pylist(cells);
 
-    py.allow_threads(|| {
+    py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_values_by_row_cols(row, cols, cells)?)
     })

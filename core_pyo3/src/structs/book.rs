@@ -15,7 +15,7 @@ pub struct WrapperBook(pub(crate) Arc<RwLock<Book>>);
 #[pymethods]
 impl WrapperBook {
     pub fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = slf.borrow();
             let slf = slf.0.read();
 
@@ -28,7 +28,7 @@ impl WrapperBook {
 
     #[getter]
     pub fn sheets(&self) -> PyResult<Vec<WrapperSheet>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
             let sheets = slf
                 .get_sheet_collection()
@@ -48,7 +48,7 @@ impl WrapperBook {
 
     #[pyo3(signature = (name, sheet_state="visible"))]
     pub fn add_sheet(&self, name: &str, sheet_state: &str) -> PyResult<WrapperSheet> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let sheet = self.0.write().add_sheet(name, sheet_state);
 
             Ok(WrapperSheet(sheet))
@@ -56,7 +56,7 @@ impl WrapperBook {
     }
 
     pub fn copy_sheet(&self, sheet: WrapperSheet) -> PyResult<WrapperSheet> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let sheet = self.0.write().copy_sheet(sheet.0);
 
             Ok(WrapperSheet(sheet))
@@ -64,7 +64,7 @@ impl WrapperBook {
     }
 
     pub fn get_sheet_index(&self, idx: i32) -> PyResult<Option<WrapperSheet>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             if let Some(sheet) = self.0.read().get_sheet_index(idx) {
                 Ok(Some(WrapperSheet(sheet.clone())))
             } else {
@@ -74,7 +74,7 @@ impl WrapperBook {
     }
 
     pub fn get_sheet_name(&self, name: String) -> PyResult<Option<WrapperSheet>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             if let Some(sheet) = self.0.read().get_sheet_name(&name) {
                 Ok(Some(WrapperSheet(sheet.clone())))
             } else {
@@ -84,11 +84,11 @@ impl WrapperBook {
     }
 
     pub fn to_json(&self) -> PyResult<String> {
-        Python::with_gil(|_py| Ok(self.0.read().to_json()?))
+        Python::attach(|_py| Ok(self.0.read().to_json()?))
     }
 
     pub fn to_dict(&self) -> PyResult<Py<PyAny>> {
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let s = self.0.read().to_json()?;
             let py_module_json = py.import("json")?;
             let py_dict = py_module_json.getattr("loads")?.call1((s,))?;

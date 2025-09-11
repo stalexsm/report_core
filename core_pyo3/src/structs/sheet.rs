@@ -22,7 +22,7 @@ pub struct WrapperSheet(pub(crate) Arc<RwLock<Sheet>>);
 #[pymethods]
 impl WrapperSheet {
     pub fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = slf.borrow();
             let slf = slf.0.read();
             Ok(format!(
@@ -35,7 +35,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn name(&self) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
             Ok(slf.get_name())
         })
@@ -43,7 +43,7 @@ impl WrapperSheet {
 
     #[setter]
     pub fn set_name(&self, name: String) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let mut slf = self.0.write();
             slf.set_name(name.as_str());
 
@@ -53,14 +53,14 @@ impl WrapperSheet {
 
     #[getter]
     pub fn sheet_state(&self) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
             Ok(slf.get_sheet_state())
         })
     }
 
     pub fn set_sheet_state(&self, state: &str) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let mut slf = self.0.write();
             slf.set_sheet_state(state);
 
@@ -70,7 +70,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn get_max_row(&self) -> PyResult<u32> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_max_row())
@@ -79,7 +79,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn get_max_column(&self) -> PyResult<u16> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.get_max_column())
@@ -88,7 +88,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn get_cells(&self) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf
@@ -103,7 +103,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn get_merge_cells(&self) -> PyResult<Vec<MergedRange>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let merged_cells = self
                 .0
                 .read()
@@ -123,7 +123,7 @@ impl WrapperSheet {
         start_col: u16,
         end_col: u16,
     ) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let range = Range::new(start_row, end_row, start_col, end_col);
 
             self.0.write().add_merge_range(range);
@@ -133,7 +133,7 @@ impl WrapperSheet {
     }
 
     pub fn add_comment(&mut self, row: u32, col: u16, text: &str, author: &str) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let coord = Coordinate::new(row, col);
             let mut comment = Comment::new(coord, author);
             comment.set_text(text);
@@ -146,7 +146,7 @@ impl WrapperSheet {
 
     #[getter]
     pub fn get_comments(&self) -> PyResult<Vec<WrapperComment>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let comments = self
                 .0
                 .read()
@@ -161,7 +161,7 @@ impl WrapperSheet {
 
     #[pyo3(signature = (row, col, value=None))]
     pub fn cell(&self, row: u32, col: u16, value: Option<&str>) -> PyResult<WrapperCell> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let coord = Coordinate::from((row, col));
             let mut slf = self.0.write();
 
@@ -172,7 +172,7 @@ impl WrapperSheet {
     }
 
     pub fn get_value_cell(&self, row: u32, col: u16) -> PyResult<String> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let coord = Coordinate::from((row, col));
@@ -181,7 +181,7 @@ impl WrapperSheet {
     }
 
     pub fn delete_cols(&self, idx: u16, amount: u16) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let mut slf = self.0.write();
             slf.delete_cols(idx, amount);
 
@@ -190,7 +190,7 @@ impl WrapperSheet {
     }
 
     pub fn delete_rows(&self, idx: u32, amount: u32) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let mut slf = self.0.write();
             slf.delete_rows(idx, amount);
 
@@ -199,7 +199,7 @@ impl WrapperSheet {
     }
 
     pub fn set_height_row(&self, row_num: u32, val: f64) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let mut slf = self.0.write();
 
             slf.set_height_row(row_num, val);
@@ -208,7 +208,7 @@ impl WrapperSheet {
     }
 
     pub fn set_hidden_row(&self, row_num: u32, val: bool) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let mut slf = self.0.write();
 
             slf.set_hidden_row(row_num, val);
@@ -217,7 +217,7 @@ impl WrapperSheet {
     }
 
     pub fn set_width_column(&self, col_num: u16, val: f64) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let mut slf = self.0.write();
 
             slf.set_width_column(col_num, val);
@@ -226,7 +226,7 @@ impl WrapperSheet {
     }
 
     pub fn set_hidden_column(&self, col_num: u16, val: bool) -> PyResult<()> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let mut slf = self.0.write();
 
             slf.set_hidden_column(col_num, val);
@@ -242,7 +242,7 @@ impl WrapperSheet {
         start_col: Option<u16>,
         end_col: Option<u16>,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf
@@ -255,7 +255,7 @@ impl WrapperSheet {
     }
 
     pub fn get_height_by_row(&self, row_num: u32) -> PyResult<f64> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let val = slf.get_height_by_row(row_num);
@@ -264,7 +264,7 @@ impl WrapperSheet {
     }
 
     pub fn get_hidden_by_row(&self, row_num: u32) -> PyResult<bool> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let val = slf.get_hidden_by_row(row_num);
@@ -273,7 +273,7 @@ impl WrapperSheet {
     }
 
     pub fn get_width_by_column(&self, col_num: u16) -> PyResult<f64> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let val = slf.get_width_by_column(col_num);
@@ -282,7 +282,7 @@ impl WrapperSheet {
     }
 
     pub fn get_hidden_by_column(&self, col_num: u16) -> PyResult<bool> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let val = slf.get_hidden_by_column(col_num);
@@ -291,7 +291,7 @@ impl WrapperSheet {
     }
 
     pub fn find_cell_by_regex(&self, regex: &str) -> PyResult<Option<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf
@@ -301,7 +301,7 @@ impl WrapperSheet {
     }
 
     pub fn find_cell_by_str(&self, value: &str) -> PyResult<Option<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.find_cell_by_str(value)?.map(|c| WrapperCell(c.clone())))
@@ -309,7 +309,7 @@ impl WrapperSheet {
     }
 
     pub fn find_cell_by_letter(&self, letter: &str) -> PyResult<Option<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf
@@ -319,7 +319,7 @@ impl WrapperSheet {
     }
 
     pub fn find_cells_by_regex(&self, regex: &str) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf.find_cells_by_regex(regex)?;
@@ -333,7 +333,7 @@ impl WrapperSheet {
     }
 
     pub fn find_cells_by_str(&self, value: &str) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf.find_cells_by_str(value)?;
@@ -351,7 +351,7 @@ impl WrapperSheet {
         regex: &str,
         col_stop: u16,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf.find_cells_for_rows_by_regex(regex, col_stop)?;
@@ -369,7 +369,7 @@ impl WrapperSheet {
         regex: &str,
         row_stop: u32,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf.find_cells_for_cols_by_regex(regex, row_stop)?;
@@ -387,7 +387,7 @@ impl WrapperSheet {
         before_regex: &str,
         after_regex: &str,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf.find_cells_multi_regex(before_regex, after_regex)?;
@@ -405,7 +405,7 @@ impl WrapperSheet {
         before_regex: &str,
         after_regex: &str,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf.find_cells_between_regex(before_regex, after_regex)?;
@@ -423,7 +423,7 @@ impl WrapperSheet {
         start_row: u32,
         end_row: u32,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf.find_cells_range_rows(start_row, end_row)?;
@@ -441,7 +441,7 @@ impl WrapperSheet {
         start_col: u16,
         end_col: u16,
     ) -> PyResult<Vec<WrapperCell>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             let cells = slf.find_cells_range_cols(start_col, end_col)?;
@@ -455,7 +455,7 @@ impl WrapperSheet {
     }
 
     pub fn find_value_by_coords(&self, row: u32, col: u16) -> PyResult<Option<String>> {
-        Python::with_gil(|_py| {
+        Python::attach(|_py| {
             let slf = self.0.read();
 
             Ok(slf.find_value_by_coords(row, col)?)

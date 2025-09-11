@@ -18,5 +18,5 @@ pub(crate) fn create_finder(py: Python, sheets: &Bound<'_, PyList>) -> PyResult<
         .map(|s| WrapperSheet::from(&s).0.read().clone())
         .collect();
 
-    py.allow_threads(|| Ok(WrapperFinder(Arc::new(RwLock::new(Finder::new(sheets))))))
+    py.detach(|| Ok(WrapperFinder(Arc::new(RwLock::new(Finder::new(sheets))))))
 }
