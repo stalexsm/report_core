@@ -25,8 +25,15 @@ impl From<&Bound<'_, PyAny>> for WrapperCell {
             let value = py_extract!(obj, value).as_string();
             let formula = py_extract!(obj, formula).as_string();
             let data_type = py_extract!(obj, data_type).as_string_direct();
+            let style_id = py_extract!(obj, style_id).as_string();
 
-            let cell = Cell::extract(Coordinate::new(row, column), value, formula, &data_type);
+            let cell = Cell::extract(
+                Coordinate::new(row, column),
+                value,
+                formula,
+                &data_type,
+                style_id,
+            );
 
             Self(Arc::new(RwLock::new(cell)))
         })

@@ -46,6 +46,7 @@ impl Cell {
         value: Option<String>,
         formula: Option<String>,
         data_type: &str,
+        style_id: Option<String>,
     ) -> Self {
         let mut cell_val = CellValue::default();
 
@@ -67,6 +68,7 @@ impl Cell {
             value: Box::new(cell_val),
             data_type: data_type.into(),
             formula,
+            style: style_id.map(|s| Style::new(&s)),
             ..Default::default()
         }
     }

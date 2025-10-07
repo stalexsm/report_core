@@ -13,6 +13,7 @@ class Cell:
     value: Any = None
     data_type: str = "s"
     formula: str | None = None
+    style_id: str = ""
 
     def __init__(
         self,
@@ -20,12 +21,14 @@ class Cell:
         col: int,
         value: Any = None,
         data_type: str = "s",
+        style_id: str = "",
     ):
         self.id = uuid4()
         self.row = row
         self.column = col
         self.value = value
         self.data_type = data_type
+        self.style_id = style_id
 
 
 class Sheet:
@@ -82,7 +85,7 @@ class S10406(Service):
                 print("Value str", cell.value)
             cell = sheet.find_cell_by_coords(4, 4)
             if cell:
-                print("Value int", cell.value)
+                print("Value int", cell.value, "Style", cell.style)
 
             cell = sheet.find_cell_by_str("099")
             if cell:
@@ -124,6 +127,7 @@ def main():
                     col,
                     value="099",
                     data_type="n",
+                    style_id="__1223",
                 )
             else:
                 cell = Cell(

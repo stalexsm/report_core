@@ -8,7 +8,7 @@ description = "Вспомогательное ядро для построени
 version = "0.10.0"
 edition = "2024"
 
-rust-version = "1.89"
+rust-version = "1.90"
 
 authors = ["Alexandr Starovoitov <stalex.info@yandex.ru>"]
 
