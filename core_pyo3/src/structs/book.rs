@@ -97,3 +97,9 @@ impl WrapperBook {
         })
     }
 }
+
+impl Default for WrapperBook {
+    fn default() -> Self {
+        Self::new()
+    }
+}
