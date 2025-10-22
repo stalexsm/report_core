@@ -28,7 +28,7 @@ fn extract_cells(obj: &Bound<'_, PyAny>) -> HashMap<(u32, u16), Arc<RwLock<Cell>
             obj.getattr("cells").unwrap()
         };
 
-        let cells_list = cells_attr.downcast::<PyList>().unwrap();
+        let cells_list = cells_attr.cast::<PyList>().unwrap();
         cells_list
             .iter()
             .map(|c| WrapperCell::from(&c))

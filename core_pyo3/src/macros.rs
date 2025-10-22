@@ -257,7 +257,7 @@ pub(crate) fn extract_py_value_auto(py_value: &Bound<'_, PyAny>) -> PyValue {
     } else if py_value.is_instance_of::<PyString>() {
         PyValue::String(py_value.extract::<String>().unwrap())
     } else if py_value.is_instance_of::<PyList>() {
-        let py_list = py_value.downcast::<PyList>().unwrap();
+        let py_list = py_value.cast::<PyList>().unwrap();
         let mut values = Vec::new();
         for item in py_list.iter() {
             values.push(extract_py_value_auto(&item));
