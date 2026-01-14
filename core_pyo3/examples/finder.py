@@ -95,6 +95,10 @@ class S10406(Service):
             if cell:
                 print("Value Find By Str", cells)
 
+            cell = sheet.find_cell_by_regex("[0-9]{3}")
+            if cell:
+                print("Value Find By Regex", cells)
+
         return "Summary"
 
     def _fmt_0(self, **kwargs):
