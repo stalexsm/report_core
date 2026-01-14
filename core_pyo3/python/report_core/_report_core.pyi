@@ -76,7 +76,7 @@ class Service(ABC):
     @final
     def __init__(
         self: Self,
-        _conn_db: Any,
+        conn_db: Any,
     ) -> None:
         """
         Инициализация парсера
@@ -84,8 +84,8 @@ class Service(ABC):
 
         Arguments:
         ---------
-            _conn_db: Any
-                _conn_db для работы с базой данных
+            conn_db: Any
+                conn_db для работы с базой данных
         """
         ...
 
