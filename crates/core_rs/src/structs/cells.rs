@@ -30,15 +30,15 @@ where
     S: serde::Serializer,
 {
     use serde::ser::SerializeSeq;
-    let mut values: Vec<_> = map.values().map(|cell| cell.read().clone()).collect();
-    values.sort_by_key(|cell| {
-        let coord = cell.get_coordinate();
-        (coord.row, coord.column)
-    });
+    let mut keys: Vec<_> = map.keys().collect();
+    keys.sort_unstable();
 
-    let mut seq = serializer.serialize_seq(Some(values.len()))?;
-    for value in values {
-        seq.serialize_element(&value)?;
+    let mut seq = serializer.serialize_seq(Some(keys.len()))?;
+    for key in keys {
+        if let Some(cell) = map.get(&key) {
+            let guard = cell.read();
+            seq.serialize_element(&*guard)?;
+        }
     }
     seq.end()
 }
