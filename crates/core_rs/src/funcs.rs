@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{structs::coordinate::Coordinate, traits::ReadableCell};
 use anyhow::Result;
-use fancy_regex::{Regex, escape};
+use fancy_regex::Regex;
 use parking_lot::RwLock;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
@@ -48,7 +48,7 @@ pub fn find_cell_by_regex<T: ReadableCell + Send + Sync>(
     regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Option<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&escape(&regex))?;
+    let re = Regex::new(&regex)?;
 
     let cell = cells.par_iter().find_map_first(|cell| {
         if re.is_match(&cell.read().get_value()).unwrap_or(false) {
@@ -99,7 +99,7 @@ pub fn find_cells_by_regex<T: ReadableCell + Send + Sync>(
     regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&escape(&regex))?;
+    let re = Regex::new(&regex)?;
 
     Ok(cells
         .par_iter()
@@ -134,7 +134,7 @@ pub fn find_cells_for_rows_by_regex<T: ReadableCell + Send + Sync>(
     col_stop: u16,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&escape(&regex))?;
+    let re = Regex::new(&regex)?;
 
     Ok(cells
         .par_iter()
@@ -158,7 +158,7 @@ pub fn find_cells_for_cols_by_regex<T: ReadableCell + Send + Sync>(
     row_stop: u32,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&escape(&regex))?;
+    let re = Regex::new(&regex)?;
 
     Ok(cells
         .par_iter()
@@ -182,8 +182,8 @@ pub fn find_cells_multi_regex<T: ReadableCell + Send + Sync>(
     after_regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let before_regex = Regex::new(&escape(&before_regex))?;
-    let after_regex = Regex::new(&escape(&after_regex))?;
+    let before_regex = Regex::new(&before_regex)?;
+    let after_regex = Regex::new(&after_regex)?;
 
     let mut b = false;
     Ok(cells
@@ -207,8 +207,8 @@ pub fn find_cells_between_regex<T: ReadableCell + Send + Sync>(
     after_regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let before_regex = Regex::new(&escape(&before_regex))?;
-    let after_regex = Regex::new(&escape(&after_regex))?;
+    let before_regex = Regex::new(&before_regex)?;
+    let after_regex = Regex::new(&after_regex)?;
 
     let mut b = false;
     let rows_idx = cells
