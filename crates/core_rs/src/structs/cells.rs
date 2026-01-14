@@ -35,7 +35,7 @@ where
 
     let mut seq = serializer.serialize_seq(Some(keys.len()))?;
     for key in keys {
-        if let Some(cell) = map.get(&key) {
+        if let Some(cell) = map.get(key) {
             let guard = cell.read();
             seq.serialize_element(&*guard)?;
         }
