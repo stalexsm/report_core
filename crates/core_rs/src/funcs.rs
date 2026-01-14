@@ -51,7 +51,8 @@ pub fn find_cell_by_regex<T: ReadableCell + Send + Sync>(
     let re = Regex::new(&regex)?;
 
     let cell = cells.par_iter().find_map_first(|cell| {
-        if re.is_match(&cell.read().get_value()).unwrap_or(false) {
+        let v = cell.read().get_value();
+        if re.is_match(&v).unwrap_or(false) {
             Some(*cell)
         } else {
             None
@@ -104,7 +105,8 @@ pub fn find_cells_by_regex<T: ReadableCell + Send + Sync>(
     Ok(cells
         .par_iter()
         .filter_map(|cell| {
-            if re.is_match(&cell.read().get_value()).unwrap_or(false) {
+            let v = cell.read().get_value();
+            if re.is_match(&v).unwrap_or(false) {
                 Some(*cell)
             } else {
                 None
@@ -141,7 +143,8 @@ pub fn find_cells_for_rows_by_regex<T: ReadableCell + Send + Sync>(
         .filter_map(|cell| {
             let guard = cell.read();
             if guard.get_coordinate().column <= col_stop {
-                if re.is_match(&guard.get_value()).unwrap_or(false) {
+                let v = cell.read().get_value();
+                if re.is_match(&v).unwrap_or(false) {
                     Some(*cell)
                 } else {
                     None
@@ -165,7 +168,8 @@ pub fn find_cells_for_cols_by_regex<T: ReadableCell + Send + Sync>(
         .filter_map(|cell| {
             let guard = cell.read();
             if guard.get_coordinate().row <= row_stop {
-                if re.is_match(&guard.get_value()).unwrap_or(false) {
+                let v = cell.read().get_value();
+                if re.is_match(&v).unwrap_or(false) {
                     Some(*cell)
                 } else {
                     None

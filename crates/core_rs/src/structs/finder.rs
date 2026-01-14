@@ -37,9 +37,10 @@ impl<T: ReadableSheet + Send + Sync> Finder<T> {
     pub fn find_sheet_by_regex(&self, pattern: &str) -> Option<&Arc<RwLock<T>>> {
         let re = Regex::new(pattern).unwrap();
 
-        self.sheets
-            .par_iter()
-            .find_first(|s| re.is_match(&s.read().get_name()).unwrap_or(false))
+        self.sheets.par_iter().find_first(|s| {
+            let s = s.read().get_name();
+            re.is_match(&s).unwrap_or(false)
+        })
     }
 
     #[inline]
