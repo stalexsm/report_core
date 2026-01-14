@@ -82,7 +82,7 @@ impl CellValue {
 
     #[inline]
     pub fn set_value<S: Into<String>>(&mut self, value: S) -> &mut Self {
-        self.raw_value = Self::quess_typed_data(&value.into());
+        self.raw_value = Self::guess_typed_data(&value.into());
 
         self
     }
@@ -148,7 +148,7 @@ impl CellValue {
     }
 
     #[inline]
-    pub(crate) fn quess_typed_data(value: &str) -> CellRawValue {
+    pub(crate) fn guess_typed_data(value: &str) -> CellRawValue {
         let uppercase_value = value.to_uppercase();
 
         match uppercase_value.as_str() {
