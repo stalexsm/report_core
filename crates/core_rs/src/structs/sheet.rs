@@ -142,7 +142,7 @@ impl ReadableSheet for Sheet {
 
     #[inline]
     fn find_cell_by_str(&self, value: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        self.cells.find_cell_by_regex(value)
+        self.cells.find_cell_by_str(value)
     }
 
     #[inline]
