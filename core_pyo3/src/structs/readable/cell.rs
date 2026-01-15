@@ -17,15 +17,17 @@ use crate::py_extract;
 #[derive(Debug, Clone)]
 pub struct WrapperCell(pub(crate) Arc<RwLock<Cell>>);
 
-impl From<&Bound<'_, PyAny>> for WrapperCell {
-    fn from(obj: &Bound<'_, PyAny>) -> Self {
+impl TryFrom<&Bound<'_, PyAny>> for WrapperCell {
+    type Error = PyErr;
+
+    fn try_from(obj: &Bound<'_, PyAny>) -> Result<Self, Self::Error> {
         Python::attach(|_py| {
-            let row = py_extract!(obj, row).as_u32();
-            let column = py_extract!(obj, column).as_u16();
-            let value = py_extract!(obj, value).as_string();
-            let formula = py_extract!(obj, formula).as_string();
-            let data_type = py_extract!(obj, data_type).as_string_direct();
-            let style_id = py_extract!(obj, style_id).as_string();
+            let row = py_extract!(obj, row)?.as_u32();
+            let column = py_extract!(obj, column)?.as_u16();
+            let value = py_extract!(obj, value)?.as_string();
+            let formula = py_extract!(obj, formula)?.as_string();
+            let data_type = py_extract!(obj, data_type)?.as_string_direct();
+            let style_id = py_extract!(obj, style_id)?.as_string();
 
             let cell = Cell::extract(
                 Coordinate::new(row, column),
@@ -35,7 +37,7 @@ impl From<&Bound<'_, PyAny>> for WrapperCell {
                 style_id,
             );
 
-            Self(Arc::new(RwLock::new(cell)))
+            Ok(Self(Arc::new(RwLock::new(cell))))
         })
     }
 }

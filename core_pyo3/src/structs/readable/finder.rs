@@ -35,12 +35,12 @@ impl WrapperFinder {
     #[new]
     pub fn new(sheets: &Bound<'_, PyList>) -> PyResult<Self> {
         Python::attach(|_py| {
-            let sheets: Vec<Sheet> = sheets
+            let sheets: PyResult<Vec<Sheet>> = sheets
                 .iter()
-                .map(|s| WrapperSheet::from(&s).0.read().clone())
+                .map(|s| Ok(WrapperSheet::try_from(&s)?.0.read().clone()))
                 .collect();
 
-            Ok(Self(Arc::new(RwLock::new(Finder::new(sheets)))))
+            Ok(Self(Arc::new(RwLock::new(Finder::new(sheets?)))))
         })
     }
 

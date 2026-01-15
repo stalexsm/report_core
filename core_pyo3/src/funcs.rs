@@ -4,17 +4,17 @@ use pyo3::{prelude::*, types::PyList};
 use crate::structs::readable::cell::WrapperCell;
 
 /// вспомогательная функция для преобразования PyList во WrapperCell
-fn extract_pylist(cells: &Bound<'_, PyList>) -> Vec<WrapperCell> {
+fn extract_pylist(cells: &Bound<'_, PyList>) -> PyResult<Vec<WrapperCell>> {
     let mut wrapper_cells = Vec::with_capacity(cells.len());
     for item in cells.iter() {
         if let Ok(cell) = item.extract::<WrapperCell>() {
             wrapper_cells.push(cell);
         } else {
-            wrapper_cells.push(WrapperCell::from(&item));
+            wrapper_cells.push(WrapperCell::try_from(&item)?);
         }
     }
 
-    wrapper_cells
+    Ok(wrapper_cells)
 }
 
 #[inline]
@@ -25,7 +25,7 @@ pub(crate) fn find_cell_by_coords(
     col: u16,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Option<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -41,7 +41,7 @@ pub(crate) fn find_value_by_coords(
     col: u16,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Option<String>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -59,7 +59,7 @@ pub(crate) fn find_cell_by_regex(
     regex: String,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Option<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -74,7 +74,7 @@ pub(crate) fn find_cell_by_str(
     value: String,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Option<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -89,7 +89,7 @@ pub(crate) fn find_cell_by_letter(
     letter: String,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Option<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -104,7 +104,7 @@ pub(crate) fn find_cells_by_regex(
     regex: String,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -122,7 +122,7 @@ pub(crate) fn find_cells_by_str(
     value: String,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -141,7 +141,7 @@ pub(crate) fn find_cells_for_rows_by_regex(
     col_stop: u16,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -160,7 +160,7 @@ pub(crate) fn find_cells_for_cols_by_regex(
     row_stop: u32,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -179,7 +179,7 @@ pub(crate) fn find_cells_multi_regex(
     after_regex: String,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -200,7 +200,7 @@ pub(crate) fn find_cells_between_regex(
     after_regex: String,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -221,7 +221,7 @@ pub(crate) fn find_cells_range_rows(
     end_row: u32,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -240,7 +240,7 @@ pub(crate) fn find_cells_range_cols(
     end_col: u16,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<WrapperCell>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -259,7 +259,7 @@ pub(crate) fn find_values_by_col_rows(
     rows: Vec<u32>,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<String>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
@@ -275,7 +275,7 @@ pub(crate) fn find_values_by_row_cols(
     cols: Vec<u16>,
     cells: &Bound<'_, PyList>,
 ) -> PyResult<Vec<String>> {
-    let cells = extract_pylist(cells);
+    let cells = extract_pylist(cells)?;
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();

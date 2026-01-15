@@ -244,28 +244,28 @@ impl From<PyValue> for bool {
 }
 
 // Функция для автоматического извлечения Python значения
-pub(crate) fn extract_py_value_auto(py_value: &Bound<'_, PyAny>) -> PyValue {
+pub(crate) fn extract_py_value_auto(py_value: &Bound<'_, PyAny>) -> PyResult<PyValue> {
     if py_value.is_none() {
-        PyValue::None
+        Ok(PyValue::None)
     } else if py_value.is_instance_of::<PyBool>() {
         // Проверяем bool перед int, так как bool является подклассом int в Python
-        PyValue::Bool(py_value.extract::<bool>().unwrap())
+        Ok(PyValue::Bool(py_value.extract::<bool>()?))
     } else if py_value.is_instance_of::<PyInt>() {
-        PyValue::Int(py_value.extract::<i64>().unwrap())
+        Ok(PyValue::Int(py_value.extract::<i64>()?))
     } else if py_value.is_instance_of::<PyFloat>() {
-        PyValue::Float(py_value.extract::<f64>().unwrap())
+        Ok(PyValue::Float(py_value.extract::<f64>()?))
     } else if py_value.is_instance_of::<PyString>() {
-        PyValue::String(py_value.extract::<String>().unwrap())
+        Ok(PyValue::String(py_value.extract::<String>()?))
     } else if py_value.is_instance_of::<PyList>() {
-        let py_list = py_value.cast::<PyList>().unwrap();
+        let py_list = py_value.cast::<PyList>()?;
         let mut values = Vec::new();
         for item in py_list.iter() {
-            values.push(extract_py_value_auto(&item));
+            values.push(extract_py_value_auto(&item)?);
         }
-        PyValue::List(values)
+        Ok(PyValue::List(values))
     } else {
         // Для любого другого типа пытаемся преобразовать в строку
-        PyValue::String(py_value.str().unwrap().to_string())
+        Ok(PyValue::String(py_value.str()?.to_string()))
     }
 }
 
@@ -273,12 +273,14 @@ pub(crate) fn extract_py_value_auto(py_value: &Bound<'_, PyAny>) -> PyValue {
 #[macro_export]
 macro_rules! py_extract {
     ($obj:expr, $attr:ident) => {{
-        let py_value = if $obj.is_instance_of::<PyDict>() {
-            $obj.get_item(stringify!($attr)).unwrap()
-        } else {
-            $obj.getattr(stringify!($attr)).unwrap()
-        };
+        (|| -> PyResult<$crate::PyValue> {
+            let py_value = if $obj.is_instance_of::<PyDict>() {
+                $obj.get_item(stringify!($attr))?
+            } else {
+                $obj.getattr(stringify!($attr))?
+            };
 
-        $crate::extract_py_value_auto(&py_value)
+            $crate::extract_py_value_auto(&py_value)
+        })()
     }};
 }

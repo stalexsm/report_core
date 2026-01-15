@@ -20,25 +20,25 @@ use super::cell::WrapperCell;
 use crate::py_extract;
 
 /// Вспомогптельная функция для преобразования cells в rust тип
-fn extract_cells(obj: &Bound<'_, PyAny>) -> HashMap<(u32, u16), Arc<RwLock<Cell>>> {
-    Python::attach(|_py| {
-        let cells_attr = if obj.is_instance_of::<PyDict>() {
-            obj.get_item("cells").unwrap()
-        } else {
-            obj.getattr("cells").unwrap()
-        };
+type CellMap = HashMap<(u32, u16), Arc<RwLock<Cell>>>;
 
-        let cells_list = cells_attr.cast::<PyList>().unwrap();
-        cells_list
-            .iter()
-            .map(|c| WrapperCell::from(&c))
-            .map(|c| {
-                let guard = c.0.read();
-                let coord = guard.get_coordinate();
-                ((coord.row, coord.column), c.0.clone())
-            })
-            .collect()
-    })
+fn extract_cells(obj: &Bound<'_, PyAny>) -> PyResult<CellMap> {
+    let cells_attr = if obj.is_instance_of::<PyDict>() {
+        obj.get_item("cells")?
+    } else {
+        obj.getattr("cells")?
+    };
+
+    let cells_list = cells_attr.cast::<PyList>()?;
+    cells_list
+        .iter()
+        .map(|c| {
+            let wrapper = WrapperCell::try_from(&c)?;
+            let guard = wrapper.0.read();
+            let coord = guard.get_coordinate();
+            Ok(((coord.row, coord.column), wrapper.0.clone()))
+        })
+        .collect()
 }
 
 #[pyclass]
@@ -46,21 +46,23 @@ fn extract_cells(obj: &Bound<'_, PyAny>) -> HashMap<(u32, u16), Arc<RwLock<Cell>
 #[derive(Debug, Clone)]
 pub struct WrapperSheet(pub(crate) Arc<RwLock<Sheet>>);
 
-impl From<&Bound<'_, PyAny>> for WrapperSheet {
-    fn from(obj: &Bound<'_, PyAny>) -> Self {
+impl TryFrom<&Bound<'_, PyAny>> for WrapperSheet {
+    type Error = PyErr;
+
+    fn try_from(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
         Python::attach(|_py| {
-            let name = py_extract!(obj, name).as_string_direct();
-            let sheet_state = py_extract!(obj, sheet_state).as_string_direct();
-            let merge_cells = py_extract!(obj, merge_cells)
+            let name = py_extract!(obj, name)?.as_string_direct();
+            let sheet_state = py_extract!(obj, sheet_state)?.as_string_direct();
+            let merge_cells = py_extract!(obj, merge_cells)?
                 .as_u32_vec_array::<4>()
                 .into_iter()
                 .map(|v| Range::new(v[0], v[1], v[2] as u16, v[3] as u16))
                 .collect();
 
-            let map = extract_cells(obj);
+            let map = extract_cells(obj)?;
 
             let sheet = Sheet::extract(&name, &sheet_state, merge_cells, map);
-            Self(Arc::new(RwLock::new(sheet)))
+            Ok(Self(Arc::new(RwLock::new(sheet))))
         })
     }
 }
