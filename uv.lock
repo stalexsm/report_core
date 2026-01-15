@@ -35,7 +35,7 @@ source = { editable = "core_pyo3" }
 
 [[package]]
 name = "report-core-dev"
-version = "0.12.0"
+version = "0.12.1"
 source = { virtual = "." }
 
 [package.dev-dependencies]
