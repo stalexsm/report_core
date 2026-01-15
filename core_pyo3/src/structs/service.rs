@@ -84,9 +84,8 @@ impl WrapperService {
             let slf = self.inner.read();
             let sheets = slf
                 .get_sheet_collection()
-                .to_vec()
                 .iter()
-                .map(|s| WrapperSheet(s.clone()))
+                .map(|s| WrapperSheet(Arc::clone(s)))
                 .collect();
 
             Ok(sheets)
@@ -114,7 +113,7 @@ impl WrapperService {
     pub fn get_sheet_index(&self, idx: i32) -> PyResult<Option<WrapperSheet>> {
         Python::attach(|_py| {
             if let Some(sheet) = self.inner.read().get_sheet_index(idx) {
-                Ok(Some(WrapperSheet(sheet.clone())))
+                Ok(Some(WrapperSheet(Arc::clone(sheet))))
             } else {
                 Ok(None)
             }
@@ -125,7 +124,7 @@ impl WrapperService {
     pub fn get_sheet_name(&self, name: String) -> PyResult<Option<WrapperSheet>> {
         Python::attach(|_py| {
             if let Some(sheet) = self.inner.read().get_sheet_name(&name) {
-                Ok(Some(WrapperSheet(sheet.clone())))
+                Ok(Some(WrapperSheet(Arc::clone(sheet))))
             } else {
                 Ok(None)
             }

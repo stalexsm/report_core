@@ -50,9 +50,8 @@ impl WrapperFinder {
             let slf = self.0.read();
             let sheets = slf
                 .get_sheet_collection()
-                .to_vec()
                 .iter()
-                .map(|s| WrapperSheet(s.clone()))
+                .map(|s| WrapperSheet(Arc::clone(s)))
                 .collect();
 
             Ok(sheets)
@@ -62,7 +61,7 @@ impl WrapperFinder {
     pub fn get_sheet_index(&self, idx: i32) -> PyResult<Option<WrapperSheet>> {
         Python::attach(|_py| {
             if let Some(sheet) = self.0.read().get_sheet_index(idx) {
-                Ok(Some(WrapperSheet(sheet.clone())))
+                Ok(Some(WrapperSheet(Arc::clone(sheet))))
             } else {
                 Ok(None)
             }
@@ -80,7 +79,7 @@ impl WrapperFinder {
                 .iter()
                 .map(|s| {
                     let s = *s;
-                    WrapperSheet(s.clone())
+                    WrapperSheet(Arc::clone(s))
                 })
                 .collect();
 
@@ -99,7 +98,7 @@ impl WrapperFinder {
                 .iter()
                 .map(|s| {
                     let s = *s;
-                    WrapperSheet(s.clone())
+                    WrapperSheet(Arc::clone(s))
                 })
                 .collect();
 
@@ -110,7 +109,7 @@ impl WrapperFinder {
     pub fn find_sheet_by_name(&self, name: String) -> PyResult<Option<WrapperSheet>> {
         Python::attach(|_py| {
             if let Some(sheet) = self.0.read().find_sheet_by_name(&name) {
-                Ok(Some(WrapperSheet(sheet.clone())))
+                Ok(Some(WrapperSheet(Arc::clone(sheet))))
             } else {
                 Ok(None)
             }
@@ -120,7 +119,7 @@ impl WrapperFinder {
     pub fn find_sheet_by_regex(&self, pattern: String) -> PyResult<Option<WrapperSheet>> {
         Python::attach(|_py| {
             if let Some(sheet) = self.0.read().find_sheet_by_regex(&pattern) {
-                Ok(Some(WrapperSheet(sheet.clone())))
+                Ok(Some(WrapperSheet(Arc::clone(sheet))))
             } else {
                 Ok(None)
             }
