@@ -52,10 +52,13 @@ class S10406(Service):
         print(sheet)
 
         if sheet:
-            print("shet_state:", sheet.sheet_state)
+            print("sheet_state:", sheet.sheet_state)
 
             for c in sheet.cells:
                 print(c)
+
+            print("Max Row", sheet.max_row)
+            print("Max Column", sheet.max_column)
 
             cell = sheet.find_cell_by_letter("A1")
             print("Find", cell)

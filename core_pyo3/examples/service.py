@@ -61,6 +61,9 @@ class S10406(Service):
         sheet.set_sheet_state("hidden")
         print("sheet_state:", sheet.sheet_state)
 
+        print("Max Row", sheet.max_row)
+        print("Max Column", sheet.max_column)
+
         return "summary_0"
 
     def _fmt_0(self, **kwargs):

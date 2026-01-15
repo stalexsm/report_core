@@ -82,18 +82,14 @@ impl Cells {
 
     #[inline]
     pub fn get_max_row(&self) -> u32 {
-        self.map
-            .values()
-            .map(|cell| cell.read().get_coordinate().row)
-            .max()
-            .unwrap_or(0)
+        self.map.keys().map(|(row, _)| *row).max().unwrap_or(0)
     }
 
     #[inline]
     pub fn get_max_column(&self) -> u16 {
         self.map
-            .values()
-            .map(|cell| cell.read().get_coordinate().column)
+            .keys()
+            .map(|(_, column)| *column)
             .max()
             .unwrap_or(0)
     }
