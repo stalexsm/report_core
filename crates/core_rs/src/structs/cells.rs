@@ -30,15 +30,14 @@ where
     S: serde::Serializer,
 {
     use serde::ser::SerializeSeq;
-    let mut keys: Vec<_> = map.keys().collect();
-    keys.sort_unstable();
 
-    let mut seq = serializer.serialize_seq(Some(keys.len()))?;
-    for key in keys {
-        if let Some(cell) = map.get(key) {
-            let guard = cell.read();
-            seq.serialize_element(&*guard)?;
-        }
+    let mut items: Vec<_> = map.iter().collect();
+    items.sort_unstable_by_key(|(key, _)| *key);
+
+    let mut seq = serializer.serialize_seq(Some(items.len()))?;
+    for (_, cell) in items {
+        let guard = cell.read();
+        seq.serialize_element(&*guard)?;
     }
     seq.end()
 }
@@ -69,15 +68,13 @@ impl Cells {
     /// Метод для получения коллекции ячеек
     #[inline]
     pub fn get_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>> {
-        let mut cells = self.map.values().collect::<Vec<_>>();
-        cells.par_sort_by_key(|cell| {
-            let guard = cell.read();
-            let cord = guard.get_coordinate();
+        let mut items: Vec<_> = self.map.iter().map(|(key, cell)| (*key, cell)).collect();
 
-            (cord.row, cord.column)
-        });
+        // Сортируем по ключу (row, col) - быстрая сортировка примитивов
+        items.par_sort_unstable_by_key(|(key, _)| *key);
 
-        cells
+        // Возвращаем только ячейки в отсортированном порядке
+        items.into_iter().map(|(_, cell)| cell).collect()
     }
 
     #[inline]
@@ -127,28 +124,20 @@ impl Cells {
         let start_col = start_col.unwrap_or(1);
         let end_col = end_col.unwrap_or(MAX_COL);
 
-        let mut cells = self
+        let mut cells: Vec<_> = self
             .map
             .par_iter()
-            .filter(|(_, cell)| {
-                let guard = cell.read();
-                let coord = guard.get_coordinate();
-                coord.row >= start_row
-                    && coord.row <= end_row
-                    && coord.column >= start_col
-                    && coord.column <= end_col
+            .filter(|((row, col), _)| {
+                *row >= start_row && *row <= end_row && *col >= start_col && *col <= end_col
             })
-            .map(|(_, cell)| cell)
-            .collect::<Vec<_>>();
+            .map(|(key, cell)| (*key, cell))
+            .collect();
 
-        cells.par_sort_by_key(|cell| {
-            let guard = cell.read();
-            let cord = guard.get_coordinate();
+        // Сортируем по ключам без блокировок!
+        cells.par_sort_unstable_by_key(|(key, _)| *key);
 
-            (cord.row, cord.column)
-        });
-
-        cells.into_iter()
+        // Возвращаем только ячейки
+        cells.into_iter().map(|(_, cell)| cell)
     }
 
     #[inline]
@@ -176,54 +165,66 @@ impl Cells {
 
     #[inline]
     pub fn delete_cols(&mut self, idx: u16, amount: u16) {
-        self.map.retain(|_, cell| {
-            let guard = cell.read();
-            let Coordinate { column, .. } = guard.get_coordinate();
-            *column < idx || *column >= idx + amount
-        });
+        let new_map: HashMap<_, _> = self
+            .map
+            .drain()
+            .filter_map(|((row, col), cell)| {
+                if col < idx || col >= idx + amount {
+                    // Ячейка сохраняется
+                    if col > idx {
+                        // Нужно обновить координату в Cell
+                        cell.write()
+                            .set_coordinate(Coordinate::new(row, col - amount));
+                        Some(((row, col - amount), cell))
+                    } else {
+                        Some(((row, col), cell))
+                    }
+                } else {
+                    // Ячейка удаляется
+                    None
+                }
+            })
+            .collect();
 
-        for (_, cell) in self.map.iter() {
-            let guard = cell.read();
-            let Coordinate { column, .. } = guard.get_coordinate();
-            if *column > idx {
-                cell.write().set_coordinate(Coordinate {
-                    row: guard.get_coordinate().row,
-                    column: column - amount,
-                });
-            }
-        }
+        self.map = new_map;
     }
 
     #[inline]
     pub fn delete_rows(&mut self, idx: u32, amount: u32) {
-        self.map.retain(|_, cell| {
-            let guard = cell.read();
-            let Coordinate { row, .. } = guard.get_coordinate();
-            *row < idx || *row >= idx + amount
-        });
+        let new_map: HashMap<_, _> = self
+            .map
+            .drain()
+            .filter_map(|((row, col), cell)| {
+                if row < idx || row >= idx + amount {
+                    // Ячейка сохраняется
+                    if row > idx {
+                        // Нужно обновить координату в Cell
+                        cell.write()
+                            .set_coordinate(Coordinate::new(row - amount, col));
+                        Some(((row - amount, col), cell))
+                    } else {
+                        Some(((row, col), cell))
+                    }
+                } else {
+                    // Ячейка удаляется
+                    None
+                }
+            })
+            .collect();
 
-        for (_, cell) in self.map.iter() {
-            let guard = cell.read();
-            let Coordinate { row, .. } = guard.get_coordinate();
-            if *row > idx {
-                cell.write().set_coordinate(Coordinate {
-                    row: row - amount,
-                    column: guard.get_coordinate().column,
-                });
-            }
-        }
+        self.map = new_map;
     }
 
     #[inline]
     pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_cell_by_regex(regex.into(), cells)
     }
 
     #[inline]
     pub fn find_cell_by_str(&self, value: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_cell_by_str(value.into(), cells)
     }
@@ -235,21 +236,21 @@ impl Cells {
 
     #[inline]
     pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_cell_by_letter(letter.into(), cells)
     }
 
     #[inline]
     pub fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_cells_by_regex(regex.into(), cells)
     }
 
     #[inline]
     pub fn find_cells_by_str(&self, value: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_cells_by_str(value.into(), cells)
     }
@@ -260,7 +261,7 @@ impl Cells {
         regex: &str,
         col_stop: u16,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_cells_for_rows_by_regex(regex.into(), col_stop, cells)
     }
@@ -271,7 +272,7 @@ impl Cells {
         regex: &str,
         row_stop: u32,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_cells_for_cols_by_regex(regex.into(), row_stop, cells)
     }
@@ -304,7 +305,7 @@ impl Cells {
         start_row: u32,
         end_row: u32,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_cells_range_rows(start_row, end_row, cells)
     }
@@ -315,21 +316,21 @@ impl Cells {
         start_col: u16,
         end_col: u16,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_cells_range_cols(start_col, end_col, cells)
     }
 
     #[inline]
     pub fn find_values_by_col_rows(&self, col: u16, rows: Vec<u32>) -> Result<Vec<String>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_values_by_col_rows(col, rows, cells)
     }
 
     #[inline]
     pub fn find_values_by_row_cols(&self, row: u32, cols: Vec<u16>) -> Result<Vec<String>> {
-        let cells = self.get_collection_sorted();
+        let cells = self.get_collection();
 
         find_values_by_row_cols(row, cols, cells)
     }
