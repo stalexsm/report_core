@@ -12,7 +12,7 @@ pub struct Cell {
     #[serde(flatten)]
     coordinate: Coordinate,
     #[serde(flatten)]
-    value: Box<CellValue>,
+    value: CellValue,
     #[serde(skip_serializing_if = "Option::is_none")]
     formula: Option<String>,
     data_type: String,
@@ -34,7 +34,7 @@ impl Cell {
 
         Cell {
             coordinate,
-            value: Box::new(cell_val),
+            value: cell_val,
             data_type,
             ..Default::default()
         }
@@ -65,7 +65,7 @@ impl Cell {
 
         Cell {
             coordinate,
-            value: Box::new(cell_val),
+            value: cell_val,
             data_type: data_type.into(),
             formula,
             style: style_id.map(|s| Style::new(&s)),
