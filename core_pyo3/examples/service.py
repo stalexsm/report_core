@@ -49,6 +49,11 @@ class S10406(Service):
             print(cell.letter)
             print(cell.hidden_value)
 
+            cell.value = "Yop! 100"
+
+        cell_value = sheet.find_value_by_coords(5, 5)
+        print("Find cell value: ", cell_value)
+
         fmt = self._fmt_0(**kwargs)
         print(fmt)
 
