@@ -48,7 +48,7 @@ pub fn find_cell_by_regex<T: ReadableCell + Send + Sync>(
     regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Option<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&regex)?;
+    let re = Regex::new(&format!("(?i){}", regex))?;
 
     let cell = cells.par_iter().find_map_first(|cell| {
         let v = cell.read().get_value();
@@ -100,7 +100,7 @@ pub fn find_cells_by_regex<T: ReadableCell + Send + Sync>(
     regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&regex)?;
+    let re = Regex::new(&format!("(?i){}", regex))?;
 
     Ok(cells
         .par_iter()
@@ -136,7 +136,7 @@ pub fn find_cells_for_rows_by_regex<T: ReadableCell + Send + Sync>(
     col_stop: u16,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&regex)?;
+    let re = Regex::new(&format!("(?i){}", regex))?;
 
     Ok(cells
         .par_iter()
@@ -161,7 +161,7 @@ pub fn find_cells_for_cols_by_regex<T: ReadableCell + Send + Sync>(
     row_stop: u32,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&regex)?;
+    let re = Regex::new(&format!("(?i){}", regex))?;
 
     Ok(cells
         .par_iter()
@@ -186,8 +186,8 @@ pub fn find_cells_multi_regex<T: ReadableCell + Send + Sync>(
     after_regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let before_regex = Regex::new(&before_regex)?;
-    let after_regex = Regex::new(&after_regex)?;
+    let before_regex = Regex::new(&format!("(?i){}", before_regex))?;
+    let after_regex = Regex::new(&format!("(?i){}", after_regex))?;
 
     let mut b = false;
     Ok(cells
@@ -211,8 +211,8 @@ pub fn find_cells_between_regex<T: ReadableCell + Send + Sync>(
     after_regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let before_regex = Regex::new(&before_regex)?;
-    let after_regex = Regex::new(&after_regex)?;
+    let before_regex = Regex::new(&format!("(?i){}", before_regex))?;
+    let after_regex = Regex::new(&format!("(?i){}", after_regex))?;
 
     let mut b = false;
     let rows_idx = cells

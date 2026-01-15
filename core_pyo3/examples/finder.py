@@ -102,6 +102,10 @@ class S10406(Service):
             if cell:
                 print("Value Find By Regex", cells)
 
+            cells = sheet.find_cells_by_regex("гарантированный объем")
+            if cells:
+                print("Value Find By Regex", cells)
+
         return "Summary"
 
     def _fmt_0(self, **kwargs):
@@ -134,6 +138,14 @@ def main():
                     col,
                     value="099",
                     data_type="n",
+                    style_id="__1223",
+                )
+            elif row == 6 and col == 6:
+                cell = Cell(
+                    row,
+                    col,
+                    value="Гарантированный объем 2025 г. год",
+                    data_type="s",
                     style_id="__1223",
                 )
             else:
