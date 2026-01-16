@@ -143,7 +143,7 @@ pub fn find_cells_for_rows_by_regex<T: ReadableCell + Send + Sync>(
         .filter_map(|cell| {
             let guard = cell.read();
             if guard.get_coordinate().column <= col_stop {
-                let v = cell.read().get_value();
+                let v = guard.get_value();
                 if re.is_match(&v).unwrap_or(false) {
                     Some(*cell)
                 } else {
@@ -168,7 +168,7 @@ pub fn find_cells_for_cols_by_regex<T: ReadableCell + Send + Sync>(
         .filter_map(|cell| {
             let guard = cell.read();
             if guard.get_coordinate().row <= row_stop {
-                let v = cell.read().get_value();
+                let v = guard.get_value();
                 if re.is_match(&v).unwrap_or(false) {
                     Some(*cell)
                 } else {
