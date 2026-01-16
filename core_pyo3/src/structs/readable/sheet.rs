@@ -126,8 +126,8 @@ impl WrapperSheet {
 
             let cells = slf
                 .get_cell_collection_sorted()
-                .into_iter()
-                .map(|cell| WrapperCell(cell.clone()))
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect();
 
             Ok(cells)
@@ -172,7 +172,7 @@ impl WrapperSheet {
 
             let cells = slf
                 .get_cell_collection_by_range(start_row, end_row, start_col, end_col)
-                .map(|cell| WrapperCell(cell.clone()))
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect::<Vec<_>>();
 
             Ok(cells)
@@ -185,7 +185,7 @@ impl WrapperSheet {
 
             Ok(slf
                 .find_cell_by_regex(regex)?
-                .map(|c| WrapperCell(c.clone())))
+                .map(|c| WrapperCell(Arc::clone(c))))
         })
     }
 
@@ -193,7 +193,9 @@ impl WrapperSheet {
         py.detach(|| {
             let slf = self.0.read();
 
-            Ok(slf.find_cell_by_str(value)?.map(|c| WrapperCell(c.clone())))
+            Ok(slf
+                .find_cell_by_str(value)?
+                .map(|c| WrapperCell(Arc::clone(c))))
         })
     }
 
@@ -208,7 +210,7 @@ impl WrapperSheet {
 
             Ok(slf
                 .find_cell_by_coords(row, col)?
-                .map(|c| WrapperCell(c.clone())))
+                .map(|c| WrapperCell(Arc::clone(c))))
         })
     }
 
@@ -222,7 +224,7 @@ impl WrapperSheet {
 
             Ok(slf
                 .find_cell_by_letter(letter)?
-                .map(|c| WrapperCell(c.clone())))
+                .map(|c| WrapperCell(Arc::clone(c))))
         })
     }
 
@@ -232,8 +234,8 @@ impl WrapperSheet {
 
             let wrapper_cells = slf
                 .find_cells_by_regex(regex)?
-                .into_iter()
-                .map(|cell| WrapperCell(cell.clone()))
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect();
 
             Ok(wrapper_cells)
@@ -246,8 +248,8 @@ impl WrapperSheet {
 
             let wrapper_cells = slf
                 .find_cells_by_str(value)?
-                .into_iter()
-                .map(|cell| WrapperCell(cell.clone()))
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect();
 
             Ok(wrapper_cells)
@@ -265,8 +267,8 @@ impl WrapperSheet {
 
             let wrapper_cells = slf
                 .find_cells_for_rows_by_regex(regex, col_stop)?
-                .into_iter()
-                .map(|cell| WrapperCell(cell.clone()))
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect();
 
             Ok(wrapper_cells)
@@ -284,8 +286,8 @@ impl WrapperSheet {
 
             let wrapper_cells = slf
                 .find_cells_for_cols_by_regex(regex, row_stop)?
-                .into_iter()
-                .map(|cell| WrapperCell(cell.clone()))
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect();
 
             Ok(wrapper_cells)
@@ -303,8 +305,8 @@ impl WrapperSheet {
 
             let wrapper_cells = slf
                 .find_cells_multi_regex(before_regex, after_regex)?
-                .into_iter()
-                .map(|cell| WrapperCell(cell.clone()))
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect();
 
             Ok(wrapper_cells)
@@ -322,8 +324,8 @@ impl WrapperSheet {
 
             let wrapper_cells = slf
                 .find_cells_between_regex(before_regex, after_regex)?
-                .into_iter()
-                .map(|cell| WrapperCell(cell.clone()))
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect();
 
             Ok(wrapper_cells)
@@ -341,8 +343,8 @@ impl WrapperSheet {
 
             let wrapper_cells = slf
                 .find_cells_range_rows(start_row, end_row)?
-                .into_iter()
-                .map(|cell| WrapperCell(cell.clone()))
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect();
 
             Ok(wrapper_cells)
@@ -360,8 +362,8 @@ impl WrapperSheet {
 
             let wrapper_cells = slf
                 .find_cells_range_cols(start_col, end_col)?
-                .into_iter()
-                .map(|cell| WrapperCell(cell.clone()))
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
                 .collect();
 
             Ok(wrapper_cells)

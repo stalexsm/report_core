@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use core_rs::{funcs, traits::ReadableCell};
 use pyo3::{prelude::*, types::PyList};
 
@@ -29,7 +31,7 @@ pub(crate) fn find_cell_by_coords(
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
-        Ok(funcs::find_cell_by_coords(row, col, cells)?.map(|c| WrapperCell(c.clone())))
+        Ok(funcs::find_cell_by_coords(row, col, cells)?.map(|c| WrapperCell(Arc::clone(c))))
     })
 }
 
@@ -63,7 +65,7 @@ pub(crate) fn find_cell_by_regex(
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
-        Ok(funcs::find_cell_by_regex(regex, cells)?.map(|c| WrapperCell(c.clone())))
+        Ok(funcs::find_cell_by_regex(regex, cells)?.map(|c| WrapperCell(Arc::clone(c))))
     })
 }
 
@@ -78,7 +80,7 @@ pub(crate) fn find_cell_by_str(
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
-        Ok(funcs::find_cell_by_str(value, cells)?.map(|c| WrapperCell(c.clone())))
+        Ok(funcs::find_cell_by_str(value, cells)?.map(|c| WrapperCell(Arc::clone(c))))
     })
 }
 
@@ -93,7 +95,7 @@ pub(crate) fn find_cell_by_letter(
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
-        Ok(funcs::find_cell_by_letter(letter, cells)?.map(|c| WrapperCell(c.clone())))
+        Ok(funcs::find_cell_by_letter(letter, cells)?.map(|c| WrapperCell(Arc::clone(c))))
     })
 }
 
@@ -110,7 +112,7 @@ pub(crate) fn find_cells_by_regex(
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_by_regex(regex, cells)?
             .into_iter()
-            .map(|c| WrapperCell(c.clone()))
+            .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
     })
 }
@@ -128,7 +130,7 @@ pub(crate) fn find_cells_by_str(
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_by_str(value, cells)?
             .into_iter()
-            .map(|c| WrapperCell(c.clone()))
+            .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
     })
 }
@@ -147,7 +149,7 @@ pub(crate) fn find_cells_for_rows_by_regex(
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_for_rows_by_regex(regex, col_stop, cells)?
             .into_iter()
-            .map(|c| WrapperCell(c.clone()))
+            .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
     })
 }
@@ -166,7 +168,7 @@ pub(crate) fn find_cells_for_cols_by_regex(
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_for_cols_by_regex(regex, row_stop, cells)?
             .into_iter()
-            .map(|c| WrapperCell(c.clone()))
+            .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
     })
 }
@@ -186,7 +188,7 @@ pub(crate) fn find_cells_multi_regex(
         Ok(
             funcs::find_cells_multi_regex(before_regex, after_regex, cells)?
                 .into_iter()
-                .map(|c| WrapperCell(c.clone()))
+                .map(|c| WrapperCell(Arc::clone(c)))
                 .collect(),
         )
     })
@@ -207,7 +209,7 @@ pub(crate) fn find_cells_between_regex(
         Ok(
             funcs::find_cells_between_regex(before_regex, after_regex, cells)?
                 .into_iter()
-                .map(|c| WrapperCell(c.clone()))
+                .map(|c| WrapperCell(Arc::clone(c)))
                 .collect(),
         )
     })
@@ -227,7 +229,7 @@ pub(crate) fn find_cells_range_rows(
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_range_rows(start_row, end_row, cells)?
             .into_iter()
-            .map(|c| WrapperCell(c.clone()))
+            .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
     })
 }
@@ -246,7 +248,7 @@ pub(crate) fn find_cells_range_cols(
         let cells = cells.iter().map(|c| &c.0).collect();
         Ok(funcs::find_cells_range_cols(start_col, end_col, cells)?
             .into_iter()
-            .map(|c| WrapperCell(c.clone()))
+            .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
     })
 }
