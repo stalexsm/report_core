@@ -243,14 +243,14 @@ impl Cells {
 
     #[inline]
     pub fn find_cells_by_regex(&self, regex: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cells_by_regex(regex.into(), cells)
     }
 
     #[inline]
     pub fn find_cells_by_str(&self, value: &str) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cells_by_str(value.into(), cells)
     }
@@ -261,7 +261,7 @@ impl Cells {
         regex: &str,
         col_stop: u16,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cells_for_rows_by_regex(regex.into(), col_stop, cells)
     }
@@ -272,7 +272,7 @@ impl Cells {
         regex: &str,
         row_stop: u32,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cells_for_cols_by_regex(regex.into(), row_stop, cells)
     }
@@ -305,7 +305,7 @@ impl Cells {
         start_row: u32,
         end_row: u32,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cells_range_rows(start_row, end_row, cells)
     }
@@ -316,7 +316,7 @@ impl Cells {
         start_col: u16,
         end_col: u16,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cells_range_cols(start_col, end_col, cells)
     }
