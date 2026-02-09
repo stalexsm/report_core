@@ -19,22 +19,14 @@ use structs::{
 
 /// Преобразование номера колонки в букву.
 #[pyfunction]
-fn column_number_to_letter(col: u16) -> PyResult<String> {
-    Python::attach(|_py| {
-        let letter = core_rs::utils::index_to_alpha(col);
-
-        Ok(letter)
-    })
+fn column_number_to_letter(col: u16) -> String {
+    core_rs::utils::index_to_alpha(col)
 }
 
 /// Преобразование номера колонки в координату.
 #[pyfunction]
-fn get_letter_coordinate(row: u32, col: u16) -> PyResult<String> {
-    Python::attach(|_py| {
-        let letter = core_rs::utils::get_letter_coordinate(row, col);
-
-        Ok(letter)
-    })
+fn get_letter_coordinate(row: u32, col: u16) -> String {
+    core_rs::utils::get_letter_coordinate(row, col)
 }
 
 /// Returns the version of the underlying queue_rs library.
