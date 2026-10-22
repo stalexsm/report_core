@@ -15,7 +15,7 @@ from ._report_core import (
 
 # Сабмодуль readable реализован в Rust внутри _report_core: публикуем его
 # как атрибут пакета и в sys.modules, чтобы import report_core.readable
-# отдавал rust-модуль, а не питоновскую обёртку ниже по дереву.
+# отдавал модуль расширения, а не питоновскую обёртку ниже по дереву.
 readable = _report_core.readable
 
 sys.modules[f"{__name__}.readable"] = readable
