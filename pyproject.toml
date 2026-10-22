@@ -4,15 +4,36 @@ version = "0.12.3"
 description = "report-core-root"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["report-core"]
 
 [dependency-groups]
 dev = [
     "maturin>=1.15.0",
+    "pytest>=9.1.1",
     "ruff>=0.17.2",
+    "ty>=0.0.91",
 ]
 
 [tool.uv.workspace]
 members = [
     "core_pyo3",
 ]
+
+[tool.uv.sources]
+# Корневой dev-проект зависит от workspace-члена: uv sync держит
+# report_core установленным в venv (editable, сборка через maturin)
+report-core = { workspace = true }
+
+[tool.ty.environment]
+# Пути к исходникам пакета: позволяет ty резолвить report_core (включая .pyi-стабы
+# бинарного модуля _report_core) без установленного окружения, как в CI.
+extra-paths = ["core_pyo3/python"]
+
+[tool.ruff]
+# Целевая версия Python — как requires-python у пакета
+target-version = "py312"
+
+[tool.ruff.lint]
+# Дефолтный набор ruff (E4, E7, E9, F) плюс сортировка импортов;
+# extend-select сохраняет базлайн при обновлениях ruff
+extend-select = ["I"]

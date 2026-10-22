@@ -1,4 +1,4 @@
-from ._readable import (  # type: ignore
+from ._readable import (
     Finder,
     ReadableCell,
     ReadableSheet,
