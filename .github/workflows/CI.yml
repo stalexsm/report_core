@@ -1,5 +1,9 @@
 # Сгенерировано maturin v1.15.0 (`maturin generate-ci github`) и настроено вручную:
+#   - триггер — только тег (+ ручной запуск): сборка артефактов и релиз;
+#     PR и push в main не гоняются — их закрывает quality.yml;
 #   - пути сборки — core_pyo3/ (pyproject.toml лежит там, а не в корне);
+#   - статические матрицы (без fromJSON): skylos SKY-D295 требует литеральные
+#     раннеры, и статика честнее;
 #   - действия запинены на полные SHA (semgrep: mutable action tag);
 #   - кэш выключен (skylos SKY-D308: риск отравления кэша в релизном контуре);
 #   - у каждой джобы есть timeout-minutes (skylos SKY-D313);
@@ -8,75 +12,40 @@
 #
 #    maturin generate-ci github
 #
-# Триггеры: PR (проверка сборки), тег (сборка + публикация в PyPI), ручной запуск.
-# Push в main не гоняется — коммит уже проверен в PR.
-# На PR гоняются только репрезентативные платформы (флаг pr: true);
-# полная матрица собирается только по тегу, перед релизом.
 name: CI
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 on:
   push:
     tags:
       - "*"
-  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  # Динамическая матрица: в job-level if контекст matrix недоступен,
-  # поэтому состав платформ для PR/тега готовит отдельная джоба.
-  matrix-prep:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      linux: ${{ steps.linux.outputs.matrix }}
-      musllinux: ${{ steps.musllinux.outputs.matrix }}
-      windows: ${{ steps.windows.outputs.matrix }}
-      macos: ${{ steps.macos.outputs.matrix }}
-    steps:
-      # На PR — только репрезентативные платформы, по тегу — полная матрица.
-      - id: linux
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            echo 'matrix=[{"runner":"ubuntu-22.04","target":"x86_64"},{"runner":"ubuntu-22.04","target":"x86"},{"runner":"ubuntu-22.04","target":"aarch64"},{"runner":"ubuntu-22.04","target":"armv7"},{"runner":"ubuntu-22.04","target":"s390x"},{"runner":"ubuntu-22.04","target":"ppc64le"}]' >> "$GITHUB_OUTPUT"
-          else
-            echo 'matrix=[{"runner":"ubuntu-22.04","target":"x86_64"}]' >> "$GITHUB_OUTPUT"
-          fi
-
-      # musllinux нужен только для релизных артефактов.
-      - id: musllinux
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            echo 'matrix=[{"runner":"ubuntu-22.04","target":"x86_64"},{"runner":"ubuntu-22.04","target":"x86"},{"runner":"ubuntu-22.04","target":"aarch64"},{"runner":"ubuntu-22.04","target":"armv7"}]' >> "$GITHUB_OUTPUT"
-          else
-            echo 'matrix=[]' >> "$GITHUB_OUTPUT"
-          fi
-
-      # x86 и aarch64 windows отключены: сборка не нужна (см. историю CI.yml).
-      - id: windows
-        run: echo 'matrix=[{"runner":"windows-latest","target":"x64","python_arch":"x64"}]' >> "$GITHUB_OUTPUT"
-
-      - id: macos
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            echo 'matrix=[{"runner":"macos-15-intel","target":"x86_64"},{"runner":"macos-latest","target":"aarch64"}]' >> "$GITHUB_OUTPUT"
-          else
-            echo 'matrix=[{"runner":"macos-latest","target":"aarch64"}]' >> "$GITHUB_OUTPUT"
-          fi
-
   linux:
-    needs: matrix-prep
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
     strategy:
       matrix:
-        platform: ${{ fromJSON(needs.matrix-prep.outputs.linux) }}
+        platform:
+          - runner: ubuntu-22.04
+            target: x86_64
+          - runner: ubuntu-22.04
+            target: x86
+          - runner: ubuntu-22.04
+            target: aarch64
+          - runner: ubuntu-22.04
+            target: armv7
+          - runner: ubuntu-22.04
+            target: s390x
+          - runner: ubuntu-22.04
+            target: ppc64le
     steps:
       # v6
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -105,12 +74,19 @@ jobs:
           if-no-files-found: error
 
   musllinux:
-    needs: matrix-prep
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
     strategy:
       matrix:
-        platform: ${{ fromJSON(needs.matrix-prep.outputs.musllinux) }}
+        platform:
+          - runner: ubuntu-22.04
+            target: x86_64
+          - runner: ubuntu-22.04
+            target: x86
+          - runner: ubuntu-22.04
+            target: aarch64
+          - runner: ubuntu-22.04
+            target: armv7
     steps:
       # v6
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -139,13 +115,21 @@ jobs:
           if-no-files-found: error
 
   windows:
-    needs: matrix-prep
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
     strategy:
       matrix:
-        # x86 и aarch64 отключены: сборка не нужна (см. историю CI.yml).
-        platform: ${{ fromJSON(needs.matrix-prep.outputs.windows) }}
+        platform:
+          - runner: windows-latest
+            target: x64
+            python_arch: x64
+          # x86 и aarch64 отключены: сборка не нужна (см. историю CI.yml).
+          # - runner: windows-latest
+          #   target: x86
+          #   python_arch: x86
+          # - runner: windows-11-arm
+          #   target: aarch64
+          #   python_arch: arm64
     steps:
       # v6
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -174,12 +158,15 @@ jobs:
           if-no-files-found: error
 
   macos:
-    needs: matrix-prep
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
     strategy:
       matrix:
-        platform: ${{ fromJSON(needs.matrix-prep.outputs.macos) }}
+        platform:
+          - runner: macos-15-intel
+            target: x86_64
+          - runner: macos-latest
+            target: aarch64
     steps:
       # v6
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
