@@ -50,6 +50,21 @@ impl Sheet {
             ..Default::default()
         }
     }
+
+    /// Глубокая копия листа: ячейки и комментарии получают собственные обёртки
+    /// `Arc<RwLock<..>>`, чтобы мутации и `delete_rows/cols` на копии
+    /// не меняли оригинал.
+    pub fn deep_clone(&self) -> Self {
+        Sheet {
+            cells: self.cells.clone_deep(),
+            comments: self
+                .comments
+                .iter()
+                .map(|comment| Arc::new(RwLock::new(comment.read().clone())))
+                .collect(),
+            ..self.clone()
+        }
+    }
 }
 
 impl ReadableSheet for Sheet {
