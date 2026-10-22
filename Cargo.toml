@@ -8,7 +8,7 @@ description = "Вспомогательное ядро для построени
 version = "0.12.3"
 edition = "2024"
 
-rust-version = "1.95"
+rust-version = "1.99"
 
 authors = ["Alexandr Starovoitov <stalex.info@yandex.ru>"]
 
@@ -17,18 +17,18 @@ homepage = "https://github.com/stalexsm/report_core.git"
 repository = "https://github.com/stalexsm/report_core.git"
 
 [workspace.dependencies]
-anyhow = "1.0.102"
+anyhow = "1.0.104"
 chrono = { version = "0.4.45", features = ["serde"] }
-fancy-regex = "0.18.0"
-serde = { version = "1.0.228", features = ["derive", "rc"] }
-serde_json = "1.0.150"
+fancy-regex = "0.19.2"
+serde = { version = "1.0.229", features = ["derive", "rc"] }
+serde_json = "1.0.154"
 rayon = "1.11.0"
-parking_lot = { version = "0.12.5", features = ["serde"] }
-lazy_static = "1.5.0"
+parking_lot = { version = "0.13.0", features = ["serde"] }
+lazy_static = "1.5.1"
 ahash = { version = "0.8.12", features = ["serde"] }
 
-pyo3-build-config = "0.29.0"
-pyo3 = { version = "0.29.0", features = [
+pyo3-build-config = "0.30.1"
+pyo3 = { version = "0.30.1", features = [
     "anyhow",
     # "auto-initialize",
     "chrono",

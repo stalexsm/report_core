@@ -1,19 +1,20 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Any, Literal, Self, Sequence, final
+from typing import Any, Literal, Self, final
 
 __all__ = (
-    "__version__",
+    "DEFAULT_COLUMN_WIDTH",
+    "DEFAULT_ROW_HEIGHT",
     "Book",
-    "Sheet",
     "Cell",
-    "Service",
     "Comment",
+    "Service",
+    "Sheet",
+    "__version__",
     "column_number_to_letter",
     "get_letter_coordinate",
     "version",
-    "DEFAULT_ROW_HEIGHT",
-    "DEFAULT_COLUMN_WIDTH",
 )
 
 __version__: str
@@ -87,7 +88,6 @@ class Service(ABC):
             conn_db: Any
                 conn_db для работы с базой данных
         """
-        ...
 
     @abstractmethod
     def summary_0(
@@ -257,7 +257,6 @@ class Book:
 
             book = Book()
         """
-        ...
 
     @final
     def add_sheet(
