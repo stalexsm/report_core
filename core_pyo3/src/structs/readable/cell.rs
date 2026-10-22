@@ -12,6 +12,7 @@ use pyo3::{
 
 use crate::py_extract;
 
+/// Ячейка листа готового XLSX-файла (только чтение).
 #[pyclass(from_py_object)]
 #[pyo3(module = "report_core.readable", name = "ReadableCell")]
 #[derive(Debug, Clone)]
@@ -55,6 +56,7 @@ impl WrapperCell {
         ))
     }
 
+    /// Строка ячейки
     #[getter]
     pub fn row(&self) -> PyResult<u32> {
         let slf = self.0.read();
@@ -62,6 +64,7 @@ impl WrapperCell {
         Ok(slf.get_coordinate().row)
     }
 
+    /// Колонка ячейки
     #[getter]
     pub fn column(&self) -> PyResult<u16> {
         let slf = self.0.read();
@@ -69,6 +72,12 @@ impl WrapperCell {
         Ok(slf.get_coordinate().column)
     }
 
+    /// Получение буквенной координаты
+    /// ---
+    ///
+    /// Returns:
+    /// ---
+    ///     str
     #[getter]
     pub fn letter(&self) -> PyResult<String> {
         let slf = self.0.read();
@@ -76,6 +85,7 @@ impl WrapperCell {
         Ok(slf.get_letter())
     }
 
+    /// Значение ячейки
     #[getter]
     pub fn get_value(&self) -> PyResult<String> {
         let slf = self.0.read();
@@ -83,6 +93,7 @@ impl WrapperCell {
         Ok(slf.get_value())
     }
 
+    /// Формула ячейки
     #[getter]
     pub fn get_formula(&self) -> PyResult<Option<String>> {
         let slf = self.0.read();
@@ -90,6 +101,7 @@ impl WrapperCell {
         Ok(slf.get_formula())
     }
 
+    /// Стиль ячейки
     #[getter]
     pub fn get_style(&self) -> PyResult<Option<String>> {
         let slf = self.0.read();
@@ -98,6 +110,7 @@ impl WrapperCell {
         Ok(style)
     }
 
+    /// Тип данных ячейки
     #[getter]
     pub fn get_data_type(&self) -> PyResult<String> {
         let slf = self.0.read();
@@ -105,6 +118,12 @@ impl WrapperCell {
         Ok(slf.get_data_type())
     }
 
+    /// Метод для получения флага, ячейка с формулой или нет.
+    /// ---
+    ///
+    /// Returns:
+    /// ---
+    ///     bool
     #[getter]
     pub fn is_formula(&self) -> PyResult<bool> {
         let slf = self.0.read();
@@ -112,6 +131,12 @@ impl WrapperCell {
         Ok(slf.is_formula())
     }
 
+    /// Проверить, является ли значение ячейки boolean
+    /// ---
+    ///
+    /// Returns:
+    /// ---
+    ///     bool
     #[getter]
     pub fn is_value_bool(&self) -> PyResult<bool> {
         let slf = self.0.read();
@@ -119,6 +144,12 @@ impl WrapperCell {
         Ok(slf.is_value_bool())
     }
 
+    /// Проверить, является ли значение ячейки numeric
+    /// ---
+    ///
+    /// Returns:
+    /// ---
+    ///     bool
     #[getter]
     pub fn is_value_numeric(&self) -> PyResult<bool> {
         let slf = self.0.read();
@@ -126,6 +157,12 @@ impl WrapperCell {
         Ok(slf.is_value_numeric())
     }
 
+    /// Проверить, является ли значение ячейки integer
+    /// ---
+    ///
+    /// Returns:
+    /// ---
+    ///     bool
     #[getter]
     pub fn is_value_integer(&self) -> PyResult<bool> {
         let slf = self.0.read();
@@ -133,6 +170,12 @@ impl WrapperCell {
         Ok(slf.is_value_integer())
     }
 
+    /// Проверить, является ли значение ячейки datetime
+    /// ---
+    ///
+    /// Returns:
+    /// ---
+    ///     bool
     #[getter]
     pub fn is_value_datetime(&self) -> PyResult<bool> {
         let slf = self.0.read();
@@ -140,6 +183,12 @@ impl WrapperCell {
         Ok(slf.is_value_datetime())
     }
 
+    /// Проверить, является ли значение ячейки empty
+    /// ---
+    ///
+    /// Returns:
+    /// ---
+    ///     bool
     #[getter]
     pub fn is_value_empty(&self) -> PyResult<bool> {
         let slf = self.0.read();

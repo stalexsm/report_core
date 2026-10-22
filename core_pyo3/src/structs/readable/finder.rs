@@ -10,6 +10,7 @@ use pyo3::{
 
 use super::sheet::WrapperSheet;
 
+/// Поисковик по листам готового XLSX-файла (только чтение).
 #[pyclass(from_py_object)]
 #[pyo3(module = "report_core.readable", name = "Finder")]
 #[derive(Debug, Clone)]
@@ -30,6 +31,7 @@ impl WrapperFinder {
         ))
     }
 
+    /// Инициализация поисковика по списку листов (dict или ReadableSheet).
     #[new]
     pub fn new(sheets: &Bound<'_, PyList>) -> PyResult<Self> {
         let sheets: PyResult<Vec<Sheet>> = sheets
@@ -40,6 +42,7 @@ impl WrapperFinder {
         Ok(Self(Arc::new(RwLock::new(Finder::new(sheets?)))))
     }
 
+    /// Списки листов, по которым ищет поисковик
     #[getter]
     pub fn sheets(&self) -> PyResult<Vec<WrapperSheet>> {
         let slf = self.0.read();
@@ -52,6 +55,17 @@ impl WrapperFinder {
         Ok(sheets)
     }
 
+    /// Получение листа по индексу
+    /// ---
+    ///
+    /// Arguments:
+    /// ---
+    ///     idx: int
+    ///         Индекс листа
+    ///
+    /// Returns:
+    /// ---
+    ///     ReadableSheet | None
     pub fn get_sheet_index(&self, idx: i32) -> PyResult<Option<WrapperSheet>> {
         if let Some(sheet) = self.0.read().get_sheet_index(idx) {
             Ok(Some(WrapperSheet(Arc::clone(sheet))))
@@ -60,6 +74,17 @@ impl WrapperFinder {
         }
     }
 
+    /// Получение листов, которых нет в списке имён
+    /// ---
+    ///
+    /// Arguments:
+    /// ---
+    ///     name_list: list[str]
+    ///         Список имён
+    ///
+    /// Returns:
+    /// ---
+    ///     list[ReadableSheet]
     pub fn get_sheets_without_names(&self, name_list: Vec<String>) -> PyResult<Vec<WrapperSheet>> {
         let name_list = name_list.iter().map(|n| n.as_str()).collect();
 
@@ -77,6 +102,17 @@ impl WrapperFinder {
         Ok(sheets)
     }
 
+    /// Получение листов из списка имён
+    /// ---
+    ///
+    /// Arguments:
+    /// ---
+    ///     name_list: list[str]
+    ///         Список имён
+    ///
+    /// Returns:
+    /// ---
+    ///     list[ReadableSheet]
     pub fn get_sheets_with_names(&self, name_list: Vec<String>) -> PyResult<Vec<WrapperSheet>> {
         let name_list = name_list.iter().map(|n| n.as_str()).collect();
 
@@ -94,6 +130,17 @@ impl WrapperFinder {
         Ok(sheets)
     }
 
+    /// Поиск листа по имени
+    /// ---
+    ///
+    /// Arguments:
+    /// ---
+    ///     name: str
+    ///         Имя листа
+    ///
+    /// Returns:
+    /// ---
+    ///     ReadableSheet | None
     pub fn find_sheet_by_name(&self, name: String) -> PyResult<Option<WrapperSheet>> {
         if let Some(sheet) = self.0.read().find_sheet_by_name(&name) {
             Ok(Some(WrapperSheet(Arc::clone(sheet))))
@@ -102,6 +149,17 @@ impl WrapperFinder {
         }
     }
 
+    /// Поиск листа по регулярному выражению
+    /// ---
+    ///
+    /// Arguments:
+    /// ---
+    ///     pattern: str
+    ///         Шаблон (регулярное выражение)
+    ///
+    /// Returns:
+    /// ---
+    ///     ReadableSheet | None
     pub fn find_sheet_by_regex(&self, pattern: String) -> PyResult<Option<WrapperSheet>> {
         if let Some(sheet) = self.0.read().find_sheet_by_regex(&pattern) {
             Ok(Some(WrapperSheet(Arc::clone(sheet))))
