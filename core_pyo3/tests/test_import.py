@@ -8,7 +8,9 @@ import report_core
 
 def test_import_report_core():
     """Пакет импортируется и публичное API на месте."""
-    assert report_core.__all__
+    assert "Book" in report_core.__all__
+    assert "Sheet" in report_core.__all__
+    assert "Service" in report_core.__all__
 
 
 def test_version_is_exposed():

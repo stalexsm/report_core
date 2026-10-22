@@ -1,4 +1,4 @@
-# Джобы качества: fmt, msrv, clippy, test (Rust + pytest), deny, skylos, semgrep.
+# Джобы качества: fmt, msrv, clippy, test (Rust + pytest), ruff, ty, deny, skylos, semgrep.
 # Тикет: https://github.com/stalexsm/report_core/issues/3
 #
 # Запуск — только на pull_request: те же коммиты уже проверены в PR,
@@ -120,6 +120,44 @@ jobs:
 
       - name: pytest
         run: pytest core_pyo3/tests -v
+
+  ruff:
+    name: ruff
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install 'ruff==0.17.2'
+      - name: ruff check
+        run: ruff check .
+
+  ty:
+    name: ty
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+      - name: Install ty и pytest
+        run: pip install 'ty==0.0.91' pytest
+      # --python задаёт интерпретатор джобы явно: через него ty резолвит pytest,
+      # исходники report_core берутся из [tool.ty.environment] pyproject.toml
+      - name: ty check
+        run: ty check --python "$(command -v python)"
 
   deny:
     name: deny
