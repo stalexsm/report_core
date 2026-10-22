@@ -19,7 +19,7 @@ Single-context: один `GLOSSARY.md` + `docs/adr/` в корне. See `docs/ag
 
 ### Git workflow
 
-Работа всегда в новой ветке через PR (в `main` напрямую не коммитим); коммиты — Conventional Commits с русским описанием; gates перед коммитом, PR и релизом; CHANGELOG генерирует git-cliff, вручную не редактировать. See `docs/agents/git-workflow.md`.
+Работа всегда в новой ветке через PR (в `main` напрямую не коммитим); коммиты и заголовки PR — Conventional Commits с русским описанием; gates перед коммитом, PR и релизом; CHANGELOG генерирует git-cliff, вручную не редактировать. See `docs/agents/git-workflow.md`.
 
 ### Code style
 
