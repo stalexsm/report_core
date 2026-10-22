@@ -1,0 +1,57 @@
+# Конфигурация cargo-deny: RustSec-адвайзори, лицензии, bans, источники.
+# Проверка: cargo deny check (джоба deny в .github/workflows/quality.yml).
+
+[graph]
+# Проверяем всё дерево всех целевых платформ (target не ограничиваем).
+
+all-features = false
+no-default-features = false
+
+[advisories]
+version = 2
+# deny:crate/версия — временные исключения с обязательным комментарием.
+ignore = []
+
+# Секция для справки: базы RustSec Advisory Database.
+db-urls = ["https://github.com/rustsec/advisory-db"]
+
+yanked = "deny"
+
+[licenses]
+version = 2
+
+# Лицензии, разрешённые в зависимостях. Всё вне списка — ошибка.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Unlicense",
+    # r-efi: (MIT OR Apache-2.0 OR LGPL-2.1-or-later) — только заголовочные
+    # определения EFI-ABI, код из LGPL-части не используется.
+    "LGPL-2.1-or-later",
+    "Zlib",
+]
+
+# Уверенность в лицензии из манифеста ниже порога — предупреждение.
+confidence-threshold = 0.93
+
+[bans]
+# Дубликаты версий одного крейта: warn, чтобы не блокировать CI из-за экосистемы.
+multiple-versions = "warn"
+wildcards = "allow"
+highlight = "all"
+# Полностью запрещённые крейты (например, дублирующие функциональность).
+deny = []
+# Крейты, которые нельзя тянуть напрямую (только транзитивно).
+skip = []
+skip-tree = []
+
+[sources]
+unknown-registry = "warn"
+unknown-git = "warn"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

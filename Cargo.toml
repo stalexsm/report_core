@@ -9,6 +9,7 @@ version = "0.12.3"
 edition = "2024"
 
 rust-version = "1.99"
+license = "MIT"
 
 authors = ["Alexandr Starovoitov <stalex.info@yandex.ru>"]
 
