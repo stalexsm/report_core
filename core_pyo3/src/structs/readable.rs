@@ -10,6 +10,17 @@ pub mod cell;
 pub mod finder;
 pub mod sheet;
 
+/// Создание Finder по списку листов (dict или ReadableSheet).
+/// ---
+///
+/// Arguments:
+/// ---
+///     sheets: list
+///         Список листов
+///
+/// Returns:
+/// ---
+///     Finder
 #[inline]
 #[pyfunction]
 pub(crate) fn create_finder(py: Python, sheets: &Bound<'_, PyList>) -> PyResult<WrapperFinder> {

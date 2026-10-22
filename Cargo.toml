@@ -34,13 +34,13 @@ pyo3 = { version = "0.30.1", features = [
     # "auto-initialize",
     "chrono",
     "extension-module",
+    # Интроспекция модуля для генерации .pyi-стабов (maturin generate-stubs)
+    "experimental-inspect",
     "generate-import-lib",
     "py-clone",
     "serde",
 
 ] }
-
-
 
 [profile.release]
 lto = "fat"

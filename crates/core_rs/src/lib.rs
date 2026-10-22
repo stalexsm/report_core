@@ -5,7 +5,7 @@ pub mod traits;
 pub mod utils;
 
 /// Функция для получения версии.
-pub fn version() -> &'static str {
+pub const fn version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 

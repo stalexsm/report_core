@@ -4,104 +4,155 @@ pub(crate) mod structs;
 
 pub(crate) use macros::*;
 
-use core_rs::{DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT};
-use funcs::{
-    find_cell_by_coords, find_cell_by_letter, find_cell_by_regex, find_cell_by_str,
-    find_cells_between_regex, find_cells_by_regex, find_cells_by_str, find_cells_for_cols_by_regex,
-    find_cells_for_rows_by_regex, find_cells_multi_regex, find_cells_range_cols,
-    find_cells_range_rows, find_value_by_coords, find_values_by_col_rows, find_values_by_row_cols,
-};
 use pyo3::prelude::*;
-use structs::{
-    book::WrapperBook, cell::WrapperCell, comment::WrapperComment, readable,
-    service::WrapperService, sheet::WrapperSheet,
-};
 
-/// Преобразование номера колонки в букву.
-#[pyfunction]
-fn column_number_to_letter(col: u16) -> String {
-    core_rs::utils::index_to_alpha(col)
-}
+/// Версия ядра, публикуемая как константа `__version__`.
+const VERSION: &str = core_rs::version();
 
-/// Преобразование номера колонки в координату.
-#[pyfunction]
-fn get_letter_coordinate(row: u32, col: u16) -> String {
-    core_rs::utils::get_letter_coordinate(row, col)
-}
-
-/// Returns the version of the underlying queue_rs library.
-///
-/// Returns
-/// -------
-/// version : str
-///   The version of the underlying queue_rs library.
-///
-#[pyfunction]
-fn version() -> String {
-    core_rs::version().to_string()
-}
-
-macro_rules! add_classes {
-    ($m:expr, $($class:ty),*) => {{
-        $(
-            $m.add_class::<$class>()?;
-        )*
-    }};
-}
-
+/// Rust-ядро для построения отчётов на основе XLSX.
+//
+// Декларативное (inline) объявление модуля обязательно: только такой синтаксис
+// поддерживает интроспекцию PyO3 (`experimental-inspect`) и автогенерацию
+// .pyi-стабов (`scripts/generate-stubs.sh`).
 #[pymodule]
 #[pyo3(name = "_report_core")]
-fn report_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add("__version__", version())?;
-    // classes
-    add_classes!(
-        m,
-        WrapperService,
-        WrapperBook,
-        WrapperSheet,
-        WrapperCell,
-        WrapperComment
-    );
+mod report_core {
+    use pyo3::prelude::*;
 
-    // functions
-    m.add_function(wrap_pyfunction!(version, m)?)?;
-    m.add_function(wrap_pyfunction!(column_number_to_letter, m)?)?;
-    m.add_function(wrap_pyfunction!(get_letter_coordinate, m)?)?;
+    // Классы
+    #[pymodule_export]
+    use crate::structs::book::WrapperBook;
+    #[pymodule_export]
+    use crate::structs::cell::WrapperCell;
+    #[pymodule_export]
+    use crate::structs::comment::WrapperComment;
+    #[pymodule_export]
+    use crate::structs::service::WrapperService;
+    #[pymodule_export]
+    use crate::structs::sheet::WrapperSheet;
 
-    // constants
-    m.add("DEFAULT_ROW_HEIGHT", DEFAULT_ROW_HEIGHT)?;
-    m.add("DEFAULT_COLUMN_WIDTH", DEFAULT_COLUMN_WIDTH)?;
+    // Функции
+    /// Функция для преобразования номера колонки в букву
+    /// ---
+    ///
+    /// Arguments:
+    /// ---
+    ///     col: u16
+    ///         Номер колонки
+    ///
+    /// Returns:
+    /// ---
+    ///     str
+    #[pyfunction]
+    fn column_number_to_letter(col: u16) -> String {
+        core_rs::utils::index_to_alpha(col)
+    }
 
-    // Sub Module
-    let readable = PyModule::new(m.py(), "readable")?;
-    readable.add_class::<readable::finder::WrapperFinder>()?;
-    readable.add_class::<readable::sheet::WrapperSheet>()?;
-    readable.add_class::<readable::cell::WrapperCell>()?;
+    /// Функция для получения координаты ячейки в стиле A1
+    /// ---
+    ///
+    /// Arguments:
+    /// ---
+    ///     row: u32
+    ///         Номер строки
+    ///     col: u16
+    ///         Номер колонки
+    ///
+    /// Returns:
+    /// ---
+    ///     str
+    #[pyfunction]
+    fn get_letter_coordinate(row: u32, col: u16) -> String {
+        core_rs::utils::get_letter_coordinate(row, col)
+    }
 
-    // funcs
-    readable.add_function(wrap_pyfunction!(readable::create_finder, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cell_by_coords, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_value_by_coords, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cell_by_regex, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cell_by_str, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cell_by_letter, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cells_by_regex, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cells_by_str, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cells_for_rows_by_regex, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cells_for_cols_by_regex, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cells_multi_regex, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cells_between_regex, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cells_range_rows, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_cells_range_cols, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_values_by_col_rows, &readable)?)?;
-    readable.add_function(wrap_pyfunction!(find_values_by_row_cols, &readable)?)?;
+    /// Для получения версии
+    /// ---------------------
+    ///
+    /// Returns:
+    /// --------
+    ///     str
+    #[pyfunction]
+    fn version() -> String {
+        core_rs::version().to_string()
+    }
 
-    m.add_submodule(&readable)?;
+    // Константы
+    /// Версия ядра.
+    // Имя задано Python-API (`__version__`), а не соглашениями Rust.
+    #[allow(non_upper_case_globals)]
+    #[pymodule_export]
+    const __version__: &str = crate::VERSION;
 
-    m.py()
-        .import("sys")?
-        .getattr("modules")?
-        .set_item("report_core.readable", readable)?;
+    /// Ширина колонки по умолчанию (~140 пикселей).
+    #[pymodule_export]
+    const DEFAULT_COLUMN_WIDTH: f64 = core_rs::DEFAULT_COLUMN_WIDTH;
 
-    Ok(())
+    /// Высота строки по умолчанию (~20 пикселей).
+    #[pymodule_export]
+    const DEFAULT_ROW_HEIGHT: f64 = core_rs::DEFAULT_ROW_HEIGHT;
+
+    // Сабмодуль
+    /// Сабмодуль для работы с готовыми XLSX-файлами (только чтение).
+    // Для вложенных модулей `submodule` неявный, явно указывать нельзя.
+    #[pymodule]
+    #[pyo3(name = "readable")]
+    mod readable {
+        // Классы
+        #[pymodule_export]
+        use crate::structs::readable::cell::WrapperCell;
+        #[pymodule_export]
+        use crate::structs::readable::finder::WrapperFinder;
+        #[pymodule_export]
+        use crate::structs::readable::sheet::WrapperSheet;
+
+        // Функции
+        #[pymodule_export]
+        use crate::structs::readable::create_finder;
+
+        #[pymodule_export]
+        use crate::funcs::find_cell_by_coords;
+
+        #[pymodule_export]
+        use crate::funcs::find_value_by_coords;
+
+        #[pymodule_export]
+        use crate::funcs::find_cell_by_regex;
+
+        #[pymodule_export]
+        use crate::funcs::find_cell_by_str;
+
+        #[pymodule_export]
+        use crate::funcs::find_cell_by_letter;
+
+        #[pymodule_export]
+        use crate::funcs::find_cells_by_regex;
+
+        #[pymodule_export]
+        use crate::funcs::find_cells_by_str;
+
+        #[pymodule_export]
+        use crate::funcs::find_cells_for_rows_by_regex;
+
+        #[pymodule_export]
+        use crate::funcs::find_cells_for_cols_by_regex;
+
+        #[pymodule_export]
+        use crate::funcs::find_cells_multi_regex;
+
+        #[pymodule_export]
+        use crate::funcs::find_cells_between_regex;
+
+        #[pymodule_export]
+        use crate::funcs::find_cells_range_rows;
+
+        #[pymodule_export]
+        use crate::funcs::find_cells_range_cols;
+
+        #[pymodule_export]
+        use crate::funcs::find_values_by_col_rows;
+
+        #[pymodule_export]
+        use crate::funcs::find_values_by_row_cols;
+    }
 }
