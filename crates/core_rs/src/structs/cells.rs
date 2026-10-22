@@ -59,6 +59,21 @@ impl Cells {
         }
     }
 
+    /// Глубокое клонирование: каждая ячейка получает собственную обёртку
+    /// `Arc<RwLock<Cell>>`, чтобы мутации копии не меняли оригинал.
+    pub fn clone_deep(&self) -> Self {
+        let map = self
+            .map
+            .iter()
+            .map(|(key, cell)| (*key, Arc::new(RwLock::new(cell.read().clone()))))
+            .collect();
+
+        Self {
+            map,
+            default_cell_value: self.default_cell_value.clone(),
+        }
+    }
+
     /// Метод для получения коллекции ячеек
     #[inline]
     pub fn get_collection(&self) -> Vec<&Arc<RwLock<Cell>>> {
