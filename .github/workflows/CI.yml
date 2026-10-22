@@ -29,27 +29,54 @@ permissions:
   contents: read
 
 jobs:
+  # Динамическая матрица: в job-level if контекст matrix недоступен,
+  # поэтому состав платформ для PR/тега готовит отдельная джоба.
+  matrix-prep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      linux: ${{ steps.linux.outputs.matrix }}
+      musllinux: ${{ steps.musllinux.outputs.matrix }}
+      windows: ${{ steps.windows.outputs.matrix }}
+      macos: ${{ steps.macos.outputs.matrix }}
+    steps:
+      # На PR — только репрезентативные платформы, по тегу — полная матрица.
+      - id: linux
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo 'matrix=[{"runner":"ubuntu-22.04","target":"x86_64"},{"runner":"ubuntu-22.04","target":"x86"},{"runner":"ubuntu-22.04","target":"aarch64"},{"runner":"ubuntu-22.04","target":"armv7"},{"runner":"ubuntu-22.04","target":"s390x"},{"runner":"ubuntu-22.04","target":"ppc64le"}]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'matrix=[{"runner":"ubuntu-22.04","target":"x86_64"}]' >> "$GITHUB_OUTPUT"
+          fi
+
+      # musllinux нужен только для релизных артефактов.
+      - id: musllinux
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo 'matrix=[{"runner":"ubuntu-22.04","target":"x86_64"},{"runner":"ubuntu-22.04","target":"x86"},{"runner":"ubuntu-22.04","target":"aarch64"},{"runner":"ubuntu-22.04","target":"armv7"}]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'matrix=[]' >> "$GITHUB_OUTPUT"
+          fi
+
+      # x86 и aarch64 windows отключены: сборка не нужна (см. историю CI.yml).
+      - id: windows
+        run: echo 'matrix=[{"runner":"windows-latest","target":"x64","python_arch":"x64"}]' >> "$GITHUB_OUTPUT"
+
+      - id: macos
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo 'matrix=[{"runner":"macos-15-intel","target":"x86_64"},{"runner":"macos-latest","target":"aarch64"}]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'matrix=[{"runner":"macos-latest","target":"aarch64"}]' >> "$GITHUB_OUTPUT"
+          fi
+
   linux:
+    needs: matrix-prep
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
-    # На PR — только репрезентативные платформы (pr: true), остальное — по тегу.
-    if: matrix.platform.pr || startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
-        platform:
-          - runner: ubuntu-22.04
-            target: x86_64
-            pr: true
-          - runner: ubuntu-22.04
-            target: x86
-          - runner: ubuntu-22.04
-            target: aarch64
-          - runner: ubuntu-22.04
-            target: armv7
-          - runner: ubuntu-22.04
-            target: s390x
-          - runner: ubuntu-22.04
-            target: ppc64le
+        platform: ${{ fromJSON(needs.matrix-prep.outputs.linux) }}
     steps:
       # v6
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -78,21 +105,12 @@ jobs:
           if-no-files-found: error
 
   musllinux:
+    needs: matrix-prep
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
-    # Только по тегу: все платформы без флага pr.
-    if: startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
-        platform:
-          - runner: ubuntu-22.04
-            target: x86_64
-          - runner: ubuntu-22.04
-            target: x86
-          - runner: ubuntu-22.04
-            target: aarch64
-          - runner: ubuntu-22.04
-            target: armv7
+        platform: ${{ fromJSON(needs.matrix-prep.outputs.musllinux) }}
     steps:
       # v6
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -121,24 +139,13 @@ jobs:
           if-no-files-found: error
 
   windows:
+    needs: matrix-prep
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
-    # На PR — только репрезентативные платформы (pr: true), остальное — по тегу.
-    if: matrix.platform.pr || startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
-        platform:
-          - runner: windows-latest
-            target: x64
-            python_arch: x64
-            pr: true
-          # x86 и aarch64 отключены: сборка не нужна (см. историю CI.yml).
-          # - runner: windows-latest
-          #   target: x86
-          #   python_arch: x86
-          # - runner: windows-11-arm
-          #   target: aarch64
-          #   python_arch: arm64
+        # x86 и aarch64 отключены: сборка не нужна (см. историю CI.yml).
+        platform: ${{ fromJSON(needs.matrix-prep.outputs.windows) }}
     steps:
       # v6
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -167,18 +174,12 @@ jobs:
           if-no-files-found: error
 
   macos:
+    needs: matrix-prep
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
-    # На PR — только репрезентативные платформы (pr: true), остальное — по тегу.
-    if: matrix.platform.pr || startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
-        platform:
-          - runner: macos-15-intel
-            target: x86_64
-          - runner: macos-latest
-            target: aarch64
-            pr: true
+        platform: ${{ fromJSON(needs.matrix-prep.outputs.macos) }}
     steps:
       # v6
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
