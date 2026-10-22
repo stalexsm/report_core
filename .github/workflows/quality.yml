@@ -154,7 +154,7 @@ jobs:
         run: pip install 'skylos==4.50.1'
       - name: skylos scan (gate)
         run: >
-          skylos core_pyo3/python core_pyo3/examples
+          skylos core_pyo3/python core_pyo3/examples --config-file skylos.toml
           --danger --quality --ai-defects --secrets
           --gate --no-upload
 

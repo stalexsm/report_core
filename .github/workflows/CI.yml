@@ -10,6 +10,8 @@
 #
 # Триггеры: PR (проверка сборки), тег (сборка + публикация в PyPI), ручной запуск.
 # Push в main не гоняется — коммит уже проверен в PR.
+# На PR гоняются только репрезентативные платформы (флаг pr: true);
+# полная матрица собирается только по тегу, перед релизом.
 name: CI
 
 concurrency:
@@ -30,11 +32,14 @@ jobs:
   linux:
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
+    # На PR — только репрезентативные платформы (pr: true), остальное — по тегу.
+    if: matrix.platform.pr || startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
         platform:
           - runner: ubuntu-22.04
             target: x86_64
+            pr: true
           - runner: ubuntu-22.04
             target: x86
           - runner: ubuntu-22.04
@@ -75,6 +80,8 @@ jobs:
   musllinux:
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
+    # Только по тегу: все платформы без флага pr.
+    if: startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
         platform:
@@ -116,12 +123,15 @@ jobs:
   windows:
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
+    # На PR — только репрезентативные платформы (pr: true), остальное — по тегу.
+    if: matrix.platform.pr || startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
         platform:
           - runner: windows-latest
             target: x64
             python_arch: x64
+            pr: true
           # x86 и aarch64 отключены: сборка не нужна (см. историю CI.yml).
           # - runner: windows-latest
           #   target: x86
@@ -159,6 +169,8 @@ jobs:
   macos:
     runs-on: ${{ matrix.platform.runner }}
     timeout-minutes: 60
+    # На PR — только репрезентативные платформы (pr: true), остальное — по тегу.
+    if: matrix.platform.pr || startsWith(github.ref, 'refs/tags/')
     strategy:
       matrix:
         platform:
@@ -166,6 +178,7 @@ jobs:
             target: x86_64
           - runner: macos-latest
             target: aarch64
+            pr: true
     steps:
       # v6
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
