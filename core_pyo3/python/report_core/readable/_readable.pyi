@@ -1,9 +1,9 @@
-from typing import Any, Sequence, final
+from collections.abc import Sequence
+from typing import Any, final
 
 class Finder:
     sheets: Sequence[ReadableSheet]
 
-    def __repr__(self) -> str: ...
     @final
     def __init__(self, sheets: Sequence[Any]) -> None: ...
     @final
@@ -27,7 +27,6 @@ class ReadableSheet:
     cells: Sequence[ReadableCell]
     merge_cells: Sequence[tuple[int, int, int, int]]
 
-    def __repr__(self) -> str: ...
     @property
     def max_row(self) -> int: ...
     @property
@@ -95,7 +94,6 @@ class ReadableCell:
     style: str | None = None
     data_type: str | None = None
 
-    def __repr__(self) -> str: ...
     @property
     def row(self) -> int: ...
     @property

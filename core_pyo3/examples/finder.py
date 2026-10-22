@@ -36,7 +36,6 @@ class Sheet:
     name: str = "Тестовый лист"
     sheet_state: str = "visible"
     merge_cells: list[list[int]] | None = None
-    cells: list[Cell] = []
 
     def __init__(self, name: str, cells: list[Cell]):
         self.name = name
