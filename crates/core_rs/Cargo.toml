@@ -2,6 +2,8 @@
 name = "core_rs"
 version.workspace = true
 description.workspace = true
+license.workspace = true
+rust-version.workspace = true
 edition.workspace = true
 authors.workspace = true
 readme.workspace = true

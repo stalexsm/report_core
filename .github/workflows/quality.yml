@@ -1,0 +1,175 @@
+# Джобы качества: fmt, msrv, clippy, test (Rust + pytest), deny, skylos, semgrep.
+# Тикет: https://github.com/stalexsm/report_core/issues/3
+#
+# Запуск — только на pull_request: те же коммиты уже проверены в PR,
+# повторный прогон на push в main не нужен.
+# Сборка wheels и публикация релиза — в CI.yml (maturin), релиз только по тегу.
+
+name: Quality
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  fmt:
+    name: fmt
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      # stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+  msrv:
+    name: msrv
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Determine MSRV
+        id: msrv
+        run: |
+          # MSRV берём динамически из rust-version в [workspace.package] Cargo.toml
+          MSRV=$(cargo metadata --no-deps --format-version 1 \
+            | jq -r '.packages[] | select(.name == "core_rs") | .rust_version')
+          echo "version=${MSRV}" >> "$GITHUB_OUTPUT"
+          echo "MSRV: ${MSRV}"
+      # ${{ steps.msrv.outputs.version }}
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: ${{ steps.msrv.outputs.version }}
+      # v2
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a
+      - name: cargo check (MSRV)
+        run: cargo check --workspace --all-targets
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      # stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+      # v2
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+      # stable
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: stable
+      # v2
+      - uses: Swatinem/rust-cache@e9d7b9f1e587218970671bac74e5511ed9506e6a
+
+      - name: cargo test
+        run: cargo test --workspace
+
+      - name: Build wheel (maturin)
+        run: |
+          python -m pip install --upgrade pip
+          pip install maturin pytest
+          maturin build --out dist
+        working-directory: ./core_pyo3
+
+      - name: Install wheel
+        run: pip install --force-reinstall core_pyo3/dist/report_core-*.whl
+
+      - name: pytest
+        run: pytest core_pyo3/tests -v
+
+  deny:
+    name: deny
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      # v2
+      - uses: taiki-e/install-action@a4d3f3f761dcd95cce1b72cb61cb6d1963438177
+        with:
+          tool: cargo-deny
+      - name: cargo deny check
+        run: cargo deny check
+
+  skylos:
+    name: skylos
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: "3.12"
+      - name: Install skylos
+        run: pip install 'skylos==4.50.1'
+      - name: skylos scan (gate)
+        run: >
+          skylos core_pyo3/python core_pyo3/examples --config-file skylos.toml
+          --danger --quality --ai-defects --secrets
+          --gate --no-upload
+
+  semgrep:
+    name: semgrep
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Правила сообщества (p/default, p/secrets) из открытого registry semgrep.
+    container:
+      # 1.182.1
+      image: semgrep/semgrep@sha256:451b3d875c00dac7ed5db5293e584a07de11449a409c10b3c2d2652f429630b6
+    steps:
+      # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: semgrep scan
+        run: semgrep scan --config p/default --config p/secrets --error --metrics=off

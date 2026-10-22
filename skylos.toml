@@ -1,0 +1,27 @@
+# Конфигурация skylos для джобы skylos (.github/workflows/quality.yml).
+# Формат: те же ключи, что в секции [tool.skylos] из `skylos init`,
+# но на верхнем уровне файла. Файл подхватывается автоматически
+# при скане core_pyo3/python/ и core_pyo3/examples/.
+
+# Пороги качества (maintainability).
+complexity = 10
+nesting = 3
+max_args = 5
+max_lines = 50
+
+# Исключения из скана: автогенерируемые стабы .pyi — god-file/LCOM-шум
+# не про качество кода.
+exclude = ["**/*.pyi"]
+
+[gate]
+# Гейт CI: критические находки и нарушения безопасности валят джобу.
+fail_on_critical = true
+max_critical = 0
+max_high = 5
+max_security = 0
+max_reliability = 0
+# Запас над текущими 15 замечаниями к иллюстративным examples-скриптам
+# (finder.py, service.py): гейт растёт от новых находок, а не от старых.
+max_quality = 20
+block_ai_defect_severities = ["CRITICAL"]
+strict = false
