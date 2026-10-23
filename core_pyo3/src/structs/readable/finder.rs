@@ -8,7 +8,7 @@ use pyo3::{
     types::{PyList, PyString},
 };
 
-use super::sheet::WrapperSheet;
+use super::sheet::{WrapperSheet, shared_sheets};
 
 /// Поисковик по листам готового XLSX-файла (только чтение).
 #[pyclass(from_py_object)]
@@ -31,15 +31,14 @@ impl WrapperFinder {
         ))
     }
 
-    /// Инициализация поисковика по списку листов (dict или ReadableSheet).
+    /// Инициализация поисковика по списку листов (dict, ReadableSheet или
+    /// лист книги). Собственные листы библиотеки разделяются без
+    /// копирования — поисковик видит их последующие мутации.
     #[new]
     pub fn new(sheets: &Bound<'_, PyList>) -> PyResult<Self> {
-        let sheets: PyResult<Vec<Sheet>> = sheets
-            .iter()
-            .map(|s| Ok(WrapperSheet::try_from(&s)?.0.read().clone()))
-            .collect();
+        let sheets = shared_sheets(sheets)?;
 
-        Ok(Self(Arc::new(RwLock::new(Finder::new(sheets?)))))
+        Ok(Self(Arc::new(RwLock::new(Finder::new(sheets)))))
     }
 
     /// Списки листов, по которым ищет поисковик

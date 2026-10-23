@@ -13,12 +13,10 @@ pub struct Finder<T: ReadableSheet + Send + Sync> {
 }
 
 impl<T: ReadableSheet + Send + Sync> Finder<T> {
-    pub fn new(sheets: Vec<T>) -> Self {
-        let sheets = sheets
-            .into_iter()
-            .map(|s| Arc::new(RwLock::new(s)))
-            .collect();
-
+    /// Finder хранит переданные листы как есть — те же Arc, без копий:
+    /// создание стоит O(числа листов), данные не дублируются, мутации
+    /// исходных листов видны поисковику.
+    pub fn new(sheets: Vec<Arc<RwLock<T>>>) -> Self {
         Self { sheets }
     }
 
@@ -77,19 +75,37 @@ impl<T: ReadableSheet + Send + Sync> Finder<T> {
 #[cfg(test)]
 mod tests {
     use crate::structs::sheet::Sheet;
+    use crate::traits::WriteableSheet;
 
     use super::*;
 
+    /// Лист для Finder, завёрнутый в разделяемый Arc.
+    fn shared_sheet(name: &str) -> Arc<RwLock<Sheet>> {
+        Arc::new(RwLock::new(Sheet::new(name, "visible")))
+    }
+
     #[test]
     fn new_finder() {
-        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+        let f = Finder::new(vec![shared_sheet("A")]);
 
         assert_eq!(f.sheets.len(), 1)
     }
 
+    /// Finder хранит те же Arc, что ему переданы: мутация исходного
+    /// листа видна поисковику, копий нет.
+    #[test]
+    fn new_finder_shares_sheets() {
+        let sheet = shared_sheet("A");
+        let f = Finder::new(vec![Arc::clone(&sheet)]);
+
+        sheet.write().set_name("B");
+
+        assert_eq!(f.sheets[0].read().get_name(), "B");
+    }
+
     #[test]
     fn find_sheet_by_name() {
-        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+        let f = Finder::new(vec![shared_sheet("A")]);
 
         let f = f.find_sheet_by_name("A").unwrap();
         let f = f.read();
@@ -99,7 +115,7 @@ mod tests {
 
     #[test]
     fn find_sheet_by_regex() {
-        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+        let f = Finder::new(vec![shared_sheet("A")]);
 
         let f = f.find_sheet_by_regex("A").unwrap().unwrap();
         let f = f.read();
@@ -110,7 +126,7 @@ mod tests {
     /// Невалидный шаблон — Err, а не паника.
     #[test]
     fn find_sheet_by_regex_invalid_pattern() {
-        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+        let f = Finder::new(vec![shared_sheet("A")]);
 
         assert!(f.find_sheet_by_regex("(").is_err());
     }
@@ -118,7 +134,7 @@ mod tests {
     /// Валидный шаблон без совпадений — Ok(None).
     #[test]
     fn find_sheet_by_regex_no_match() {
-        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+        let f = Finder::new(vec![shared_sheet("A")]);
 
         let f = f.find_sheet_by_regex("B").unwrap();
 
@@ -129,7 +145,7 @@ mod tests {
     /// find_*_by_regex (у них шаблон неявно обёрнут в (?i)).
     #[test]
     fn find_sheet_by_regex_case_insensitive() {
-        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+        let f = Finder::new(vec![shared_sheet("A")]);
 
         let f = f.find_sheet_by_regex("a").unwrap().unwrap();
         let f = f.read();
@@ -139,7 +155,7 @@ mod tests {
 
     #[test]
     fn get_sheet_index() {
-        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+        let f = Finder::new(vec![shared_sheet("A")]);
 
         let f = f.get_sheet_index(0).unwrap();
         let f = f.read();
@@ -149,7 +165,7 @@ mod tests {
 
     #[test]
     fn get_sheets_without_names() {
-        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+        let f = Finder::new(vec![shared_sheet("A")]);
 
         let f = f.get_sheets_without_names(vec!["A"]);
 
@@ -158,7 +174,7 @@ mod tests {
 
     #[test]
     fn get_sheets_with_names() {
-        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+        let f = Finder::new(vec![shared_sheet("A")]);
 
         let f = f.get_sheets_with_names(vec!["A"]);
 
