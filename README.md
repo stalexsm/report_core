@@ -1,107 +1,151 @@
-# __report-core__
+# report-core
+
 [![CI](https://github.com/stalexsm/report_core/actions/workflows/CI.yml/badge.svg?event=push)](https://github.com/stalexsm/report_core/actions/workflows/CI.yml)
-[![pypi](https://img.shields.io/pypi/v/report_core.svg)](https://pypi.python.org/pypi/report-core)
+[![PyPI](https://img.shields.io/pypi/v/report_core.svg)](https://pypi.python.org/pypi/report-core)
 [![Supported Python versions](https://img.shields.io/pypi/pyversions/report-core.svg)](https://pypi.python.org/pypi/report-core/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/stalexsm/report_core/blob/main/LICENSE)
 
-`report-core` - это вспомогательная Python-библиотека для построения отчетов в формате Excel (XLSX) для проекта, предоставляющая удобные инструменты для манипуляции данными..
+**report-core** — Python-библиотека с ядром на [Rust](crates/core_rs) ([PyO3](core_pyo3)) для построения XLSX-отчётов.
 
-## Установка
+Отчёт описывается как модель в памяти: **книга → листы → ячейки, комментарии, объединения, стили**. Модель быстро наполняется данными, по ней выполняется поиск, а результат сериализуется в `dict`/`JSON` — итоговый `.xlsx`-файл рендерит приложение любым движком (xlsxwriter, openpyxl и т.д.). Такой подход удобен, когда отчёт собирается по частям в разных задачах, хранится в БД или передаётся между сервисами.
 
-```pip install report-core```
+Библиотека создана как вспомогательное ядро для проекта **gpns-boriy**, где используется для генерации и разбора табличных отчётов.
 
-## Основные компоненты
+## ✨ Возможности
 
-- `Service`: Базовый класс для создания сервисов обработки данных и создания отчетов.
-- `Book`: Представляет книгу отчета Excel.
-- `Sheet`: Представляет лист Excel для создания новых листов отчета.
-- `Cell`: Представляет ячейку в листе Excel для создания новых ячеек отчета.
-- `Comment`: Представляет комментарий в листе Excel для ячеек.
-- `readable`: Модуль только для чтения листов и ячеек Excel.
-  - `Finder`: Помощник для работы с несколькими листами и ячейками.
-  - `ReadableSheet`: Представляет лист Excel для чтения существующих листов отчета.
-  - `ReadableCell`: Представляет ячейку в листе Excel для чтения существующих ячеек отчета.
-  - `create_finder`: Создание помощника для работы с несколькими листами и ячейками.
-  - `find_cell_by_coords`: Поиск ячейки в листе Excel по координатам.
-  - `find_value_by_coords`: Поиск значения в листе Excel по координатам.
-  - `find_cell_by_regex`: Поиск ячейки в листе Excel по регулярному выражению
-  - `find_cell_by_str`: Поиск ячейки в листе Excel по строке
-  - `find_cell_by_letter`: Поиск ячейки в листе Excel по букве
-  - `find_cells_by_regex`: Поиск ячеек в листе Excel по регулярному выражению
-  - `find_cells_by_str`: Поиск ячеек в листе Excel по строке
-  - `find_cells_for_rows_by_regex`: Поиск ячеек в листе Excel по регулярному выражению до определеной колонки
-  - `find_cells_for_cols_by_regex`: Поиск ячеек в листе Excel по регулярному выражению до определеной строки
-  - `find_cells_multi_regex`: Поиск ячеек в листе Excel по нескольким регулярным выражениям
-  - `find_cells_between_regex`: Поиск ячеек в листе Excel между двумя регулярными выражениями
-  - `find_cells_range_rows`: Поиск ячеек в листе Excel по диапазону строк
-  - `find_cells_range_cols`: Поиск ячеек в листе Excel по диапазону столбцов
-  - `find_values_by_col_rows`: Поиск значений ячеек в листе Excel по диапазону строк и столбца
-  - `find_values_by_row_cols`: Поиск значений ячеек в листе Excel по диапазону столбцов и строки
-- `column_number_to_letter`: Функция для преобразования колонки с row в букву (1 -> A).
-- `get_letter_coordinate`: Функция для получения координаты ячейки в стиле A1.
-- `DEFAULT_COLUMN_WIDTH`: "Ширина колонки по умолчанию".
-- `DEFAULT_ROW_HEIGHT`: "Высота строки по умолчанию".
+- ⚡ **Ядро на Rust** — быстрое наполнение, поиск и сериализация; тяжёлые операции (полный скан листа, `to_dict`/`to_json`) не удерживают GIL.
+- 🧱 **Модель отчёта**: `Book`, `Sheet`, `Cell`, `Comment`; объединения ячеек, размеры и скрытость строк/колонок, именованные стили.
+- 🔢 **Типизированные значения ячеек**: строки, числа, `bool`, `datetime`, формулы, скрытые значения; проверка типов (`is_value_numeric`, `is_value_datetime`, ...).
+- 🔎 **Поиск**: по строке, регулярному выражению, координатам и букве (A1), по диапазонам строк/колонок, между двумя шаблонами.
+- 🏗️ **`Service`** — базовый класс для сервисов, строящих отчёты из данных БД: наследник реализует `summary_0` (генерация) и `_fmt_0` (форматирование).
+- 🔒 **[`readable`](#-чтение-готового-отчёта)** — read-only сабмодуль для поиска по готовым листам без риска их изменить.
+- 📤 **Сериализация**: `to_dict()` и `to_json()` на основе serde.
+- ✅ **Полная типизация**: `py.typed` + `.pyi`-стабы, генерируемые из Rust-кода.
 
-## Возможности
+## 📦 Установка
 
-- Поиск листов по имени или шаблону
-- Поиск ячеек по значению, регулярному выражению или адресу
-- Манипуляция данными ячеек (установка значений, формул, форматов)
-- Получение информации о ячейках (тип данных, числовой формат, стиль)
-- Работа с датами и временем
-- Создание пользовательских сервисов и форматтеров для создания отчетов xlsx.
+```bash
+pip install report-core
+```
 
-## Пример использования
+Python 3.12+ (CPython, PyPy). Готовые колёса: manylinux и musllinux (x86_64, x86, aarch64, armv7, s390x, ppc64le), macOS (Intel и Apple Silicon), Windows x64.
+
+## 🚀 Быстрый старт
+
+```python
+from report_core import Book
+
+book = Book()
+sheet = book.add_sheet("Пример")
+
+sheet.cell(1, 1, "Привет, мир!")
+cell = sheet.cell(2, 1)
+cell.set_value_integer(42)
+cell.style = "accent"          # имя стиля; словарь стилей — на стороне рендерера
+
+data = book.to_dict()          # dict: {"sheets": [{"name": ..., "cells": [...], ...}]}
+# payload = book.to_json()     # тот же отчёт одной JSON-строкой
+```
+
+## 🧩 Пример: сервис отчёта
+
+Сервисы наследуются от `Service`, который хранит книгу и подключение к БД (`conn_db`):
 
 ```python
 from report_core import Service
-import time
+from report_core.readable import Finder
 
 
-class S10406(Service):
+class DrillingReport(Service):
+    """Сервис строит лист отчёта «Смета» из данных БД."""
+
     def summary_0(self, sheets, **kwargs):
-        sheet = self._add_sheet("Sheet1")
+        sheet = self._add_sheet("Смета")
 
-        print(sheet)
+        # Шапка: cell() — get-or-create по (строка, колонка)
+        sheet.cell(1, 1, "Наименование работ")
+        sheet.cell(1, 2, "Ед. изм.")
+        sheet.cell(1, 3, "Количество")
+        sheet.cell(1, 4, "Сумма")
 
-        for r in range(1, 6):
-            for c in range(1, 6):
-                cell = sheet.cell(r, c, f"Dynamic value: r{r}:c{c}")
+        # Данные: типизированные значения, стиль
+        for i, (work, unit, qty, price) in enumerate(kwargs["rows"], start=2):
+            sheet.cell(i, 1, work)
+            sheet.cell(i, 2, unit)
+            sheet.cell(i, 3).set_value_integer(qty)
+            total = sheet.cell(i, 4)
+            total.set_value_number(qty * price)
+            total.style = "money"
 
-                if r == 5 and c == 5:
-                    cell.value = "100"
-                    cell.formula = "SUM(A1:A5)"
-                    cell.style = "Style A"
+        # Итоговая строка: формула и комментарий
+        last = sheet.max_row + 1
+        grand = sheet.cell(last, 4)
+        grand.formula = f"SUM(D2:D{last - 1})"
+        sheet.add_comment(last, 4, "Автосумма по смете", "report-core")
 
-        print(sheet)
-
-        cell = sheet.find_cell_by_letter("E5")
-        if cell:
-            print(cell.value)
-            print(cell.formula)
-            print(cell.style)
-            print(cell.letter)
-
-        fmt = self._fmt_0(**kwargs)
-        print(fmt)
-
-        return "Summary"
-
-    def _fmt_0(self, **kwargs):
-        for s in self._sheets:
-            print("Fmt --> ", s)
-
-        return "Fmt"
+        return sheet.name
 
 
-def main():
-    s = S10406("conn_or_session")
-    s.summary_0([])
+rows = [("Бурение", "м", 120, 1500.0), ("Цементирование", "м", 80, 900.0)]
+report = DrillingReport(conn_db=None)  # здесь подключение/сессия БД, если она нужна сервису
+report.summary_0([], rows=rows)
 
-    print(s)
-    result = s.to_json()
-
-    print(result)
-
-if __name__ == "__main__":
-    main()
+data = report.to_dict()  # dict — для сохранения в БД, очереди или HTTP
 ```
+
+## 🔍 Чтение готового отчёта
+
+Сабмодуль `report_core.readable` даёт read-only доступ к листам: принимает собственные листы книги, их `dict`-представление или уже собранные `ReadableSheet`. Полезен, когда один отчёт читают несколько обработчиков — найти шапку, колонки, диапазоны данных:
+
+```python
+from report_core.readable import Finder
+
+finder = Finder(report._sheets)          # собственные листы сервиса
+sheet = finder.find_sheet_by_name("Смета")
+
+cement = sheet.find_cell_by_regex(r"^Цементирование")
+print(cement.letter, cement.value)               # A3 Цементирование
+
+grand = sheet.find_cell_by_coords(4, 4)
+print(grand.formula)                             # SUM(D2:D3)
+
+# Вся строка данных:
+print([(c.letter, c.value) for c in sheet.find_cells_range_rows(2, 2)])
+# [('A2', 'Бурение'), ('B2', 'м'), ('C2', '120'), ('D2', '180000')]
+```
+
+Помимо методов `ReadableSheet`, в модуле есть одноимённые функции поиска
+(`find_cell_by_regex`, `find_cells_between_regex`, `find_values_by_col_rows`, ...) и
+фабрика `create_finder` — псевдоним `Finder`.
+
+## 📚 Состав пакета
+
+| Компонент | Назначение |
+|---|---|
+| `Book` | Книга: контейнер листов отчёта; `add_sheet`, `copy_sheet`, `to_dict`, `to_json` |
+| `Service` | Базовый класс сервиса отчёта: `summary_0`, `_fmt_0`, `_add_sheet`, доступ к `conn_db` |
+| `Sheet` | Лист: ячейки, комментарии, объединения, размеры, `delete_rows`/`delete_cols`, поиск |
+| `Cell` | Ячейка: `value`, `formula`, `style`, `letter`, типизированные `set_value_*` |
+| `Comment` | Комментарий к ячейке: текст, автор, координата |
+| `readable.Finder` | Поиск листов по имени/regex/индексу в списке листов |
+| `readable.ReadableSheet` / `ReadableCell` | Read-only доступ к листу и ячейкам |
+| `column_number_to_letter`, `get_letter_coordinate` | Преобразование координат (1 → `A`, `(2, 4)` → `D2`) |
+| `DEFAULT_COLUMN_WIDTH`, `DEFAULT_ROW_HEIGHT` | Стандартные размеры Excel (~140 px и ~20 px) |
+| `version()`, `__version__` | Версия ядра |
+
+Границы модели соответствуют Excel: 1 048 576 строк × 16 384 колонки, выход за границы и нулевые координаты проверяются с понятными исключениями.
+
+## 🛠️ Разработка
+
+```bash
+uv sync                          # venv + editable-сборка report_core через maturin
+cargo test --workspace           # Rust-тесты
+pytest core_pyo3/tests           # смок-тесты Python-пакета
+./scripts/generate-stubs.sh      # регенерация .pyi-стабов после изменений публичного API
+```
+
+Стабы генерируются из Rust-кода (`pyo3 experimental-inspect` + `pyo3-introspection`) — вручную их не редактировать. Публичная документация методов живёт в Rust `///`-докстрингах: именно оттуда она попадает в IDE.
+
+## 📄 Лицензия
+
+[MIT](LICENSE)
