@@ -230,16 +230,20 @@ impl Cells {
         self.map = new_map;
     }
 
+    // Сортированная коллекция: при нескольких совпадениях возвращается ячейка
+    // с наименьшими координатами, независимо от порядка обхода HashMap.
     #[inline]
     pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cell_by_regex(regex.into(), cells)
     }
 
+    // Сортированная коллекция: при нескольких совпадениях возвращается ячейка
+    // с наименьшими координатами, независимо от порядка обхода HashMap.
     #[inline]
     pub fn find_cell_by_str(&self, value: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cell_by_str(value.into(), cells)
     }
@@ -249,9 +253,10 @@ impl Cells {
         Ok(self.map.get(&(row, col)))
     }
 
+    // Сортированная коллекция: обход детерминирован, независимо от HashMap.
     #[inline]
     pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cell_by_letter(letter.into(), cells)
     }

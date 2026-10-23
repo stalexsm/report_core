@@ -636,6 +636,78 @@ mod tests {
         assert_eq!(cells.len(), 3);
     }
 
+    /// При нескольких совпадениях find_cell_by_regex возвращает ячейку
+    /// с наименьшими координатами (детерминизм между запусками процесса).
+    #[test]
+    pub fn find_cell_by_regex_multiple_matches() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        for coord in [(3, 3), (1, 2), (2, 1)] {
+            sheet.cell(Coordinate::new(coord.0, coord.1), Some("dup"));
+        }
+
+        let cell = sheet.cells.find_cell_by_regex("dup").unwrap().unwrap();
+        let guard = cell.read();
+        let coord = guard.get_coordinate();
+
+        assert_eq!((coord.row, coord.column), (1, 2));
+    }
+
+    /// При нескольких совпадениях find_cell_by_str возвращает ячейку
+    /// с наименьшими координатами (детерминизм между запусками процесса).
+    #[test]
+    pub fn find_cell_by_str_multiple_matches() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        for coord in [(3, 3), (1, 2), (2, 1)] {
+            sheet.cell(Coordinate::new(coord.0, coord.1), Some("dup"));
+        }
+
+        let cell = sheet.cells.find_cell_by_str("dup").unwrap().unwrap();
+        let guard = cell.read();
+        let coord = guard.get_coordinate();
+
+        assert_eq!((coord.row, coord.column), (1, 2));
+    }
+
+    /// Значения идут в порядке запрошенных строк, а не в порядке обхода
+    /// HashMap; отсутствующая строка даёт пустую строку, длина результата
+    /// равна длине запроса (позиционный zip безопасен).
+    #[test]
+    pub fn find_values_by_col_rows_request_order() {
+        let sheet = sheet();
+
+        let values = sheet
+            .cells
+            .find_values_by_col_rows(2, vec![5, 1, 3])
+            .unwrap();
+
+        assert_eq!(values, vec!["Yop! 5:2", "Yop! 1:2", "Yop! 3:2"]);
+
+        let values = sheet.cells.find_values_by_col_rows(2, vec![2, 99]).unwrap();
+
+        assert_eq!(values, vec!["Yop! 2:2", ""]);
+    }
+
+    /// Значения идут в порядке запрошенных колонок, а не в порядке обхода
+    /// HashMap; отсутствующая колонка даёт пустую строку, длина результата
+    /// равна длине запроса (позиционный zip безопасен).
+    #[test]
+    pub fn find_values_by_row_cols_request_order() {
+        let sheet = sheet();
+
+        let values = sheet
+            .cells
+            .find_values_by_row_cols(1, vec![4, 1, 5])
+            .unwrap();
+
+        assert_eq!(values, vec!["Yop! 1:4", "Yop! 1:1", "Yop! 1:5"]);
+
+        let values = sheet.cells.find_values_by_row_cols(1, vec![3, 99]).unwrap();
+
+        assert_eq!(values, vec!["Yop! 1:3", ""]);
+    }
+
     #[test]
     pub fn find_value_by_coords() {
         let sheet = sheet();

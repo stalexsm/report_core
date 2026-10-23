@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::{structs::coordinate::Coordinate, traits::ReadableCell};
+use ahash::HashMap;
 use anyhow::Result;
 use fancy_regex::Regex;
 use parking_lot::RwLock;
@@ -292,40 +293,50 @@ pub fn find_cells_range_cols<T: ReadableCell + Send + Sync>(
         .collect())
 }
 
+/// Индекс «координата → значение» по коллекции ячеек — для детерминированного
+/// поиска значений в порядке запрошенных строк/колонок.
+fn index_values_by_coords<T: ReadableCell + Send + Sync>(
+    cells: &[&Arc<RwLock<T>>],
+) -> HashMap<(u32, u16), String> {
+    cells
+        .par_iter()
+        .map(|cell| {
+            let guard = cell.read();
+            let coord = guard.get_coordinate();
+
+            ((coord.row, coord.column), guard.get_value())
+        })
+        .collect()
+}
+
+/// Значения по колонке и списку строк — строго в порядке запрошенных строк.
+/// Отсутствующая ячейка даёт пустую строку: длина результата всегда равна
+/// длине запроса, поэтому позиционный zip с заголовками не искажает отчёт.
 pub fn find_values_by_col_rows<T: ReadableCell + Send + Sync>(
     col: u16,
     rows: Vec<u32>,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<String>> {
-    Ok(cells
-        .par_iter()
-        .filter_map(|cell| {
-            let guard = cell.read();
-            let coord = guard.get_coordinate();
-            if coord.column == col && rows.contains(&coord.row) {
-                Some(guard.get_value())
-            } else {
-                None
-            }
-        })
+    let index = index_values_by_coords(&cells);
+
+    Ok(rows
+        .into_iter()
+        .map(|row| index.get(&(row, col)).cloned().unwrap_or_default())
         .collect())
 }
 
+/// Значения по строке и списку колонок — строго в порядке запрошенных колонок.
+/// Отсутствующая ячейка даёт пустую строку: длина результата всегда равна
+/// длине запроса, поэтому позиционный zip с заголовками не искажает отчёт.
 pub fn find_values_by_row_cols<T: ReadableCell + Send + Sync>(
     row: u32,
     cols: Vec<u16>,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<String>> {
-    Ok(cells
-        .par_iter()
-        .filter_map(|cell| {
-            let guard = cell.read();
-            let coord = guard.get_coordinate();
-            if coord.row == row && cols.contains(&coord.column) {
-                Some(guard.get_value())
-            } else {
-                None
-            }
-        })
+    let index = index_values_by_coords(&cells);
+
+    Ok(cols
+        .into_iter()
+        .map(|col| index.get(&(row, col)).cloned().unwrap_or_default())
         .collect())
 }
