@@ -56,6 +56,36 @@ impl Columns {
             .map(|c| c.get_hidden())
             .unwrap_or_else(|| &false)
     }
+
+    /// Сдвигает ключи размеров колонок при удалении колонок `[idx; idx + amount)`:
+    /// ключи правее удаления сдвигаются влево, ключи из диапазона удаления
+    /// исчезают.
+    ///
+    /// Ожидается валидный диапазон удаления: `idx ≥ 1`, `amount ≥ 1`.
+    #[inline]
+    pub(crate) fn delete_cols(&mut self, idx: u16, amount: u16) {
+        // Арифметика в широком типе: после validate_delete_range значение
+        // заведомо ≤ максимуму листа — переполнения и усечения cast'а нет
+        let delete_end = (idx as u64 + amount as u64 - 1) as u16;
+
+        self.columns = self
+            .columns
+            .drain()
+            .filter_map(|(col_num, mut column)| {
+                if col_num < idx {
+                    // Левее удаления — без изменений
+                    Some((col_num, column))
+                } else if col_num > delete_end {
+                    // Правее удаления — сдвиг влево
+                    column.set_col_num(col_num - amount);
+                    Some((col_num - amount, column))
+                } else {
+                    // Колонка удалена — размер исчезает вместе с ней
+                    None
+                }
+            })
+            .collect();
+    }
 }
 
 #[cfg(test)]

@@ -39,4 +39,12 @@ impl Row {
 
         self
     }
+
+    /// Пересчитывает номер строки при удалении строк выше/на её месте
+    #[inline]
+    pub(crate) fn set_row_num(&mut self, row_num: u32) -> &mut Self {
+        self.row_num = row_num;
+
+        self
+    }
 }

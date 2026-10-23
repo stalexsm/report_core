@@ -57,6 +57,36 @@ impl Rows {
             .map(|r| r.get_hidden())
             .unwrap_or_else(|| &false)
     }
+
+    /// Сдвигает ключи размеров строк при удалении строк `[idx; idx + amount)`:
+    /// ключи ниже удаления сдвигаются вверх, ключи из диапазона удаления
+    /// исчезают.
+    ///
+    /// Ожидается валидный диапазон удаления: `idx ≥ 1`, `amount ≥ 1`.
+    #[inline]
+    pub(crate) fn delete_rows(&mut self, idx: u32, amount: u32) {
+        // Арифметика в широком типе: после validate_delete_range значение
+        // заведомо ≤ максимуму листа — переполнения и усечения cast'а нет
+        let delete_end = (idx as u64 + amount as u64 - 1) as u32;
+
+        self.rows = self
+            .rows
+            .drain()
+            .filter_map(|(row_num, mut row)| {
+                if row_num < idx {
+                    // Выше удаления — без изменений
+                    Some((row_num, row))
+                } else if row_num > delete_end {
+                    // Ниже удаления — сдвиг вверх
+                    row.set_row_num(row_num - amount);
+                    Some((row_num - amount, row))
+                } else {
+                    // Строка удалена — размер исчезает вместе с ней
+                    None
+                }
+            })
+            .collect();
+    }
 }
 
 #[cfg(test)]
