@@ -1,4 +1,5 @@
-# Джобы качества: fmt, msrv, clippy, test (Rust + pytest), ruff, ty, deny, skylos, semgrep.
+# Джобы качества: fmt, msrv, clippy, test (Rust + pytest + сверка .pyi-стабов),
+# ruff, ty, deny, skylos, semgrep.
 # Тикет: https://github.com/stalexsm/report_core/issues/3
 #
 # Запуск — только на pull_request: те же коммиты уже проверены в PR,
@@ -119,6 +120,8 @@ jobs:
         run: pip install --force-reinstall core_pyo3/dist/report_core-*.whl
 
       - name: pytest
+        # Вместе с суитом классов гоняется test_stub_consistency.py:
+        # сверка dir() рантайма со стабами ловит дрейф .pyi от API.
         run: pytest core_pyo3/tests -v
 
   ruff:
