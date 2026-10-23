@@ -1,8 +1,8 @@
 # report-core
 
 [![CI](https://github.com/stalexsm/report_core/actions/workflows/CI.yml/badge.svg?event=push)](https://github.com/stalexsm/report_core/actions/workflows/CI.yml)
-[![PyPI](https://img.shields.io/pypi/v/report_core.svg)](https://pypi.python.org/pypi/report-core)
-[![Supported Python versions](https://img.shields.io/pypi/pyversions/report-core.svg)](https://pypi.python.org/pypi/report-core/)
+[![PyPI](https://img.shields.io/pypi/v/report_core.svg)](https://pypi.org/project/report_core/)
+[![Supported Python versions](https://img.shields.io/pypi/pyversions/report_core.svg)](https://pypi.org/project/report_core/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/stalexsm/report_core/blob/main/LICENSE)
 
 **report-core** — Python-библиотека с ядром на [Rust](crates/core_rs) ([PyO3](core_pyo3)) для построения XLSX-отчётов.
