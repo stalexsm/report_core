@@ -67,13 +67,12 @@ pub fn find_cell_by_str<T: ReadableCell + Send + Sync>(
     value: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Option<&Arc<RwLock<T>>>> {
-    let cell = cells.par_iter().find_map_first(|cell| {
-        if cell.read().get_value().trim() == value.trim() {
-            Some(*cell)
-        } else {
-            None
-        }
-    });
+    // Образец обрезается один раз, сравнение — без аллокации на ячейку
+    let needle = value.trim();
+
+    let cell = cells
+        .par_iter()
+        .find_map_first(|cell| cell.read().value_eq_str(needle).then_some(*cell));
 
     Ok(cell)
 }
@@ -120,15 +119,11 @@ pub fn find_cells_by_str<T: ReadableCell + Send + Sync>(
     value: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
+    let needle = value.trim();
+
     Ok(cells
         .par_iter()
-        .filter_map(|cell| {
-            if cell.read().get_value().trim() == value.trim() {
-                Some(*cell)
-            } else {
-                None
-            }
-        })
+        .filter_map(|cell| cell.read().value_eq_str(needle).then_some(*cell))
         .collect())
 }
 
@@ -367,5 +362,39 @@ mod tests {
         let values = find_values_by_row_cols(1, vec![1], cells).unwrap();
 
         assert_eq!(values, vec!["first"]);
+    }
+
+    /// Поиск по строке работает по отрисованному значению для всех типов:
+    /// строки — без аллокации, числа/bool — как раньше через отрисовку.
+    #[test]
+    pub fn find_cells_by_str_matches_rendered_values() {
+        let text = Arc::new(RwLock::new(Cell::new(
+            Coordinate::new(1, 1),
+            Some("Итого  "),
+        )));
+        let number = Arc::new(RwLock::new(Cell::new(Coordinate::new(1, 2), Some("34.8"))));
+        let flag = Arc::new(RwLock::new(Cell::new(Coordinate::new(1, 3), Some("TRUE"))));
+        let cells = vec![&text, &number, &flag];
+
+        assert_eq!(
+            find_cells_by_str("итого".into(), cells.clone())
+                .unwrap()
+                .len(),
+            0,
+            "сравнение чувствительно к регистру"
+        );
+        assert_eq!(
+            find_cells_by_str("Итого".into(), cells.clone())
+                .unwrap()
+                .len(),
+            1
+        );
+        assert_eq!(
+            find_cells_by_str("34.8".into(), cells.clone())
+                .unwrap()
+                .len(),
+            1
+        );
+        assert_eq!(find_cells_by_str("true".into(), cells).unwrap().len(), 1);
     }
 }

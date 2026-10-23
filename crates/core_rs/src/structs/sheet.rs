@@ -153,6 +153,11 @@ impl ReadableSheet for Sheet {
     }
 
     #[inline]
+    fn get_cell_count(&self) -> usize {
+        self.cells.len()
+    }
+
+    #[inline]
     fn get_max_row(&self) -> u32 {
         self.cells.get_max_row()
     }

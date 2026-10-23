@@ -12,6 +12,14 @@ pub trait ReadableCell {
     fn get_coordinate(&self) -> &Coordinate;
     fn get_letter(&self) -> String;
     fn get_value(&self) -> String;
+
+    /// Совпадает ли отрисованное значение ячейки с образцом (уже обрезанным
+    /// вызываемым кодом) при поиске по строке. Дефолт идёт через `get_value`,
+    /// реализации могут избежать аллокации для строковых ячеек.
+    fn value_eq_str(&self, needle: &str) -> bool {
+        self.get_value().trim() == needle
+    }
+
     fn get_formula(&self) -> Option<String>;
     fn get_data_type(&self) -> String;
     fn get_hidden_value(&self) -> Option<String>;
@@ -44,6 +52,11 @@ pub trait ReadableSheet {
 
     fn get_cell_collection(&self) -> Vec<&Arc<RwLock<Cell>>>;
     fn get_cell_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>>;
+
+    /// Количество ячеек за O(1) — для repr и счётчиков без материализации
+    /// коллекции.
+    fn get_cell_count(&self) -> usize;
+
     fn get_max_row(&self) -> u32;
     fn get_max_column(&self) -> u16;
     fn get_cell_value<T>(&self, coordinate: T) -> String

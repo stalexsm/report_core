@@ -136,7 +136,7 @@ impl WrapperSheet {
             "{} ({}) cells: {}",
             class_name,
             slf.get_name(),
-            slf.get_cell_collection().len()
+            slf.get_cell_count()
         ))
     }
 

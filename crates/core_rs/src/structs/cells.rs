@@ -1,10 +1,8 @@
 use ahash::HashMap;
 use anyhow::{Result, bail};
+use fancy_regex::Regex;
 use parking_lot::RwLock;
-use rayon::{
-    iter::{IntoParallelRefIterator, ParallelIterator},
-    slice::ParallelSliceMut,
-};
+use rayon::slice::ParallelSliceMut;
 use serde::Serialize;
 use std::sync::Arc;
 
@@ -13,13 +11,15 @@ use crate::{
     MAX_COL, MAX_ROW,
     datatype::CellValue,
     funcs::{
-        find_cell_by_letter, find_cell_by_regex, find_cell_by_str, find_cells_between_regex,
-        find_cells_by_regex, find_cells_by_str, find_cells_for_cols_by_regex,
-        find_cells_for_rows_by_regex, find_cells_multi_regex, find_cells_range_cols,
-        find_cells_range_rows, find_values_by_col_rows, find_values_by_row_cols,
+        find_cell_by_regex, find_cell_by_str, find_cells_by_regex, find_cells_by_str,
+        find_cells_for_cols_by_regex, find_cells_for_rows_by_regex, find_cells_multi_regex,
+        find_cells_range_cols, find_cells_range_rows,
     },
     traits::{ReadableCell, WriteableCell},
 };
+
+/// Ячейки, снимаемые с карты при сдвиге: старый ключ и обёртка.
+type ShiftedCells = Vec<((u32, u16), Arc<RwLock<Cell>>)>;
 
 /// Вспомоогательная функция для сериализации HashMap только Value, как вектор.
 fn serialize_cells_to_vec<S>(
@@ -42,13 +42,42 @@ where
     seq.end()
 }
 
-#[derive(Clone, Default, Debug, Serialize)]
+/// Ленивый кэш сортированных по (row, col) ключей карты.
+///
+/// Порядок обхода определяется только ключами карты, а значения ячеек живут за
+/// `Arc<RwLock<..>>` — мутации значений порядок не меняют. Поэтому кэш
+/// инвалидается только в точках изменения набора ключей (`cell` с новой
+/// координатой, `delete_rows/cols`) и строится один раз при первом обращении.
+type SortedKeysCache = RwLock<Option<Arc<[(u32, u16)]>>>;
+
+#[derive(Default, Debug, Serialize)]
 pub struct Cells {
     #[serde(serialize_with = "serialize_cells_to_vec")]
     #[serde(rename = "cells")]
     map: HashMap<(u32, u16), Arc<RwLock<Cell>>>,
     #[serde(skip)]
     default_cell_value: CellValue,
+    /// Максимальные координаты карты, поддерживаются в точках мутаций;
+    /// геттеры отдают их за O(1) вместо полного прохода.
+    #[serde(skip)]
+    max_row: u32,
+    #[serde(skip)]
+    max_column: u16,
+    #[serde(skip)]
+    sorted_keys: SortedKeysCache,
+}
+
+impl Clone for Cells {
+    fn clone(&self) -> Self {
+        Cells {
+            map: self.map.clone(),
+            default_cell_value: self.default_cell_value.clone(),
+            max_row: self.max_row,
+            max_column: self.max_column,
+            // Набор ключей у копии тот же — кэш переиспользуется
+            sorted_keys: RwLock::new(self.sorted_keys.read().clone()),
+        }
+    }
 }
 
 /// Проверяет, что диапазон удаления `[idx; idx + amount)` лежит в домене
@@ -75,10 +104,29 @@ fn validate_delete_range(idx: u64, amount: u64, max: u64) -> Result<()> {
 
 impl Cells {
     pub fn new(map: HashMap<(u32, u16), Arc<RwLock<Cell>>>) -> Self {
+        // Максимумы считаются один раз при сборке; кэш сортированных ключей
+        // строится лениво при первом обращении
+        let (max_row, max_column) = map
+            .keys()
+            .fold((0, 0), |(row, col), &(r, c)| (row.max(r), col.max(c)));
+
         Self {
             map,
+            max_row,
+            max_column,
             ..Default::default()
         }
+    }
+
+    /// Количество ячеек за O(1) — для repr и прочих счётчиков без проходов.
+    #[inline]
+    pub fn len(&self) -> usize {
+        self.map.len()
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.map.is_empty()
     }
 
     /// Глубокое клонирование: каждая ячейка получает собственную обёртку
@@ -93,7 +141,30 @@ impl Cells {
         Self {
             map,
             default_cell_value: self.default_cell_value.clone(),
+            // Набор ключей у копии тот же — кэш и максимумы переиспользуются
+            max_row: self.max_row,
+            max_column: self.max_column,
+            sorted_keys: RwLock::new(self.sorted_keys.read().clone()),
         }
+    }
+
+    /// Сортированные по (row, col) ключи карты: из кэша или с разовой сборкой.
+    fn sorted_keys_cloned(&self) -> Arc<[(u32, u16)]> {
+        if let Some(keys) = self.sorted_keys.read().clone() {
+            return keys;
+        }
+
+        let mut keys: Vec<(u32, u16)> = self.map.keys().copied().collect();
+
+        // Сортировка по ключу (row, col) — быстрая сортировка примитивов
+        keys.par_sort_unstable();
+        let keys: Arc<[(u32, u16)]> = keys.into();
+
+        // Карта иммутабельна под &self, параллельные строители соберут тот же
+        // набор — перезапись кэша безопасна
+        *self.sorted_keys.write() = Some(Arc::clone(&keys));
+
+        keys
     }
 
     /// Метод для получения коллекции ячеек
@@ -106,29 +177,24 @@ impl Cells {
     ///
     /// Детерминированный обход: одиночные find_cell_by_* опираются на порядок —
     /// при нескольких совпадениях побеждает ячейка с наименьшими координатами.
-    #[inline]
+    /// Порядок берётся из кэша ключей, сортировка на вызов не повторяется.
     pub fn get_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>> {
-        let mut items: Vec<_> = self.map.iter().map(|(key, cell)| (*key, cell)).collect();
-
-        // Сортируем по ключу (row, col) - быстрая сортировка примитивов
-        items.par_sort_unstable_by_key(|(key, _)| *key);
-
-        // Возвращаем только ячейки в отсортированном порядке
-        items.into_iter().map(|(_, cell)| cell).collect()
+        self.sorted_keys_cloned()
+            .iter()
+            // Инвалидация кэша синхронна с мутациями карты: ключ из кэша
+            // всегда есть в карте
+            .filter_map(|key| self.map.get(key))
+            .collect()
     }
 
     #[inline]
     pub fn get_max_row(&self) -> u32 {
-        self.map.keys().map(|(row, _)| *row).max().unwrap_or(0)
+        self.max_row
     }
 
     #[inline]
     pub fn get_max_column(&self) -> u16 {
-        self.map
-            .keys()
-            .map(|(_, column)| *column)
-            .max()
-            .unwrap_or(0)
+        self.max_column
     }
 
     #[inline]
@@ -164,20 +230,17 @@ impl Cells {
         let start_col = start_col.unwrap_or(1);
         let end_col = end_col.unwrap_or(MAX_COL);
 
-        let mut cells: Vec<_> = self
-            .map
-            .par_iter()
-            .filter(|((row, col), _)| {
+        // Ключи из кэша уже отсортированы: фильтрация сохраняет порядок,
+        // отдельная сортировка не нужна. Материализуем в Vec: возвращаемый
+        // итератор не может заимствовать локальный Arc кэша
+        self.sorted_keys_cloned()
+            .iter()
+            .filter(|(row, col)| {
                 *row >= start_row && *row <= end_row && *col >= start_col && *col <= end_col
             })
-            .map(|(key, cell)| (*key, cell))
-            .collect();
-
-        // Сортируем по ключам без блокировок!
-        cells.par_sort_unstable_by_key(|(key, _)| *key);
-
-        // Возвращаем только ячейки
-        cells.into_iter().map(|(_, cell)| cell)
+            .filter_map(|key| self.map.get(key))
+            .collect::<Vec<_>>()
+            .into_iter()
     }
 
     /// Get-or-create ячейки по координатам.
@@ -189,16 +252,36 @@ impl Cells {
     where
         T: Into<Coordinate>,
     {
+        use std::collections::hash_map::Entry;
+
         let Coordinate { row, column } = coordinate.into();
 
-        let cell = self.map.entry((row, column)).or_insert_with(|| {
-            Arc::new(RwLock::new(Cell::new(Coordinate::new(row, column), value)))
-        });
+        // Get-or-create: существующую ячейку не мутируем, новая — вставляется
+        // с обновлением максимумов и инвалидацией кэша ключей
+        let existed = match self.map.entry((row, column)) {
+            Entry::Occupied(_) => true,
+            Entry::Vacant(entry) => {
+                self.max_row = self.max_row.max(row);
+                self.max_column = self.max_column.max(column);
+                self.sorted_keys.write().take();
 
-        // Get-or-create: существующую ячейку не мутируем. Новая пустая ячейка
-        // уже получает data_type "s" в Cell::new (Empty → "s"), поэтому touch
-        // без значения не требует никаких правок (issue #19).
-        if let Some(value) = value {
+                entry.insert(Arc::new(RwLock::new(Cell::new(
+                    Coordinate::new(row, column),
+                    value,
+                ))));
+
+                false
+            }
+        };
+
+        let cell = self
+            .map
+            .get(&(row, column))
+            .expect("ячейка только что создана или уже существовала");
+
+        // Новая пустая ячейка уже получает data_type "s" в Cell::new
+        // (Empty → "s"), поэтому без значения не требует никаких правок
+        if existed && let Some(value) = value {
             cell.write().set_value(value);
         }
 
@@ -207,6 +290,9 @@ impl Cells {
 
     /// Удаляет колонки `[idx; idx + amount)`, сдвигая оставшиеся влево.
     ///
+    /// Вместо полной пересборки карты: удаляемые ключи снимаются `retain`,
+    /// ключи правее диапазона переучитываются точечно.
+    ///
     /// # Errors
     /// Возвращает ошибку, если `idx` или `amount` меньше 1 либо диапазон
     /// выходит за границы листа (`MAX_COL`).
@@ -214,33 +300,42 @@ impl Cells {
     pub fn delete_cols(&mut self, idx: u16, amount: u16) -> Result<()> {
         validate_delete_range(idx as u64, amount as u64, MAX_COL as u64)?;
 
-        let new_map: HashMap<_, _> = self
+        let delete_end = idx + amount;
+        // Затронутые сдвигом ячейки снимаются целиком до вставок: цель сдвига
+        // (col - amount ≥ idx) не пересекается с оставшимися ключами (col < idx),
+        // поэтому переучёт не задевает нетронутые записи
+        let shifted_keys: Vec<(u32, u16)> = self
             .map
-            .drain()
-            .filter_map(|((row, col), cell)| {
-                if col < idx || col >= idx + amount {
-                    // Ячейка сохраняется
-                    if col > idx {
-                        // Нужно обновить координату в Cell
-                        cell.write()
-                            .set_coordinate(Coordinate::new(row, col - amount));
-                        Some(((row, col - amount), cell))
-                    } else {
-                        Some(((row, col), cell))
-                    }
-                } else {
-                    // Ячейка удаляется
-                    None
-                }
-            })
+            .keys()
+            .copied()
+            .filter(|(_, col)| *col >= delete_end)
+            .collect();
+        let mut shifted: ShiftedCells = shifted_keys
+            .into_iter()
+            .map(|key| (key, self.map.remove(&key).expect("ключ из итератора карты")))
             .collect();
 
-        self.map = new_map;
+        let before = self.map.len();
+        self.map
+            .retain(|(_, col), _| *col < idx || *col >= delete_end);
+        let deleted = self.map.len() != before;
+
+        if deleted || !shifted.is_empty() {
+            for ((row, col), cell) in shifted.drain(..) {
+                cell.write()
+                    .set_coordinate(Coordinate::new(row, col - amount));
+                self.map.insert((row, col - amount), cell);
+            }
+
+            self.invalidate_derived_state();
+        }
 
         Ok(())
     }
 
     /// Удаляет строки `[idx; idx + amount)`, сдвигая оставшиеся вверх.
+    /// Вместо полной пересборки карты: удаляемые ключи снимаются `retain`,
+    /// ключи ниже диапазона переучитываются точечно.
     ///
     /// # Errors
     /// Возвращает ошибку, если `idx` или `amount` меньше 1 либо диапазон
@@ -249,30 +344,51 @@ impl Cells {
     pub fn delete_rows(&mut self, idx: u32, amount: u32) -> Result<()> {
         validate_delete_range(idx as u64, amount as u64, MAX_ROW as u64)?;
 
-        let new_map: HashMap<_, _> = self
+        let delete_end = idx + amount;
+        // Затронутые сдвигом ячейки снимаются целиком до вставок: цель сдвига
+        // (row - amount ≥ idx) не пересекается с оставшимися ключами (row < idx)
+        let shifted_keys: Vec<(u32, u16)> = self
             .map
-            .drain()
-            .filter_map(|((row, col), cell)| {
-                if row < idx || row >= idx + amount {
-                    // Ячейка сохраняется
-                    if row > idx {
-                        // Нужно обновить координату в Cell
-                        cell.write()
-                            .set_coordinate(Coordinate::new(row - amount, col));
-                        Some(((row - amount, col), cell))
-                    } else {
-                        Some(((row, col), cell))
-                    }
-                } else {
-                    // Ячейка удаляется
-                    None
-                }
-            })
+            .keys()
+            .copied()
+            .filter(|(row, _)| *row >= delete_end)
+            .collect();
+        let mut shifted: ShiftedCells = shifted_keys
+            .into_iter()
+            .map(|key| (key, self.map.remove(&key).expect("ключ из итератора карты")))
             .collect();
 
-        self.map = new_map;
+        let before = self.map.len();
+        self.map
+            .retain(|(row, _), _| *row < idx || *row >= delete_end);
+        let deleted = self.map.len() != before;
+
+        if deleted || !shifted.is_empty() {
+            for ((row, col), cell) in shifted.drain(..) {
+                cell.write()
+                    .set_coordinate(Coordinate::new(row - amount, col));
+                self.map.insert((row - amount, col), cell);
+            }
+
+            self.invalidate_derived_state();
+        }
 
         Ok(())
+    }
+
+    /// Пересчёт производных данных карты после мутации набора ключей:
+    /// кэш сортированных ключей сбрасывается, максимумы пересчитываются одним
+    /// проходом. Вызывается только из точек мутаций, поэтому O(n) здесь —
+    /// разовая цена редкой операции.
+    fn invalidate_derived_state(&mut self) {
+        let (max_row, max_column) = self
+            .map
+            .keys()
+            .fold((0, 0), |(row, col), &(r, c)| (row.max(r), col.max(c)));
+
+        self.max_row = max_row;
+        self.max_column = max_column;
+        self.sorted_keys.write().take();
     }
 
     #[inline]
@@ -296,9 +412,10 @@ impl Cells {
 
     #[inline]
     pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        // Ячейка с координатой уникальна в карте: O(1) по ключу вместо скана
+        let coord = Coordinate::try_from(letter)?;
 
-        find_cell_by_letter(letter.into(), cells)
+        Ok(self.map.get(&(coord.row, coord.column)))
     }
 
     #[inline]
@@ -354,9 +471,56 @@ impl Cells {
         before_regex: &str,
         after_regex: &str,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection_sorted();
+        let before_regex = Regex::new(&format!("(?i){}", before_regex))?;
+        let after_regex = Regex::new(&format!("(?i){}", after_regex))?;
 
-        find_cells_between_regex(before_regex.into(), after_regex.into(), cells)
+        // Проход 1 — строки границ. Значения читаются только до второй
+        // границы: дальнейшие совпадения на результат не влияют
+        let mut boundaries: [Option<u32>; 2] = [None, None];
+        let mut after_before = false;
+
+        for cell in self.get_collection_sorted() {
+            let guard = cell.read();
+            let v = guard.get_value();
+            let matched = if !after_before {
+                before_regex.is_match(&v).unwrap_or(false)
+            } else {
+                after_regex.is_match(&v).unwrap_or(false)
+            };
+
+            if matched {
+                let slot = if after_before {
+                    &mut boundaries[1]
+                } else {
+                    &mut boundaries[0]
+                };
+                *slot = Some(guard.get_coordinate().row);
+
+                if after_before {
+                    break;
+                }
+
+                after_before = !after_before;
+            }
+        }
+
+        let Some(start_row) = boundaries[0] else {
+            return Ok(Vec::new());
+        };
+
+        // Диапазон строк — непрерывный отрезок сортированных ключей: границы
+        // отрезка находятся бинарным поиском вместо прохода
+        let keys = self.sorted_keys_cloned();
+        let lower = keys.partition_point(|&(row, _)| row < start_row);
+        let upper = match boundaries[1] {
+            Some(end_row) => keys.partition_point(|&(row, _)| row <= end_row),
+            None => keys.len(),
+        };
+
+        Ok(keys[lower..upper]
+            .iter()
+            .filter_map(|key| self.map.get(key))
+            .collect())
     }
 
     #[inline]
@@ -381,18 +545,26 @@ impl Cells {
         find_cells_range_cols(start_col, end_col, cells)
     }
 
+    /// Значения по колонке и списку строк — строго в порядке запрошенных строк.
+    /// Отсутствующая ячейка даёт пустую строку: длина результата всегда равна
+    /// длине запроса, поэтому позиционный zip с заголовками не искажает отчёт.
+    /// Ключи карты уникальны — прямой O(1) поиск на запрошенную координату.
     #[inline]
     pub fn find_values_by_col_rows(&self, col: u16, rows: Vec<u32>) -> Result<Vec<String>> {
-        let cells = self.get_collection();
-
-        find_values_by_col_rows(col, rows, cells)
+        Ok(rows
+            .into_iter()
+            .map(|row| self.get_cell_value((row, col)))
+            .collect())
     }
 
+    /// Значения по строке и списку колонок — строго в порядке запрошенных
+    /// колонок. Семантика как у [`Cells::find_values_by_col_rows`].
     #[inline]
     pub fn find_values_by_row_cols(&self, row: u32, cols: Vec<u16>) -> Result<Vec<String>> {
-        let cells = self.get_collection();
-
-        find_values_by_row_cols(row, cols, cells)
+        Ok(cols
+            .into_iter()
+            .map(|col| self.get_cell_value((row, col)))
+            .collect())
     }
 
     #[inline]
@@ -403,5 +575,222 @@ impl Cells {
         });
 
         Ok(value)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn cells_with(pairs: &[((u32, u16), &str)]) -> Cells {
+        let map: HashMap<_, _> = pairs
+            .iter()
+            .map(|&(key, value)| {
+                (
+                    key,
+                    Arc::new(RwLock::new(Cell::new(
+                        Coordinate::new(key.0, key.1),
+                        Some(value),
+                    ))),
+                )
+            })
+            .collect();
+
+        Cells::new(map)
+    }
+
+    /// Кэш сортированных ключей: порядок детерминированный, а вставка новой
+    /// ячейки после построения кэша не теряется в выдаче.
+    #[test]
+    fn sorted_collection_reflects_new_cells() {
+        let mut cells = cells_with(&[((2, 2), "b"), ((1, 1), "a")]);
+
+        let sorted: Vec<(u32, u16)> = cells
+            .get_collection_sorted()
+            .iter()
+            .map(|cell| {
+                let guard = cell.read();
+                let coord = guard.get_coordinate();
+                (coord.row, coord.column)
+            })
+            .collect();
+
+        assert_eq!(sorted, vec![(1, 1), (2, 2)]);
+
+        // Кэш уже построен — новая ячейка обязана появиться в выдаче
+        cells.cell(Coordinate::new(1, 2), Some("c"));
+
+        let sorted: Vec<(u32, u16)> = cells
+            .get_collection_sorted()
+            .iter()
+            .map(|cell| {
+                let guard = cell.read();
+                let coord = guard.get_coordinate();
+                (coord.row, coord.column)
+            })
+            .collect();
+
+        assert_eq!(sorted, vec![(1, 1), (1, 2), (2, 2)]);
+    }
+
+    /// Максимумы поддерживаются при вставках и удалениях, а не пересчитываются
+    /// на каждом обращении.
+    #[test]
+    fn max_row_and_column_tracked_on_mutations() {
+        let mut cells = cells_with(&[((1, 1), "a"), ((5, 3), "b")]);
+
+        assert_eq!(cells.get_max_row(), 5);
+        assert_eq!(cells.get_max_column(), 3);
+
+        cells.cell(Coordinate::new(7, 2), Some("c"));
+
+        assert_eq!(cells.get_max_row(), 7);
+        assert_eq!(cells.get_max_column(), 3);
+
+        cells.delete_rows(7, 1).unwrap();
+
+        assert_eq!(cells.get_max_row(), 5);
+
+        cells.delete_cols(3, 1).unwrap();
+
+        assert_eq!(cells.get_max_column(), 1);
+    }
+
+    /// Поиск по букве идёт по ключу карты: найденная ячейка, промах и ошибка
+    /// разбора буквы сохраняют прежние контракты.
+    #[test]
+    fn find_cell_by_letter_uses_map_key() {
+        let cells = cells_with(&[((1, 1), "a"), ((2, 5), "b")]);
+
+        let found = cells.find_cell_by_letter("E2").unwrap().unwrap();
+        assert_eq!(found.read().get_value(), "b");
+
+        assert!(cells.find_cell_by_letter("Z9").unwrap().is_none());
+        assert!(cells.find_cell_by_letter("1A").is_err());
+    }
+
+    /// Границы between: без совпадений — пусто; без второй границы — от первой
+    /// до конца; с двумя — замкнутый диапазон строк.
+    #[test]
+    fn find_cells_between_regex_boundaries() {
+        let cells = cells_with(&[
+            ((1, 1), "шапка"),
+            ((2, 1), "строка 1"),
+            ((3, 1), "строка 2"),
+            ((4, 1), "подвал"),
+            ((5, 1), "хвост"),
+        ]);
+
+        let letters = |result: Vec<&Arc<RwLock<Cell>>>| {
+            result
+                .iter()
+                .map(|cell| cell.read().get_letter())
+                .collect::<Vec<_>>()
+        };
+
+        assert!(
+            letters(
+                cells
+                    .find_cells_between_regex("нет такого", "подвал")
+                    .unwrap()
+            )
+            .is_empty()
+        );
+
+        assert_eq!(
+            letters(
+                cells
+                    .find_cells_between_regex("подвал", "нет такого")
+                    .unwrap()
+            ),
+            vec!["A4", "A5"],
+            "одна граница: от неё до конца"
+        );
+
+        assert_eq!(
+            letters(cells.find_cells_between_regex("шапка", "подвал").unwrap()),
+            vec!["A1", "A2", "A3", "A4"],
+            "две границы: замкнутый диапазон"
+        );
+    }
+
+    /// Сдвиг при удалении не должен перезаписать ещё не сдвинутую ячейку:
+    /// колонки удаляемого диапазона и правее чередуются.
+    #[test]
+    fn delete_cols_keeps_cells_on_key_collision() {
+        // Удаляем колонку 2: B уходит, D сдвигается на место бывшей C
+        let mut cells = cells_with(&[((1, 1), "A"), ((1, 2), "B"), ((1, 3), "C"), ((1, 4), "D")]);
+
+        cells.delete_cols(2, 1).unwrap();
+
+        let values: Vec<String> = cells
+            .get_collection_sorted()
+            .iter()
+            .map(|cell| cell.read().get_value())
+            .collect();
+
+        assert_eq!(values, vec!["A", "C", "D"]);
+        assert_eq!(cells.get_max_column(), 3);
+    }
+
+    /// Удаление последних строк: сдвигаемых ячеек нет, но карта меняется —
+    /// кэш ключей и максимум обязаны обновиться.
+    #[test]
+    fn delete_last_rows_invalidates_cache_and_max() {
+        let mut cells = cells_with(&[((1, 1), "a"), ((3, 1), "c")]);
+
+        // Строим кэш до удаления
+        assert_eq!(cells.get_collection_sorted().len(), 2);
+
+        cells.delete_rows(2, 2).unwrap();
+
+        assert_eq!(cells.get_max_row(), 1);
+        assert_eq!(cells.get_collection_sorted().len(), 1);
+    }
+
+    /// Удаление без единой ячейки в диапазоне — карта не меняется, кэш жив.
+    #[test]
+    fn delete_empty_range_keeps_cache() {
+        let mut cells = cells_with(&[((1, 1), "a"), ((2, 2), "b")]);
+
+        assert_eq!(cells.get_collection_sorted().len(), 2);
+
+        cells.delete_rows(10, 5).unwrap();
+        cells.delete_cols(10, 5).unwrap();
+
+        assert_eq!(cells.get_collection_sorted().len(), 2);
+        assert_eq!(cells.get_max_row(), 2);
+        assert_eq!(cells.get_max_column(), 2);
+    }
+
+    /// Значения по списку строк идут в порядке запроса, отсутствующие ячейки
+    /// дают пустую строку.
+    #[test]
+    fn find_values_by_col_rows_order_and_gaps() {
+        let cells = cells_with(&[((1, 2), "h"), ((3, 2), "x")]);
+
+        let values = cells.find_values_by_col_rows(2, vec![1, 2, 3]).unwrap();
+
+        assert_eq!(values, vec!["h", "", "x"]);
+    }
+
+    /// Глубокая копия разделяет набор ключей: кэш валиден, а мутации копии
+    /// не видны в оригинале.
+    #[test]
+    fn clone_deep_shares_sorted_keys_cache() {
+        let cells = cells_with(&[((2, 1), "b"), ((1, 1), "a")]);
+
+        // Строим кэш
+        assert_eq!(cells.get_collection_sorted().len(), 2);
+
+        let mut copy = cells.clone_deep();
+        copy.cell(Coordinate::new(1, 1), Some("изменено"));
+
+        assert_eq!(cells.find_value_by_coords(1, 1).unwrap().unwrap(), "a");
+        assert_eq!(
+            copy.find_value_by_coords(1, 1).unwrap().unwrap(),
+            "изменено"
+        );
+        assert_eq!(copy.get_collection_sorted().len(), 2);
     }
 }

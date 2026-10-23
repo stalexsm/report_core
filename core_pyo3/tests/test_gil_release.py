@@ -19,10 +19,14 @@ WAKEUP_STEP, иначе главный поток получает GIL в пау
 длится миллисекунды; больше не нужно — скан линеен. find_values_by_*
 растягивается числом координат LOOKUPS.
 
-У сериализации свой порог: в to_dict после детачнутой serde-фазы идёт
-json.loads под GIL, поэтому даже в норме витков набирался меньше,
-чем у чистых сканов; порог ниже, но всё ещё на порядок выше, чем даёт
-удержанный GIL.
+У сериализации свой порог: порог ниже, чем у чистых сканов, но всё ещё
+на порядок выше, чем даёт удержанный GIL.
+
+to_json выполняет полный обход книги не держа GIL.
+
+Сериализация to_dict детектором не проверяется: dict строится напрямую
+из serde-сериализации (без JSON-строки и обратного разбора), а
+построение Python-объектов требует GIL.
 
 O(1)-поиски (find_cell_by_letter, find_cell_by_coords,
 find_value_by_coords) лист не сканируют и детектором не проверяются —
@@ -54,8 +58,9 @@ MEASURE_SECONDS = 0.1
 WAKEUP_STEP = 0.00005
 MIN_WAKEUPS = 400
 
-# Порог сериализации: json.loads в to_dict идёт под GIL, поэтому норма
-# ниже (~250-320 витков); удержанный GIL даёт единицы
+# Порог сериализации: разбор результата в dict (теперь прямой, раньше
+# через json.loads) идёт под GIL, поэтому норма ниже (~250-320 витков);
+# удержанный GIL даёт единицы
 MIN_WAKEUPS_JSON = 150
 
 # Пробы на измерение: планировочный сбой (главному потоку разово досталось
@@ -221,15 +226,17 @@ READABLE_ACTIONS = {
     ),
 }
 
-# Сериализация: serde-обход всей книги
+# Сериализация: serde-обход всей книги. Только to_json: to_dict строит dict
+# напрямую из serde-сериализации (без JSON-строки и обратного разбора),
+# а построение Python-объектов без GIL невозможно, поэтому детектором
+# не проверяется. Суммарное удержание GIL сопоставимо со старой
+# реализацией: там под GIL шёл json.loads — самая дорогая фаза.
 BOOK_JSON_ACTIONS = {
     "to_json": lambda book: book.to_json(),
-    "to_dict": lambda book: book.to_dict(),
 }
 
 SERVICE_JSON_ACTIONS = {
     "to_json": lambda svc: svc.to_json(),
-    "to_dict": lambda svc: svc.to_dict(),
 }
 
 
@@ -255,7 +262,7 @@ def test_readable_sheet_find_releases_gil(readable_sheet, name):
 
 @pytest.mark.parametrize("name", sorted(BOOK_JSON_ACTIONS))
 def test_book_to_json_releases_gil(big_book, name):
-    """to_json/to_dict у Book: обход книги идёт с отпущенным GIL."""
+    """to_json у Book: обход книги идёт с отпущенным GIL."""
     wakeups = gil_wakeups_during(
         lambda: BOOK_JSON_ACTIONS[name](big_book), min_wakeups=MIN_WAKEUPS_JSON
     )
@@ -267,7 +274,7 @@ def test_book_to_json_releases_gil(big_book, name):
 
 @pytest.mark.parametrize("name", sorted(SERVICE_JSON_ACTIONS))
 def test_service_to_json_releases_gil(service, name):
-    """to_json/to_dict у Service: обход книги идёт с отпущенным GIL."""
+    """to_json у Service: обход книги идёт с отпущенным GIL."""
     wakeups = gil_wakeups_during(
         lambda: SERVICE_JSON_ACTIONS[name](service), min_wakeups=MIN_WAKEUPS_JSON
     )
