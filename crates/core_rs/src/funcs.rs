@@ -34,18 +34,11 @@ pub fn find_value_by_coords<T: ReadableCell + Send + Sync>(
     col: u16,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Option<String>> {
-    let cell = cells.par_iter().find_map_first(|cell| {
-        let guard = cell.read();
-        let coord = guard.get_coordinate();
+    // Тот же скан, что у find_cell_by_coords: отличается только извлечением
+    // значения найденной ячейки
+    let cell = find_cell_by_coords(row, col, cells)?;
 
-        if coord.row == row && coord.column == col {
-            Some(guard.get_value())
-        } else {
-            None
-        }
-    });
-
-    Ok(cell)
+    Ok(cell.map(|cell| cell.read().get_value()))
 }
 
 pub fn find_cell_by_regex<T: ReadableCell + Send + Sync>(

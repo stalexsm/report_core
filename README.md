@@ -130,7 +130,7 @@ print([(c.letter, c.value) for c in sheet.find_cells_range_rows(2, 2)])
 | `readable.Finder` | Поиск листов по имени/regex/индексу в списке листов |
 | `readable.ReadableSheet` / `ReadableCell` | Read-only доступ к листу и ячейкам |
 | `column_number_to_letter`, `get_letter_coordinate` | Преобразование координат (1 → `A`, `(2, 4)` → `D2`) |
-| `DEFAULT_COLUMN_WIDTH`, `DEFAULT_ROW_HEIGHT` | Стандартные размеры Excel (~140 px и ~20 px) |
+| `DEFAULT_COLUMN_WIDTH`, `DEFAULT_ROW_HEIGHT` | Стандартные размеры отчёта (ширина 22.5 ≈ 163 px, высота 20 ≈ 27 px) |
 | `version()`, `__version__` | Версия ядра |
 
 Границы модели соответствуют Excel: 1 048 576 строк × 16 384 колонки, выход за границы и нулевые координаты проверяются с понятными исключениями.

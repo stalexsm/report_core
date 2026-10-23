@@ -16,7 +16,7 @@ pub struct Range {
 }
 
 impl Range {
-    /// Интициализирует диапазон с заданными координатами
+    /// Инициализирует диапазон с заданными координатами
     pub fn new(start_row: u32, end_row: u32, start_col: u16, end_col: u16) -> Self {
         Range {
             start_row,
