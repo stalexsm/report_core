@@ -24,7 +24,7 @@ impl PyValue {
             PyValue::Float(f) => Some(f.to_string()),
             PyValue::Bool(b) => Some(b.to_string()),
             PyValue::List(list) => {
-                let strings: Vec<String> = list.iter().map(|v| v.as_string_direct()).collect();
+                let strings: Vec<String> = list.iter().map(|v| v.as_string_or_empty()).collect();
                 Some(format!("[{}]", strings.join(", ")))
             }
             PyValue::None => None,
@@ -98,14 +98,16 @@ impl PyValue {
         }
     }
 
-    pub fn as_string_direct(&self) -> String {
+    /// Строгое преобразование в `String`: `None` → пустая строка — для
+    /// обязательных строковых полей, где пустота безопасна.
+    pub fn as_string_or_empty(&self) -> String {
         match self {
             PyValue::String(s) => s.to_string(),
             PyValue::Int(i) => i.to_string(),
             PyValue::Float(f) => f.to_string(),
             PyValue::Bool(b) => b.to_string(),
             PyValue::List(list) => {
-                let strings: Vec<String> = list.iter().map(|v| v.as_string_direct()).collect();
+                let strings: Vec<String> = list.iter().map(|v| v.as_string_or_empty()).collect();
                 format!("[{}]", strings.join(", "))
             }
             PyValue::None => String::new(),
