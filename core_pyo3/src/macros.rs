@@ -135,6 +135,19 @@ fn f64_to_u16(f: f64) -> Option<u16> {
 
 // Функция для автоматического извлечения Python значения
 pub(crate) fn extract_py_value_auto(py_value: &Bound<'_, PyAny>) -> PyResult<PyValue> {
+    extract_py_value_at_depth(py_value, 0)
+}
+
+/// Максимальная глубина вложенности списков/кортежей при извлечении значения.
+/// Легитимные структуры (значение ячейки, merge_cells, элементы cells) имеют
+/// глубину в несколько уровней; всё глубже — мусорные данные, а рекурсия по
+/// ним переполняет нативный стек, что убивает хост-процесс Python
+/// неперехватываемым сигналом.
+const MAX_EXTRACTION_DEPTH: usize = 64;
+
+/// Извлечение со счётчиком глубины: отказ по `ValueError` раньше переполнения
+/// нативного стека.
+fn extract_py_value_at_depth(py_value: &Bound<'_, PyAny>, depth: usize) -> PyResult<PyValue> {
     if py_value.is_none() {
         Ok(PyValue::None)
     } else if py_value.is_instance_of::<PyBool>() {
@@ -150,9 +163,15 @@ pub(crate) fn extract_py_value_auto(py_value: &Bound<'_, PyAny>) -> PyResult<PyV
         // Кортежи обрабатываем как списки: публичный API библиотеки возвращает
         // list[tuple] (например, Sheet.merge_cells), и readable-слой обязан
         // читать собственные типы, а не только duck-typed объекты.
+        if depth >= MAX_EXTRACTION_DEPTH {
+            return Err(PyValueError::new_err(format!(
+                "value nesting exceeds the maximum depth of {MAX_EXTRACTION_DEPTH}"
+            )));
+        }
+
         let mut values = Vec::new();
         for item in py_value.try_iter()? {
-            values.push(extract_py_value_auto(&item?)?);
+            values.push(extract_py_value_at_depth(&item?, depth + 1)?);
         }
         Ok(PyValue::List(values))
     } else {
@@ -204,4 +223,47 @@ pub(crate) fn extract_py_attr_chain(obj: &Bound<'_, PyAny>, attrs: &[&str]) -> P
     }
 
     unreachable!("attrs не пуст: макрос гарантирует хотя бы одно имя")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pyo3::types::PyList;
+
+    /// Глубина вложенности, на которой неограниченная рекурсия уже
+    /// гарантированно переполняет стек.
+    const CRASH_DEPTH: usize = 100_000;
+
+    #[test]
+    fn deep_nested_list_returns_value_error() {
+        Python::initialize();
+        Python::attach(|py| {
+            let mut current = PyList::empty(py);
+            for _ in 0..CRASH_DEPTH {
+                current = PyList::new(py, [current]).unwrap();
+            }
+
+            let err = extract_py_value_auto(current.as_any()).unwrap_err();
+            assert!(err.is_instance_of::<PyValueError>(py));
+        });
+    }
+
+    #[test]
+    fn depth_limit_boundary() {
+        Python::initialize();
+        Python::attach(|py| {
+            // Ровно на границе: MAX_EXTRACTION_DEPTH уровней вложенности
+            // (пустой список — уже уровень) читаются без ошибки.
+            let mut current = PyList::empty(py);
+            for _ in 1..MAX_EXTRACTION_DEPTH {
+                current = PyList::new(py, [current]).unwrap();
+            }
+            assert!(extract_py_value_auto(current.as_any()).is_ok());
+
+            // Ещё один уровень — отказ вместо рекурсии.
+            current = PyList::new(py, [current]).unwrap();
+            let err = extract_py_value_auto(current.as_any()).unwrap_err();
+            assert!(err.is_instance_of::<PyValueError>(py));
+        });
+    }
 }
