@@ -4,7 +4,7 @@ from report_core import DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT, Service
 
 
 class S10406(Service):
-    def summary_0(self, sheets, **kwargs):
+    def summary(self, sheets, **kwargs):
         print("DEFAULT_COLUMN_WIDTH", DEFAULT_COLUMN_WIDTH)
         print("DEFAULT_ROW_HEIGHT", DEFAULT_ROW_HEIGHT)
 
@@ -54,7 +54,7 @@ class S10406(Service):
         cell_value = sheet.find_value_by_coords(5, 5)
         print("Find cell value: ", cell_value)
 
-        fmt = self._fmt_0(**kwargs)
+        fmt = self._fmt(**kwargs)
         print(fmt)
 
         sheet2 = self._copy_sheet(sheet)
@@ -69,20 +69,20 @@ class S10406(Service):
         print("Max Row", sheet.max_row)
         print("Max Column", sheet.max_column)
 
-        return "summary_0"
+        return "summary"
 
-    def _fmt_0(self, **kwargs):
+    def _fmt(self, **kwargs):
         for s in self._sheets:
             print("Fmt --> ", s)
 
-        return "_fmt_0"
+        return "_fmt"
 
 
 def main():
     start_time = time.time()
 
     s = S10406("conn_or_session")
-    s.summary_0([])
+    s.summary([])
 
     print(s)
     print(s._conn_db)

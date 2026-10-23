@@ -17,7 +17,7 @@
 - 🧱 **Модель отчёта**: `Book`, `Sheet`, `Cell`, `Comment`; объединения ячеек, размеры и скрытость строк/колонок, именованные стили.
 - 🔢 **Типизированные значения ячеек**: строки, числа, `bool`, `datetime`, формулы, скрытые значения; проверка типов (`is_value_numeric`, `is_value_datetime`, ...).
 - 🔎 **Поиск**: по строке, регулярному выражению, координатам и букве (A1), по диапазонам строк/колонок, между двумя шаблонами.
-- 🏗️ **`Service`** — базовый класс для сервисов, строящих отчёты из данных БД: наследник реализует `summary_0` (генерация) и `_fmt_0` (форматирование).
+- 🏗️ **`Service`** — базовый класс для сервисов, строящих отчёты из данных БД: наследник реализует `summary` (генерация) и `_fmt` (форматирование).
 - 🔒 **[`readable`](#-чтение-готового-отчёта)** — read-only сабмодуль для поиска по готовым листам без риска их изменить.
 - 📤 **Сериализация**: `to_dict()` и `to_json()` на основе serde.
 - ✅ **Полная типизация**: `py.typed` + `.pyi`-стабы, генерируемые из Rust-кода.
@@ -59,7 +59,7 @@ from report_core.readable import Finder
 class DrillingReport(Service):
     """Сервис строит лист отчёта «Смета» из данных БД."""
 
-    def summary_0(self, sheets, **kwargs):
+    def summary(self, sheets, **kwargs):
         sheet = self._add_sheet("Смета")
 
         # Шапка: cell() — get-or-create по (строка, колонка)
@@ -88,7 +88,7 @@ class DrillingReport(Service):
 
 rows = [("Бурение", "м", 120, 1500.0), ("Цементирование", "м", 80, 900.0)]
 report = DrillingReport(conn_db=None)  # здесь подключение/сессия БД, если она нужна сервису
-report.summary_0([], rows=rows)
+report.summary([], rows=rows)
 
 data = report.to_dict()  # dict — для сохранения в БД, очереди или HTTP
 ```
@@ -123,7 +123,7 @@ print([(c.letter, c.value) for c in sheet.find_cells_range_rows(2, 2)])
 | Компонент | Назначение |
 |---|---|
 | `Book` | Книга: контейнер листов отчёта; `add_sheet`, `copy_sheet`, `to_dict`, `to_json` |
-| `Service` | Базовый класс сервиса отчёта: `summary_0`, `_fmt_0`, `_add_sheet`, доступ к `conn_db` |
+| `Service` | Базовый класс сервиса отчёта: `summary`, `_fmt`, `_add_sheet`, доступ к `conn_db` |
 | `Sheet` | Лист: ячейки, комментарии, объединения, размеры, `delete_rows`/`delete_cols`, поиск |
 | `Cell` | Ячейка: `value`, `formula`, `style`, `letter`, типизированные `set_value_*` |
 | `Comment` | Комментарий к ячейке: текст, автор, координата |
