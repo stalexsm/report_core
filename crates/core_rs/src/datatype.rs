@@ -159,7 +159,14 @@ impl CellValue {
                 if let Ok(number) = value.parse::<i32>() {
                     CellRawValue::Integer(number)
                 } else if let Ok(number) = value.parse::<f64>() {
-                    CellRawValue::Numeric(number)
+                    // NaN и inf непредставимы в XLSX: значения, не представимые
+                    // конечным числом (включая переполнение до бесконечности),
+                    // остаются строками, чтобы тип и значение не расходились.
+                    if number.is_finite() {
+                        CellRawValue::Numeric(number)
+                    } else {
+                        CellRawValue::String(value.into())
+                    }
                 } else if let Ok(datetime) =
                     NaiveDateTime::parse_from_str(value, "%Y-%m-%d %H:%M:%S")
                 {
@@ -169,5 +176,42 @@ impl CellValue {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn set_value_keeps_non_finite_numbers_as_string() {
+        // NaN и inf непредставимы в XLSX: такие строки остаются строками,
+        // чтобы тип данных и значение не расходились при сериализации.
+        for value in [
+            "nan", "NaN", "inf", "-inf", "Infinity", "1e400", "+nan", "-1e400",
+        ] {
+            let mut cell = CellValue::default();
+            cell.set_value(value);
+
+            assert!(
+                matches!(cell.get_raw_value(), CellRawValue::String(_)),
+                "значение {value} должно остаться строкой"
+            );
+            assert_eq!(cell.get_data_type(), "s");
+        }
+    }
+
+    #[test]
+    fn set_value_still_parses_finite_numbers() {
+        let mut cell = CellValue::default();
+
+        cell.set_value("1.5");
+        assert!(matches!(
+            cell.get_raw_value(),
+            CellRawValue::Numeric(number) if *number == 1.5
+        ));
+
+        cell.set_value("42");
+        assert!(matches!(cell.get_raw_value(), CellRawValue::Integer(42)));
     }
 }
