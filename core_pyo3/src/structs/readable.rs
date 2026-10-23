@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use core_rs::structs::{finder::Finder, sheet::Sheet};
+use core_rs::structs::finder::Finder;
 use parking_lot::RwLock;
 use pyo3::{prelude::*, types::PyList};
 
@@ -26,8 +26,7 @@ pub mod sheet;
 #[inline]
 #[pyfunction]
 pub(crate) fn create_finder(py: Python, sheets: &Bound<'_, PyList>) -> PyResult<WrapperFinder> {
-    let sheets: PyResult<Vec<Arc<RwLock<Sheet>>>> =
-        sheets.iter().map(|s| sheet::shared_sheet(&s)).collect();
+    let sheets = sheet::shared_sheets(sheets)?;
 
-    py.detach(|| Ok(WrapperFinder(Arc::new(RwLock::new(Finder::new(sheets?))))))
+    py.detach(|| Ok(WrapperFinder(Arc::new(RwLock::new(Finder::new(sheets))))))
 }

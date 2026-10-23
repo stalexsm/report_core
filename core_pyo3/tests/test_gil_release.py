@@ -63,6 +63,10 @@ MIN_WAKEUPS_JSON = 150
 # пробе, поэтому берём максимум; при наборе порога дальше не идём
 PROBES = 3
 
+# Таймауты жизненного цикла пробного потока
+STARTED_TIMEOUT_SECONDS = 30
+JOIN_TIMEOUT_SECONDS = 300
+
 # Объём запроса для find_values_by_*: по числу ячеек листа — чтобы выборка
 # значений длилась миллисекунды, а не микросекунды
 LOOKUPS = ROWS * COLS
@@ -86,12 +90,12 @@ def gil_wakeups_during(action, min_wakeups=MIN_WAKEUPS):
 
         thread = threading.Thread(target=worker, name="gil-probe", daemon=True)
         thread.start()
-        assert started.wait(timeout=30)
+        assert started.wait(timeout=STARTED_TIMEOUT_SECONDS)
 
         while not done.wait(timeout=WAKEUP_STEP):
             wakeups += 1
 
-        thread.join(timeout=300)
+        thread.join(timeout=JOIN_TIMEOUT_SECONDS)
         best = max(best, wakeups)
 
         if best >= min_wakeups:

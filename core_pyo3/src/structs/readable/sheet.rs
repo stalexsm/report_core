@@ -118,6 +118,12 @@ pub(crate) fn shared_sheet(obj: &Bound<'_, PyAny>) -> PyResult<Arc<RwLock<Sheet>
     Ok(WrapperSheet::try_from(obj)?.0)
 }
 
+/// Листы для Finder из списка: собственные типы — тем же Arc, чужие —
+/// извлекаются (см. [`shared_sheet`]).
+pub(crate) fn shared_sheets(sheets: &Bound<'_, PyList>) -> PyResult<Vec<Arc<RwLock<Sheet>>>> {
+    sheets.iter().map(|s| shared_sheet(&s)).collect()
+}
+
 #[pymethods]
 impl WrapperSheet {
     pub fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
