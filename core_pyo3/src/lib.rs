@@ -1,5 +1,6 @@
 pub(crate) mod funcs;
 pub(crate) mod macros;
+pub(crate) mod py_serde;
 pub(crate) mod structs;
 
 pub(crate) use macros::*;

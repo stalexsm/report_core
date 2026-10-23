@@ -75,6 +75,17 @@ impl CellValue {
         self.raw_value.to_string()
     }
 
+    /// Сравнение отрисованного значения с образцом (уже обрезанным) без
+    /// промежуточной String: для строковых ячеек — сравнение ссылки, для
+    /// остальных типов отрисовка неизбежна.
+    #[inline]
+    pub(crate) fn value_eq_str(&self, needle: &str) -> bool {
+        match &self.raw_value {
+            CellRawValue::String(s) => s.trim() == needle,
+            raw => raw.to_string().trim() == needle,
+        }
+    }
+
     #[inline]
     pub fn get_raw_value(&self) -> &CellRawValue {
         &self.raw_value
@@ -149,12 +160,13 @@ impl CellValue {
 
     #[inline]
     pub(crate) fn guess_typed_data(value: &str) -> CellRawValue {
-        let uppercase_value = value.to_uppercase();
-
-        match uppercase_value.as_str() {
+        // TRUE/FALSE распознаются без аллокации: регистр учитывается только
+        // для ASCII-литералов, а to_uppercase() на каждое значение — лишний
+        // проход с аллокацией строки в горячем пути set_value.
+        match value {
             "" => CellRawValue::Empty,
-            "TRUE" => CellRawValue::Bool(true),
-            "FALSE" => CellRawValue::Bool(false),
+            v if v.eq_ignore_ascii_case("true") => CellRawValue::Bool(true),
+            v if v.eq_ignore_ascii_case("false") => CellRawValue::Bool(false),
             _ => {
                 if let Ok(number) = value.parse::<i32>() {
                     CellRawValue::Integer(number)
@@ -198,6 +210,43 @@ mod tests {
                 "значение {value} должно остаться строкой"
             );
             assert_eq!(cell.get_data_type(), "s");
+        }
+    }
+
+    #[test]
+    fn set_value_recognizes_bool_in_any_case() {
+        // Регистр литералов true/false не важен, распознавание — без аллокации
+        for (raw, expected) in [
+            ("true", true),
+            ("TRUE", true),
+            ("True", true),
+            ("false", false),
+            ("FALSE", false),
+            ("False", false),
+        ] {
+            let mut cell = CellValue::default();
+            cell.set_value(raw);
+
+            assert!(
+                matches!(cell.get_raw_value(), CellRawValue::Bool(b) if *b == expected),
+                "значение {raw} должно распознаться как Bool({expected})"
+            );
+        }
+    }
+
+    #[test]
+    fn set_value_unicode_lookalikes_stay_strings() {
+        // Регистр учитывается только для ASCII: символы, совпадающие с
+        // литералами лишь после Unicode-приведения ('ſ' → 'S'), остаются
+        // строками — тип и значение не расходятся
+        for raw in ["ſalse", "ſtrue", "TURE"] {
+            let mut cell = CellValue::default();
+            cell.set_value(raw);
+
+            assert!(
+                matches!(cell.get_raw_value(), CellRawValue::String(_)),
+                "значение {raw} должно остаться строкой"
+            );
         }
     }
 

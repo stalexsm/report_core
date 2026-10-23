@@ -28,7 +28,7 @@ impl WrapperSheet {
         Ok(format!(
             "Sheet ({}) cells: {}",
             slf.get_name(),
-            slf.get_cell_collection().len()
+            slf.get_cell_count()
         ))
     }
 

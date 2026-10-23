@@ -166,6 +166,12 @@ impl ReadableCell for Cell {
         self.value.get_value()
     }
 
+    /// Поиск по строке без аллокации отрисованной строки для строковых ячеек.
+    #[inline]
+    fn value_eq_str(&self, needle: &str) -> bool {
+        self.value.value_eq_str(needle)
+    }
+
     #[inline]
     fn get_formula(&self) -> Option<String> {
         self.formula.clone()

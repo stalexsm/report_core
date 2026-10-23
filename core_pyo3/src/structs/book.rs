@@ -4,8 +4,10 @@ use core_rs::structs::book::Book;
 
 use parking_lot::RwLock;
 use pyo3::prelude::*;
+use serde::Serialize;
 
 use super::sheet::WrapperSheet;
+use crate::py_serde::PySerializer;
 
 /// Книга Excel: контейнер листов, из которых собирается отчёт.
 #[pyclass(from_py_object)]
@@ -144,22 +146,21 @@ impl WrapperBook {
         })
     }
 
-    /// Преобразование книги в dict
+    /// Преобразование книги в dict.
+    ///
+    /// Строится напрямую из serde-сериализации книги — без промежуточной
+    /// JSON-строки и обратного разбора (пик памяти не удваивается). В отличие
+    /// от `to_json` выполняется с удержанным GIL: построение Python-объектов
+    /// без него невозможно.
     /// ---
     ///
     /// Returns:
     /// ---
     ///     dict[str, Any]
     pub fn to_dict(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
-        // Сериализация — без GIL, json.loads возвращает его обратно
-        let s = py.detach(|| -> PyResult<String> {
-            let slf = self.0.read();
-            Ok(slf.to_json()?)
-        })?;
-        let py_module_json = py.import("json")?;
-        let py_dict = py_module_json.getattr("loads")?.call1((s,))?;
+        let slf = self.0.read();
 
-        Ok(py_dict.into())
+        slf.serialize(PySerializer::new(py)).map_err(PyErr::from)
     }
 }
 
