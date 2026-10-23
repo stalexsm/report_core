@@ -80,7 +80,10 @@ impl Cells {
         self.map.values().collect::<Vec<_>>()
     }
 
-    /// Метод для получения коллекции ячеек
+    /// Метод для получения коллекции ячеек, отсортированной по (row, col).
+    ///
+    /// Детерминированный обход: одиночные find_cell_by_* опираются на порядок —
+    /// при нескольких совпадениях побеждает ячейка с наименьшими координатами.
     #[inline]
     pub fn get_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>> {
         let mut items: Vec<_> = self.map.iter().map(|(key, cell)| (*key, cell)).collect();
@@ -230,8 +233,6 @@ impl Cells {
         self.map = new_map;
     }
 
-    // Сортированная коллекция: при нескольких совпадениях возвращается ячейка
-    // с наименьшими координатами, независимо от порядка обхода HashMap.
     #[inline]
     pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();
@@ -239,8 +240,6 @@ impl Cells {
         find_cell_by_regex(regex.into(), cells)
     }
 
-    // Сортированная коллекция: при нескольких совпадениях возвращается ячейка
-    // с наименьшими координатами, независимо от порядка обхода HashMap.
     #[inline]
     pub fn find_cell_by_str(&self, value: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();
@@ -253,7 +252,6 @@ impl Cells {
         Ok(self.map.get(&(row, col)))
     }
 
-    // Сортированная коллекция: обход детерминирован, независимо от HashMap.
     #[inline]
     pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
         let cells = self.get_collection_sorted();

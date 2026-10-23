@@ -294,19 +294,22 @@ pub fn find_cells_range_cols<T: ReadableCell + Send + Sync>(
 }
 
 /// Индекс «координата → значение» по коллекции ячеек — для детерминированного
-/// поиска значений в порядке запрошенных строк/колонок.
+/// поиска значений в порядке запрошенных строк/колонок. Сборка последовательная:
+/// при дублях координат (возможны у прямых вызовов с ручной коллекцией)
+/// побеждает первое вхождение — результат стабилен между запусками.
 fn index_values_by_coords<T: ReadableCell + Send + Sync>(
     cells: &[&Arc<RwLock<T>>],
 ) -> HashMap<(u32, u16), String> {
-    cells
-        .par_iter()
-        .map(|cell| {
-            let guard = cell.read();
-            let coord = guard.get_coordinate();
+    cells.iter().fold(HashMap::default(), |mut index, cell| {
+        let guard = cell.read();
+        let coord = guard.get_coordinate();
 
-            ((coord.row, coord.column), guard.get_value())
-        })
-        .collect()
+        index
+            .entry((coord.row, coord.column))
+            .or_insert_with(|| guard.get_value());
+
+        index
+    })
 }
 
 /// Значения по колонке и списку строк — строго в порядке запрошенных строк.
@@ -339,4 +342,30 @@ pub fn find_values_by_row_cols<T: ReadableCell + Send + Sync>(
         .into_iter()
         .map(|col| index.get(&(row, col)).cloned().unwrap_or_default())
         .collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::structs::cell::Cell;
+
+    /// Дубли координат в ручной коллекции: побеждает первое вхождение,
+    /// результат стабилен между запусками процесса.
+    #[test]
+    pub fn find_values_duplicate_coords_first_wins() {
+        let first = Arc::new(RwLock::new(Cell::new(Coordinate::new(1, 1), Some("first"))));
+        let second = Arc::new(RwLock::new(Cell::new(
+            Coordinate::new(1, 1),
+            Some("second"),
+        )));
+        let cells = vec![&first, &second];
+
+        let values = find_values_by_col_rows(1, vec![1], cells.clone()).unwrap();
+
+        assert_eq!(values, vec!["first"]);
+
+        let values = find_values_by_row_cols(1, vec![1], cells).unwrap();
+
+        assert_eq!(values, vec!["first"]);
+    }
 }
