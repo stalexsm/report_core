@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use fancy_regex::Regex;
 use parking_lot::RwLock;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::{
-    error::{Error, Result},
+    error::Result,
+    regex::{compile_case_insensitive, is_match},
     traits::ReadableSheet,
 };
 
@@ -44,8 +44,7 @@ impl<T: ReadableSheet + Send + Sync> Finder<T> {
     /// Возвращает `Err`, если `pattern` — невалидное регулярное выражение.
     #[inline]
     pub fn find_sheet_by_regex(&self, pattern: &str) -> Result<Option<&Arc<RwLock<T>>>> {
-        let re =
-            Regex::new(&format!("(?i){pattern}")).map_err(|e| Error::invalid_regex(pattern, e))?;
+        let re = compile_case_insensitive(pattern)?;
 
         // Порядок листов сохраняется, ошибка выполнения шаблона (например,
         // исчерпанный лимит обратной трассировки) не глотается, а уходит
@@ -55,9 +54,7 @@ impl<T: ReadableSheet + Send + Sync> Finder<T> {
             .par_iter()
             .map(|sheet| {
                 let name = sheet.read().get_name();
-                re.is_match(&name)
-                    .map(|hit| hit.then_some(sheet))
-                    .map_err(Error::regex_exec)
+                is_match(&re, &name).map(|hit| hit.then_some(sheet))
             })
             .collect::<Result<Vec<Option<_>>>>()?
             .into_iter()

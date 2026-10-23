@@ -1,6 +1,7 @@
 pub mod datatype;
 pub mod error;
 pub mod funcs;
+pub(crate) mod regex;
 pub mod structs;
 pub mod traits;
 pub mod utils;

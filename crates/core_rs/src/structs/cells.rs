@@ -1,5 +1,4 @@
 use ahash::HashMap;
-use fancy_regex::Regex;
 use parking_lot::RwLock;
 use rayon::slice::ParallelSliceMut;
 use serde::Serialize;
@@ -15,6 +14,7 @@ use crate::{
         find_cells_for_cols_by_regex, find_cells_for_rows_by_regex, find_cells_multi_regex,
         find_cells_range_cols, find_cells_range_rows,
     },
+    regex::{compile_case_insensitive, is_match},
     traits::{ReadableCell, WriteableCell},
 };
 
@@ -477,10 +477,8 @@ impl Cells {
         before_regex: &str,
         after_regex: &str,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let before_regex = Regex::new(&format!("(?i){before_regex}"))
-            .map_err(|e| Error::invalid_regex(before_regex, e))?;
-        let after_regex = Regex::new(&format!("(?i){after_regex}"))
-            .map_err(|e| Error::invalid_regex(after_regex, e))?;
+        let before_regex = compile_case_insensitive(before_regex)?;
+        let after_regex = compile_case_insensitive(after_regex)?;
 
         // Проход 1 — строки границ. Значения читаются только до второй
         // границы: дальнейшие совпадения на результат не влияют. Ошибка
@@ -492,9 +490,9 @@ impl Cells {
             let guard = cell.read();
             let v = guard.get_value();
             let hit = if !after_before {
-                before_regex.is_match(&v).map_err(Error::regex_exec)?
+                is_match(&before_regex, &v)?
             } else {
-                after_regex.is_match(&v).map_err(Error::regex_exec)?
+                is_match(&after_regex, &v)?
             };
 
             if hit {

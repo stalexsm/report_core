@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
 use crate::{
-    error::{Error, Result},
+    error::Result,
+    regex::{compile_case_insensitive, is_match},
     structs::coordinate::Coordinate,
     traits::ReadableCell,
 };
 use ahash::HashMap;
-use fancy_regex::Regex;
 use parking_lot::RwLock;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
@@ -52,8 +52,7 @@ pub fn find_cell_by_regex<T: ReadableCell + Send + Sync>(
     regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Option<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&format!("(?i){}", regex))
-        .map_err(|e| Error::invalid_regex(regex.clone(), e))?;
+    let re = compile_case_insensitive(&regex)?;
 
     // Совпадения собираются в Vec с сохранением порядка: ошибка выполнения
     // шаблона (например, исчерпанный лимит обратной трассировки) не глотается,
@@ -62,9 +61,7 @@ pub fn find_cell_by_regex<T: ReadableCell + Send + Sync>(
         .par_iter()
         .map(|cell| {
             let v = cell.read().get_value();
-            re.is_match(&v)
-                .map(|hit| hit.then_some(*cell))
-                .map_err(Error::regex_exec)
+            is_match(&re, &v).map(|hit| hit.then_some(*cell))
         })
         .collect::<Result<Vec<Option<_>>>>()?
         .into_iter()
@@ -111,16 +108,13 @@ pub fn find_cells_by_regex<T: ReadableCell + Send + Sync>(
     regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&format!("(?i){}", regex))
-        .map_err(|e| Error::invalid_regex(regex.clone(), e))?;
+    let re = compile_case_insensitive(&regex)?;
 
     Ok(cells
         .par_iter()
         .map(|cell| {
             let v = cell.read().get_value();
-            re.is_match(&v)
-                .map(|hit| hit.then_some(*cell))
-                .map_err(Error::regex_exec)
+            is_match(&re, &v).map(|hit| hit.then_some(*cell))
         })
         .collect::<Result<Vec<Option<_>>>>()?
         .into_iter()
@@ -145,8 +139,7 @@ pub fn find_cells_for_rows_by_regex<T: ReadableCell + Send + Sync>(
     col_stop: u16,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&format!("(?i){}", regex))
-        .map_err(|e| Error::invalid_regex(regex.clone(), e))?;
+    let re = compile_case_insensitive(&regex)?;
 
     Ok(cells
         .par_iter()
@@ -157,9 +150,7 @@ pub fn find_cells_for_rows_by_regex<T: ReadableCell + Send + Sync>(
             }
 
             let v = guard.get_value();
-            re.is_match(&v)
-                .map(|hit| hit.then_some(*cell))
-                .map_err(Error::regex_exec)
+            is_match(&re, &v).map(|hit| hit.then_some(*cell))
         })
         .collect::<Result<Vec<Option<_>>>>()?
         .into_iter()
@@ -172,8 +163,7 @@ pub fn find_cells_for_cols_by_regex<T: ReadableCell + Send + Sync>(
     row_stop: u32,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&format!("(?i){}", regex))
-        .map_err(|e| Error::invalid_regex(regex.clone(), e))?;
+    let re = compile_case_insensitive(&regex)?;
 
     Ok(cells
         .par_iter()
@@ -184,9 +174,7 @@ pub fn find_cells_for_cols_by_regex<T: ReadableCell + Send + Sync>(
             }
 
             let v = guard.get_value();
-            re.is_match(&v)
-                .map(|hit| hit.then_some(*cell))
-                .map_err(Error::regex_exec)
+            is_match(&re, &v).map(|hit| hit.then_some(*cell))
         })
         .collect::<Result<Vec<Option<_>>>>()?
         .into_iter()
@@ -199,10 +187,8 @@ pub fn find_cells_multi_regex<T: ReadableCell + Send + Sync>(
     after_regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let before_regex = Regex::new(&format!("(?i){}", before_regex))
-        .map_err(|e| Error::invalid_regex(before_regex.clone(), e))?;
-    let after_regex = Regex::new(&format!("(?i){}", after_regex))
-        .map_err(|e| Error::invalid_regex(after_regex.clone(), e))?;
+    let before_regex = compile_case_insensitive(&before_regex)?;
+    let after_regex = compile_case_insensitive(&after_regex)?;
 
     let mut b = false;
     let mut matched_cells = Vec::new();
@@ -211,8 +197,8 @@ pub fn find_cells_multi_regex<T: ReadableCell + Send + Sync>(
         let v = cell.read().get_value();
         // Оба шаблона проверяются всегда: ошибка выполнения любого из них
         // не глотается, а уходит вызывающему коду
-        let before_hit = before_regex.is_match(&v).map_err(Error::regex_exec)?;
-        let after_hit = after_regex.is_match(&v).map_err(Error::regex_exec)?;
+        let before_hit = is_match(&before_regex, &v)?;
+        let after_hit = is_match(&after_regex, &v)?;
 
         if (before_hit && !b) || (after_hit && b) {
             b = !b;
@@ -228,10 +214,8 @@ pub fn find_cells_between_regex<T: ReadableCell + Send + Sync>(
     after_regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let before_regex = Regex::new(&format!("(?i){}", before_regex))
-        .map_err(|e| Error::invalid_regex(before_regex.clone(), e))?;
-    let after_regex = Regex::new(&format!("(?i){}", after_regex))
-        .map_err(|e| Error::invalid_regex(after_regex.clone(), e))?;
+    let before_regex = compile_case_insensitive(&before_regex)?;
+    let after_regex = compile_case_insensitive(&after_regex)?;
 
     let mut b = false;
     let mut rows_idx = Vec::new();
@@ -239,8 +223,8 @@ pub fn find_cells_between_regex<T: ReadableCell + Send + Sync>(
     for cell in cells.iter() {
         let guard = cell.read();
         let v = guard.get_value();
-        let before_hit = before_regex.is_match(&v).map_err(Error::regex_exec)?;
-        let after_hit = after_regex.is_match(&v).map_err(Error::regex_exec)?;
+        let before_hit = is_match(&before_regex, &v)?;
+        let after_hit = is_match(&after_regex, &v)?;
 
         if (before_hit && !b) || (after_hit && b) {
             b = !b;
@@ -408,5 +392,72 @@ mod tests {
             1
         );
         assert_eq!(find_cells_by_str("true".into(), cells).unwrap().len(), 1);
+    }
+}
+
+#[cfg(test)]
+mod regex_limit_tests {
+    use super::*;
+    use crate::structs::cell::Cell;
+    use crate::structs::coordinate::Coordinate;
+    use parking_lot::RwLock;
+
+    fn one_cell(value: &str) -> Vec<Arc<RwLock<Cell>>> {
+        vec![Arc::new(RwLock::new(Cell::new(
+            Coordinate::new(1, 1),
+            Some(value),
+        )))]
+    }
+
+    /// Шаблон длиннее предела — ошибка, а не молчаливый поиск по куску шаблона.
+    #[test]
+    fn pattern_length_limit() {
+        let cells = one_cell("v");
+        let cells: Vec<_> = cells.iter().collect();
+        let pattern = "a".repeat(crate::regex::MAX_PATTERN_LEN + 1);
+
+        let err = find_cells_by_regex(pattern.clone(), cells.clone()).unwrap_err();
+        assert!(err.to_string().contains("exceeds the maximum"));
+
+        let err = find_cell_by_regex(pattern, cells).unwrap_err();
+        assert!(err.to_string().contains("exceeds the maximum"));
+    }
+
+    /// Катастрофический шаблон: исчерпание лимита обратной трассировки —
+    /// ошибка выполнения, а не «не совпало». Атомарная группа `(?>c)` прячет
+    /// литерал от префильтров движка, поэтому перебор действительно
+    /// выполняется и упирается в дефолтный лимит fancy-regex.
+    #[test]
+    fn backtrack_limit_is_error_not_silent_miss() {
+        let cells = one_cell(&"ab".repeat(56));
+        let cells: Vec<_> = cells.iter().collect();
+
+        let result = find_cell_by_regex("(a|b|ab)*(?>c)".to_string(), cells);
+
+        let err = result.unwrap_err();
+        assert!(
+            err.to_string().contains("regex execution failed"),
+            "получено: {err}"
+        );
+    }
+
+    /// Повторная компиляция того же шаблона переиспользует результат кэша.
+    #[test]
+    fn compiled_regex_reused_from_cache() {
+        let re1 = crate::regex::compile_case_insensitive("итого").unwrap();
+        let re2 = crate::regex::compile_case_insensitive("итого").unwrap();
+
+        assert!(Arc::ptr_eq(&re1, &re2), "кэш не переиспользуется");
+
+        // Валидация и учёт регистра не изменились
+        assert!(re1.is_match("ИТОГО").unwrap());
+        assert!(!re1.is_match("итогз").unwrap());
+    }
+
+    /// Невалидный шаблон — ошибка компиляции с текстом шаблона.
+    #[test]
+    fn invalid_pattern_reports_pattern() {
+        let err = crate::regex::compile_case_insensitive("(").unwrap_err();
+        assert!(err.to_string().contains("invalid regex"), "получено: {err}");
     }
 }

@@ -20,6 +20,14 @@ pub enum Error {
         source: fancy_regex::Error,
     },
 
+    /// Длина шаблона превышает допустимый предел.
+    #[error("regex pattern length {len} exceeds the maximum of {limit}")]
+    PatternTooLong {
+        pattern: String,
+        limit: usize,
+        len: usize,
+    },
+
     /// Шаблон валиден, но выполнение упало (например, исчерпан лимит
     /// обратной трассировки на катастрофическом шаблоне).
     #[error("regex execution failed: {source}")]
@@ -50,6 +58,15 @@ impl Error {
         Self::InvalidRegex {
             pattern: pattern.into(),
             source,
+        }
+    }
+
+    /// Ошибка превышения лимита длины шаблона.
+    pub(crate) fn pattern_too_long(pattern: impl Into<String>, limit: usize, len: usize) -> Self {
+        Self::PatternTooLong {
+            pattern: pattern.into(),
+            limit,
+            len,
         }
     }
 

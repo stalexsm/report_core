@@ -20,9 +20,10 @@ pub(crate) fn py_error(err: Error) -> PyErr {
     let message = err.to_string();
 
     match err {
-        Error::InvalidCellLetter { .. } | Error::InvalidRegex { .. } | Error::Domain { .. } => {
-            PyValueError::new_err(message)
-        }
+        Error::InvalidCellLetter { .. }
+        | Error::InvalidRegex { .. }
+        | Error::PatternTooLong { .. }
+        | Error::Domain { .. } => PyValueError::new_err(message),
         Error::RegexExec { .. } | Error::Json { .. } => PyRuntimeError::new_err(message),
     }
 }

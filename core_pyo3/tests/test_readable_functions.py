@@ -58,6 +58,12 @@ def test_find_cell_by_regex_invalid(cells) -> None:
         readable.find_cell_by_regex("(", cells)
 
 
+def test_find_cell_by_regex_pattern_too_long(cells) -> None:
+    """Шаблон длиннее предела ядра (512) — ValueError, а не молчаливый поиск."""
+    with pytest.raises(ValueError, match="exceeds the maximum"):
+        readable.find_cell_by_regex("a" * 513, cells)
+
+
 def test_find_cell_by_str(cells) -> None:
     """Первая ячейка по точной строке."""
     found = readable.find_cell_by_str("v11", cells)
