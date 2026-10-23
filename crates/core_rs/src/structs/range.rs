@@ -1,5 +1,10 @@
 use serde::Serialize;
 
+use crate::{
+    MAX_COL, MAX_ROW,
+    error::{Error, Result},
+};
+
 pub type MergedRange = (u32, u32, u16, u16);
 
 #[derive(Clone, Default, Debug, Serialize, PartialEq, Eq)]
@@ -25,6 +30,37 @@ impl Range {
     #[inline]
     pub(crate) fn is_single_cell(&self) -> bool {
         self.start_row == self.end_row && self.start_col == self.end_col
+    }
+
+    /// Диапазон с проверкой домена Excel и порядка границ: границы не меньше
+    /// 1, конец не раньше начала, верхние границы в пределах листа.
+    /// Для внутренних путей, где валидность гарантирована, остаётся
+    /// непроверяющий `new`.
+    ///
+    /// # Errors
+    ///
+    /// `Domain` — перевёрнутые границы или выход за домен Excel.
+    pub fn try_new(start_row: u32, end_row: u32, start_col: u16, end_col: u16) -> Result<Self> {
+        if end_row < start_row || end_col < start_col {
+            return Err(Error::domain(format!(
+                "Начало диапазона больше конца: строки [{start_row}; {end_row}], \
+                 колонки [{start_col}; {end_col}]"
+            )));
+        }
+
+        if start_row == 0 || start_col == 0 || end_row > MAX_ROW || end_col > MAX_COL {
+            return Err(Error::domain(format!(
+                "Диапазон [{start_row}; {end_row}] x [{start_col}; {end_col}] вне домена Excel \
+                 (строки 1..={MAX_ROW}, колонки 1..={MAX_COL})"
+            )));
+        }
+
+        Ok(Range {
+            start_row,
+            end_row,
+            start_col,
+            end_col,
+        })
     }
 
     /// Сдвигает/усекает диапазон при удалении строк `[idx; idx + amount)`.
@@ -126,5 +162,36 @@ impl From<&Range> for (u32, u32, u16, u16) {
             range.start_col,
             range.end_col,
         )
+    }
+}
+
+#[cfg(test)]
+mod try_new_tests {
+    use super::*;
+
+    /// Валидный диапазон проходит.
+    #[test]
+    fn try_new_accepts_valid_range() {
+        let range = Range::try_new(1, 3, 1, 2).unwrap();
+
+        assert_eq!(range, Range::new(1, 3, 1, 2));
+    }
+
+    /// Перевёрнутые границы, нули и выход за домен листа отклоняются.
+    #[test]
+    fn try_new_rejects_invalid_range() {
+        // Конец раньше начала
+        for range in [(2, 1, 1, 1), (1, 1, 2, 1)] {
+            let err = Range::try_new(range.0, range.1, range.2, range.3).unwrap_err();
+            assert!(err.to_string().contains("больше конца"), "получено: {err}");
+        }
+
+        // Нулевые координаты
+        let err = Range::try_new(0, 1, 1, 1).unwrap_err();
+        assert!(err.to_string().contains("вне домена"), "получено: {err}");
+
+        // За границами листа
+        let err = Range::try_new(1, crate::MAX_ROW + 1, 1, 1).unwrap_err();
+        assert!(err.to_string().contains("вне домена"), "получено: {err}");
     }
 }

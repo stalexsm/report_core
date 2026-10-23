@@ -97,3 +97,21 @@ def test_merge_tuple_wrong_length_is_value_error(bad_range) -> None:
 
     with pytest.raises(ValueError, match="merge_cells"):
         readable.create_finder([Sheet()])
+
+
+@pytest.mark.parametrize(
+    "bad_range", [(3, 1, 1, 2), (1, 0, 1, 2), (1, 2, 0, 2), (1, 99999999, 1, 2)]
+)
+def test_merge_tuple_invalid_domain_is_value_error(bad_range) -> None:
+    """Перевёрнутые или вне домена Excel диапазоны — ValueError."""
+
+    class Sheet:
+        name = "t"
+        sheet_state = "visible"
+
+        def __init__(self) -> None:
+            self.cells = []
+            self.merge_cells = [bad_range]
+
+    with pytest.raises(ValueError):
+        readable.create_finder([Sheet()])

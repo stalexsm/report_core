@@ -158,7 +158,8 @@ impl WrapperSheet {
         start_col: u16,
         end_col: u16,
     ) -> PyResult<()> {
-        let range = Range::new(start_row, end_row, start_col, end_col);
+        let range =
+            Range::try_new(start_row, end_row, start_col, end_col).map_err(crate::py_error)?;
 
         self.0.write().add_merge_range(range);
 
@@ -227,7 +228,7 @@ impl WrapperSheet {
     ///     Cell
     #[pyo3(signature = (row, col, value=None))]
     pub fn cell(&self, row: u32, col: u16, value: Option<&str>) -> PyResult<WrapperCell> {
-        let coord = Coordinate::from((row, col));
+        let coord = Coordinate::try_new(row, col).map_err(crate::py_error)?;
         let mut slf = self.0.write();
 
         let cell = slf.cell(coord, value);

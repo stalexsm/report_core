@@ -299,3 +299,27 @@ def test_find_values_by_row_cols(sheet) -> None:
     """Значения по строке и списку колонок — в порядке запроса, пропуски пустые."""
     assert sheet.find_values_by_row_cols(3, [1, 2]) == ["v31", "v32"]
     assert sheet.find_values_by_row_cols(3, [1, 99]) == ["v31", ""]
+
+
+def test_cell_rejects_zero_coords() -> None:
+    """Нулевые координаты вне домена Excel — ValueError, а не тихая ячейка."""
+    book = Book()
+    sheet = book.add_sheet("лист")
+
+    with pytest.raises(ValueError, match="вне домена"):
+        sheet.cell(0, 1, "x")
+
+    with pytest.raises(ValueError, match="вне домена"):
+        sheet.cell(1, 0, "x")
+
+    assert sheet.max_row == 0
+    assert sheet.max_column == 0
+
+
+def test_add_merge_cells_rejects_inverted_range(sheet) -> None:
+    """Перевёрнутый диапазон объединения — ValueError."""
+    with pytest.raises(ValueError, match="больше конца"):
+        sheet.add_merge_cells(3, 1, 1, 2)
+
+    with pytest.raises(ValueError, match="вне домена"):
+        sheet.add_merge_cells(1, 1_048_577, 1, 2)

@@ -4,6 +4,7 @@ use ahash::HashMap;
 use core_rs::{
     structs::{
         cell::Cell,
+        coordinate::Coordinate,
         range::{MergedRange, Range},
         sheet::Sheet,
     },
@@ -44,7 +45,8 @@ fn extract_merge_cells(value: &PyValue) -> PyResult<Vec<Range>> {
                     let end_row = parts[1].as_u32()?;
                     let start_col = parts[2].as_u16()?;
                     let end_col = parts[3].as_u16()?;
-                    Ok(Range::new(start_row, end_row, start_col, end_col))
+                    Range::try_new(start_row, end_row, start_col, end_col)
+                        .map_err(|e| PyValueError::new_err(format!("{MSG}: {e}")))
                 }
                 _ => Err(PyValueError::new_err(format!(
                     "{MSG}, got: {}",
@@ -77,7 +79,9 @@ fn extract_cells(obj: &Bound<'_, PyAny>) -> PyResult<CellMap> {
             let wrapper = WrapperCell::try_from(&c)?;
             let guard = wrapper.0.read();
             let coord = guard.get_coordinate();
-            Ok(((coord.row, coord.column), wrapper.0.clone()))
+            // Координата duck-typed ячейки обязана лежать в домене Excel
+            let key = Coordinate::try_new(coord.row, coord.column).map_err(crate::py_error)?;
+            Ok(((key.row, key.column), wrapper.0.clone()))
         })
         .collect()
 }
