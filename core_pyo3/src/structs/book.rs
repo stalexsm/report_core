@@ -137,8 +137,11 @@ impl WrapperBook {
     /// Returns:
     /// ---
     ///     str
-    pub fn to_json(&self) -> PyResult<String> {
-        Ok(self.0.read().to_json()?)
+    pub fn to_json(&self, py: Python<'_>) -> PyResult<String> {
+        py.detach(|| -> PyResult<String> {
+            let slf = self.0.read();
+            Ok(slf.to_json()?)
+        })
     }
 
     /// Преобразование книги в dict
@@ -148,7 +151,11 @@ impl WrapperBook {
     /// ---
     ///     dict[str, Any]
     pub fn to_dict(&self, py: Python<'_>) -> PyResult<Py<PyAny>> {
-        let s = self.0.read().to_json()?;
+        // Сериализация — без GIL, json.loads возвращает его обратно
+        let s = py.detach(|| -> PyResult<String> {
+            let slf = self.0.read();
+            Ok(slf.to_json()?)
+        })?;
         let py_module_json = py.import("json")?;
         let py_dict = py_module_json.getattr("loads")?.call1((s,))?;
 

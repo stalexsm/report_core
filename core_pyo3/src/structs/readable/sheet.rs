@@ -263,12 +263,14 @@ impl WrapperSheet {
     /// Returns:
     /// ---
     ///     ReadableCell | None
-    pub fn find_cell_by_regex(&self, regex: &str) -> PyResult<Option<WrapperCell>> {
+    pub fn find_cell_by_regex(&self, py: Python<'_>, regex: &str) -> PyResult<Option<WrapperCell>> {
         let slf = self.0.read();
 
-        Ok(slf
-            .find_cell_by_regex(regex)?
-            .map(|c| WrapperCell(Arc::clone(c))))
+        py.detach(|| {
+            Ok(slf
+                .find_cell_by_regex(regex)?
+                .map(|c| WrapperCell(Arc::clone(c))))
+        })
     }
 
     /// Функция для получения ячейки по строковому значению.
@@ -282,12 +284,14 @@ impl WrapperSheet {
     /// Returns:
     /// ---
     ///     ReadableCell | None
-    pub fn find_cell_by_str(&self, value: &str) -> PyResult<Option<WrapperCell>> {
+    pub fn find_cell_by_str(&self, py: Python<'_>, value: &str) -> PyResult<Option<WrapperCell>> {
         let slf = self.0.read();
 
-        Ok(slf
-            .find_cell_by_str(value)?
-            .map(|c| WrapperCell(Arc::clone(c))))
+        py.detach(|| {
+            Ok(slf
+                .find_cell_by_str(value)?
+                .map(|c| WrapperCell(Arc::clone(c))))
+        })
     }
 
     /// Функция для получения ячейки по координатам
@@ -303,12 +307,19 @@ impl WrapperSheet {
     /// Returns:
     /// ---
     ///     ReadableCell | None
-    pub fn find_cell_by_coords(&self, row: u32, col: u16) -> PyResult<Option<WrapperCell>> {
+    pub fn find_cell_by_coords(
+        &self,
+        py: Python<'_>,
+        row: u32,
+        col: u16,
+    ) -> PyResult<Option<WrapperCell>> {
         let slf = self.0.read();
 
-        Ok(slf
-            .find_cell_by_coords(row, col)?
-            .map(|c| WrapperCell(Arc::clone(c))))
+        py.detach(|| {
+            Ok(slf
+                .find_cell_by_coords(row, col)?
+                .map(|c| WrapperCell(Arc::clone(c))))
+        })
     }
 
     /// Функция для получения ячейки по буквенной координате (A1).
@@ -327,13 +338,20 @@ impl WrapperSheet {
     /// ---
     ///     ValueError
     ///         Если буква не координата ячейки (например, "1A") или за границами листа
-    pub fn find_cell_by_letter(&self, letter: &str) -> PyResult<Option<WrapperCell>> {
+    pub fn find_cell_by_letter(
+        &self,
+        py: Python<'_>,
+        letter: &str,
+    ) -> PyResult<Option<WrapperCell>> {
         let slf = self.0.read();
-        let cell = slf
-            .find_cell_by_letter(letter)
-            .map_err(crate::user_value_error)?;
 
-        Ok(cell.map(|c| WrapperCell(Arc::clone(c))))
+        py.detach(|| {
+            let cell = slf
+                .find_cell_by_letter(letter)
+                .map_err(crate::user_value_error)?;
+
+            Ok(cell.map(|c| WrapperCell(Arc::clone(c))))
+        })
     }
 
     /// Функция для получения ячеек по регулярному (шаблону) значению.
@@ -347,16 +365,18 @@ impl WrapperSheet {
     /// Returns:
     /// ---
     ///     list[ReadableCell]
-    pub fn find_cells_by_regex(&self, regex: &str) -> PyResult<Vec<WrapperCell>> {
+    pub fn find_cells_by_regex(&self, py: Python<'_>, regex: &str) -> PyResult<Vec<WrapperCell>> {
         let slf = self.0.read();
 
-        let wrapper_cells = slf
-            .find_cells_by_regex(regex)?
-            .iter()
-            .map(|cell| WrapperCell(Arc::clone(cell)))
-            .collect();
+        py.detach(|| {
+            let wrapper_cells = slf
+                .find_cells_by_regex(regex)?
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
+                .collect();
 
-        Ok(wrapper_cells)
+            Ok(wrapper_cells)
+        })
     }
 
     /// Функция для получения ячеек по строковому значению.
@@ -370,16 +390,18 @@ impl WrapperSheet {
     /// Returns:
     /// ---
     ///     list[ReadableCell]
-    pub fn find_cells_by_str(&self, value: &str) -> PyResult<Vec<WrapperCell>> {
+    pub fn find_cells_by_str(&self, py: Python<'_>, value: &str) -> PyResult<Vec<WrapperCell>> {
         let slf = self.0.read();
 
-        let wrapper_cells = slf
-            .find_cells_by_str(value)?
-            .iter()
-            .map(|cell| WrapperCell(Arc::clone(cell)))
-            .collect();
+        py.detach(|| {
+            let wrapper_cells = slf
+                .find_cells_by_str(value)?
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
+                .collect();
 
-        Ok(wrapper_cells)
+            Ok(wrapper_cells)
+        })
     }
 
     /// Функция для получения ячеек по регулярному (шаблону) значению до определенной колонки.
@@ -397,19 +419,21 @@ impl WrapperSheet {
     ///     list[ReadableCell]
     pub fn find_cells_for_rows_by_regex(
         &self,
-
+        py: Python<'_>,
         regex: &str,
         col_stop: u16,
     ) -> PyResult<Vec<WrapperCell>> {
         let slf = self.0.read();
 
-        let wrapper_cells = slf
-            .find_cells_for_rows_by_regex(regex, col_stop)?
-            .iter()
-            .map(|cell| WrapperCell(Arc::clone(cell)))
-            .collect();
+        py.detach(|| {
+            let wrapper_cells = slf
+                .find_cells_for_rows_by_regex(regex, col_stop)?
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
+                .collect();
 
-        Ok(wrapper_cells)
+            Ok(wrapper_cells)
+        })
     }
 
     /// Функция для получения ячеек по регулярному (шаблону) значению до определенной строки.
@@ -427,19 +451,21 @@ impl WrapperSheet {
     ///     list[ReadableCell]
     pub fn find_cells_for_cols_by_regex(
         &self,
-
+        py: Python<'_>,
         regex: &str,
         row_stop: u32,
     ) -> PyResult<Vec<WrapperCell>> {
         let slf = self.0.read();
 
-        let wrapper_cells = slf
-            .find_cells_for_cols_by_regex(regex, row_stop)?
-            .iter()
-            .map(|cell| WrapperCell(Arc::clone(cell)))
-            .collect();
+        py.detach(|| {
+            let wrapper_cells = slf
+                .find_cells_for_cols_by_regex(regex, row_stop)?
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
+                .collect();
 
-        Ok(wrapper_cells)
+            Ok(wrapper_cells)
+        })
     }
 
     /// Функция для получения ячеек по регулярным (шаблонам) значениям.
@@ -458,19 +484,21 @@ impl WrapperSheet {
     ///     list[ReadableCell]
     pub fn find_cells_multi_regex(
         &self,
-
+        py: Python<'_>,
         before_regex: &str,
         after_regex: &str,
     ) -> PyResult<Vec<WrapperCell>> {
         let slf = self.0.read();
 
-        let wrapper_cells = slf
-            .find_cells_multi_regex(before_regex, after_regex)?
-            .iter()
-            .map(|cell| WrapperCell(Arc::clone(cell)))
-            .collect();
+        py.detach(|| {
+            let wrapper_cells = slf
+                .find_cells_multi_regex(before_regex, after_regex)?
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
+                .collect();
 
-        Ok(wrapper_cells)
+            Ok(wrapper_cells)
+        })
     }
 
     /// Функция для получения ячеек по регулярным (шаблонам) значениям.
@@ -489,19 +517,21 @@ impl WrapperSheet {
     ///     list[ReadableCell]
     pub fn find_cells_between_regex(
         &self,
-
+        py: Python<'_>,
         before_regex: &str,
         after_regex: &str,
     ) -> PyResult<Vec<WrapperCell>> {
         let slf = self.0.read();
 
-        let wrapper_cells = slf
-            .find_cells_between_regex(before_regex, after_regex)?
-            .iter()
-            .map(|cell| WrapperCell(Arc::clone(cell)))
-            .collect();
+        py.detach(|| {
+            let wrapper_cells = slf
+                .find_cells_between_regex(before_regex, after_regex)?
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
+                .collect();
 
-        Ok(wrapper_cells)
+            Ok(wrapper_cells)
+        })
     }
 
     /// Функция для получения ячеек в диапазоне строк.
@@ -519,19 +549,21 @@ impl WrapperSheet {
     ///     list[ReadableCell]
     pub fn find_cells_range_rows(
         &self,
-
+        py: Python<'_>,
         start_row: u32,
         end_row: u32,
     ) -> PyResult<Vec<WrapperCell>> {
         let slf = self.0.read();
 
-        let wrapper_cells = slf
-            .find_cells_range_rows(start_row, end_row)?
-            .iter()
-            .map(|cell| WrapperCell(Arc::clone(cell)))
-            .collect();
+        py.detach(|| {
+            let wrapper_cells = slf
+                .find_cells_range_rows(start_row, end_row)?
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
+                .collect();
 
-        Ok(wrapper_cells)
+            Ok(wrapper_cells)
+        })
     }
 
     /// Функция для получения ячеек в диапазоне колонок.
@@ -549,19 +581,21 @@ impl WrapperSheet {
     ///     list[ReadableCell]
     pub fn find_cells_range_cols(
         &self,
-
+        py: Python<'_>,
         start_col: u16,
         end_col: u16,
     ) -> PyResult<Vec<WrapperCell>> {
         let slf = self.0.read();
 
-        let wrapper_cells = slf
-            .find_cells_range_cols(start_col, end_col)?
-            .iter()
-            .map(|cell| WrapperCell(Arc::clone(cell)))
-            .collect();
+        py.detach(|| {
+            let wrapper_cells = slf
+                .find_cells_range_cols(start_col, end_col)?
+                .iter()
+                .map(|cell| WrapperCell(Arc::clone(cell)))
+                .collect();
 
-        Ok(wrapper_cells)
+            Ok(wrapper_cells)
+        })
     }
 
     /// Функция для получения значений ячеек по колонке и списку строк.
@@ -580,10 +614,15 @@ impl WrapperSheet {
     /// Returns:
     /// ---
     ///     list[str]
-    pub fn find_values_by_col_rows(&self, col: u16, rows: Vec<u32>) -> PyResult<Vec<String>> {
+    pub fn find_values_by_col_rows(
+        &self,
+        py: Python<'_>,
+        col: u16,
+        rows: Vec<u32>,
+    ) -> PyResult<Vec<String>> {
         let slf = self.0.read();
 
-        Ok(slf.find_values_by_col_rows(col, rows)?)
+        py.detach(|| Ok(slf.find_values_by_col_rows(col, rows)?))
     }
 
     /// Функция для получения значений ячеек по строке и списку колонок.
@@ -602,10 +641,15 @@ impl WrapperSheet {
     /// Returns:
     /// ---
     ///     list[str]
-    pub fn find_values_by_row_cols(&self, row: u32, cols: Vec<u16>) -> PyResult<Vec<String>> {
+    pub fn find_values_by_row_cols(
+        &self,
+        py: Python<'_>,
+        row: u32,
+        cols: Vec<u16>,
+    ) -> PyResult<Vec<String>> {
         let slf = self.0.read();
 
-        Ok(slf.find_values_by_row_cols(row, cols)?)
+        py.detach(|| Ok(slf.find_values_by_row_cols(row, cols)?))
     }
 
     /// Функция для поиска значения ячейки по координатам
@@ -621,9 +665,14 @@ impl WrapperSheet {
     /// Returns:
     /// ---
     ///     str | None
-    pub fn find_value_by_coords(&self, row: u32, col: u16) -> PyResult<Option<String>> {
+    pub fn find_value_by_coords(
+        &self,
+        py: Python<'_>,
+        row: u32,
+        col: u16,
+    ) -> PyResult<Option<String>> {
         let slf = self.0.read();
 
-        Ok(slf.find_value_by_coords(row, col)?)
+        py.detach(|| Ok(slf.find_value_by_coords(row, col)?))
     }
 }
