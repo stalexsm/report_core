@@ -597,6 +597,11 @@ class Sheet:
         Returns:
         --------
             Cell | None
+
+        Raises:
+        ---
+            ValueError
+                Если буква не координата ячейки (например, "1A") или за границами листа
         """
     def find_cell_by_regex(self, /, regex: str) -> Cell | None:
         """

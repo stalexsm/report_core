@@ -108,9 +108,9 @@ impl Cells {
 
     #[inline]
     pub fn get_cell_by_letter(&self, letter: &str) -> Option<&Arc<RwLock<Cell>>> {
-        let Coordinate { row, column } = Coordinate::from(letter);
+        let coord = Coordinate::try_from(letter).ok()?;
 
-        self.map.get(&(row, column))
+        self.map.get(&(coord.row, coord.column))
     }
 
     /// Метод для получения значения ячейки по координатам

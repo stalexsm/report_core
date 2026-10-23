@@ -1,4 +1,6 @@
-use crate::structs::coordinate::CellIndex;
+use anyhow::{Result, anyhow, bail};
+
+use crate::{MAX_COL, MAX_ROW, structs::coordinate::CellIndex};
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 
@@ -62,21 +64,39 @@ where
         .sum::<u32>()
 }
 
-pub fn index_from_coordinate<T>(coordinate: T) -> CellIndex
+/// Ошибка для невалидной буквенной координаты ячейки.
+pub(crate) fn invalid_cell_letter<T: AsRef<str>>(letter: T) -> anyhow::Error {
+    anyhow!("invalid cell letter: {}", letter.as_ref())
+}
+
+/// Разбор буквенной координаты (A1) в индексы `(row, col)`.
+///
+/// Координата обязана быть полной и валидной: якорный шаблон
+/// `^\$?[A-Z]{1,3}\$?[0-9]+$` требует и буквы колонки, и номера строки,
+/// а значения проверяются на границы листа (`MAX_ROW`/`MAX_COL`).
+/// На невалидной букве возвращает ошибку, а не частичный результат.
+pub fn index_from_coordinate<T>(coordinate: T) -> Result<CellIndex>
 where
     T: AsRef<str>,
 {
     lazy_static! {
-        static ref RE: Regex = Regex::new(r"((\$)?([A-Z]{1,3}))?((\$)?([0-9]+))?").unwrap();
+        static ref RE: Regex = Regex::new(r"^\$?([A-Z]{1,3})\$?([0-9]+)$").unwrap();
     }
 
-    let caps = RE.captures(coordinate.as_ref()).ok().flatten();
+    let letter = coordinate.as_ref();
+    let upper = letter.to_uppercase();
+    let caps = RE
+        .captures(&upper)
+        .ok()
+        .flatten()
+        .ok_or_else(|| invalid_cell_letter(letter))?;
 
-    caps.map(|v| {
-        let col = v.get(3).map(|v| alpha_to_index(v.as_str()) as u16); // col number: [A-Z]{1,3}
-        let row = v.get(6).and_then(|v| v.as_str().parse::<u32>().ok()); // row number: [0-9]+
+    // col number: [A-Z]{1,3}, row number: [0-9]+ — обе части обязательны.
+    let col = caps.get(1).map(|v| alpha_to_index(v.as_str()) as u16);
+    let row = caps.get(2).and_then(|v| v.as_str().parse::<u32>().ok());
 
-        (row, col)
-    })
-    .unwrap_or_default()
+    match (col, row) {
+        (Some(col), Some(row)) if col <= MAX_COL && row <= MAX_ROW => Ok((Some(row), Some(col))),
+        _ => bail!(invalid_cell_letter(letter)),
+    }
 }

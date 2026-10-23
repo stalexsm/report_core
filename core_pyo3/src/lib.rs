@@ -4,7 +4,17 @@ pub(crate) mod structs;
 
 pub(crate) use macros::*;
 
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyValueError, prelude::*};
+
+/// Преобразование ошибки ядра в `ValueError`.
+///
+/// Используется на путях, где ошибка ядра означает невалидные входные
+/// данные пользователя (например, невалидная буква ячейки), а не
+/// внутренний сбой: по умолчанию `anyhow`-ошибки доходят до Python
+/// как `RuntimeError`.
+pub(crate) fn user_value_error(err: anyhow::Error) -> PyErr {
+    PyValueError::new_err(err.to_string())
+}
 
 /// Версия ядра, публикуемая как константа `__version__`.
 const VERSION: &str = core_rs::version();

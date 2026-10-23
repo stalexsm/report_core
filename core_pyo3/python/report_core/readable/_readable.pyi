@@ -243,6 +243,11 @@ class ReadableSheet:
         Returns:
         ---
             ReadableCell | None
+
+        Raises:
+        ---
+            ValueError
+                Если буква не координата ячейки (например, "1A") или за границами листа
         """
     def find_cell_by_regex(self, /, regex: str) -> ReadableCell | None:
         """
@@ -572,6 +577,11 @@ def find_cell_by_letter(letter: str, cells: list[ReadableCell]) -> ReadableCell 
     Returns:
     ---
         ReadableCell | None
+
+    Raises:
+    ---
+        ValueError
+            Если буква не координата ячейки (например, "1A") или за границами листа
     """
 
 def find_cell_by_regex(regex: str, cells: list[ReadableCell]) -> ReadableCell | None:

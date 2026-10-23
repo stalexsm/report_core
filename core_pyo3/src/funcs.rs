@@ -157,6 +157,11 @@ pub(crate) fn find_cell_by_str(
 /// Returns:
 /// ---
 ///     ReadableCell | None
+///
+/// Raises:
+/// ---
+///     ValueError
+///         Если буква не координата ячейки (например, "1A") или за границами листа
 #[inline]
 #[pyfunction]
 #[pyo3(signature = (letter, cells: "list[ReadableCell]"))]
@@ -169,7 +174,9 @@ pub(crate) fn find_cell_by_letter(
 
     py.detach(|| {
         let cells = cells.iter().map(|c| &c.0).collect();
-        Ok(funcs::find_cell_by_letter(letter, cells)?.map(|c| WrapperCell(Arc::clone(c))))
+        let cell = funcs::find_cell_by_letter(letter, cells).map_err(crate::user_value_error)?;
+
+        Ok(cell.map(|c| WrapperCell(Arc::clone(c))))
     })
 }
 
