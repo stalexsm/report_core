@@ -80,7 +80,10 @@ impl Cells {
         self.map.values().collect::<Vec<_>>()
     }
 
-    /// Метод для получения коллекции ячеек
+    /// Метод для получения коллекции ячеек, отсортированной по (row, col).
+    ///
+    /// Детерминированный обход: одиночные find_cell_by_* опираются на порядок —
+    /// при нескольких совпадениях побеждает ячейка с наименьшими координатами.
     #[inline]
     pub fn get_collection_sorted(&self) -> Vec<&Arc<RwLock<Cell>>> {
         let mut items: Vec<_> = self.map.iter().map(|(key, cell)| (*key, cell)).collect();
@@ -232,14 +235,14 @@ impl Cells {
 
     #[inline]
     pub fn find_cell_by_regex(&self, regex: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cell_by_regex(regex.into(), cells)
     }
 
     #[inline]
     pub fn find_cell_by_str(&self, value: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cell_by_str(value.into(), cells)
     }
@@ -251,7 +254,7 @@ impl Cells {
 
     #[inline]
     pub fn find_cell_by_letter(&self, letter: &str) -> Result<Option<&Arc<RwLock<Cell>>>> {
-        let cells = self.get_collection();
+        let cells = self.get_collection_sorted();
 
         find_cell_by_letter(letter.into(), cells)
     }

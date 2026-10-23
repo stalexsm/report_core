@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use crate::{structs::coordinate::Coordinate, traits::ReadableCell};
+use ahash::HashMap;
 use anyhow::Result;
 use fancy_regex::Regex;
 use parking_lot::RwLock;
@@ -292,40 +293,79 @@ pub fn find_cells_range_cols<T: ReadableCell + Send + Sync>(
         .collect())
 }
 
+/// Индекс «координата → значение» по коллекции ячеек — для детерминированного
+/// поиска значений в порядке запрошенных строк/колонок. Сборка последовательная:
+/// при дублях координат (возможны у прямых вызовов с ручной коллекцией)
+/// побеждает первое вхождение — результат стабилен между запусками.
+fn index_values_by_coords<T: ReadableCell + Send + Sync>(
+    cells: &[&Arc<RwLock<T>>],
+) -> HashMap<(u32, u16), String> {
+    cells.iter().fold(HashMap::default(), |mut index, cell| {
+        let guard = cell.read();
+        let coord = guard.get_coordinate();
+
+        index
+            .entry((coord.row, coord.column))
+            .or_insert_with(|| guard.get_value());
+
+        index
+    })
+}
+
+/// Значения по колонке и списку строк — строго в порядке запрошенных строк.
+/// Отсутствующая ячейка даёт пустую строку: длина результата всегда равна
+/// длине запроса, поэтому позиционный zip с заголовками не искажает отчёт.
 pub fn find_values_by_col_rows<T: ReadableCell + Send + Sync>(
     col: u16,
     rows: Vec<u32>,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<String>> {
-    Ok(cells
-        .par_iter()
-        .filter_map(|cell| {
-            let guard = cell.read();
-            let coord = guard.get_coordinate();
-            if coord.column == col && rows.contains(&coord.row) {
-                Some(guard.get_value())
-            } else {
-                None
-            }
-        })
+    let index = index_values_by_coords(&cells);
+
+    Ok(rows
+        .into_iter()
+        .map(|row| index.get(&(row, col)).cloned().unwrap_or_default())
         .collect())
 }
 
+/// Значения по строке и списку колонок — строго в порядке запрошенных колонок.
+/// Отсутствующая ячейка даёт пустую строку: длина результата всегда равна
+/// длине запроса, поэтому позиционный zip с заголовками не искажает отчёт.
 pub fn find_values_by_row_cols<T: ReadableCell + Send + Sync>(
     row: u32,
     cols: Vec<u16>,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<String>> {
-    Ok(cells
-        .par_iter()
-        .filter_map(|cell| {
-            let guard = cell.read();
-            let coord = guard.get_coordinate();
-            if coord.row == row && cols.contains(&coord.column) {
-                Some(guard.get_value())
-            } else {
-                None
-            }
-        })
+    let index = index_values_by_coords(&cells);
+
+    Ok(cols
+        .into_iter()
+        .map(|col| index.get(&(row, col)).cloned().unwrap_or_default())
         .collect())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::structs::cell::Cell;
+
+    /// Дубли координат в ручной коллекции: побеждает первое вхождение,
+    /// результат стабилен между запусками процесса.
+    #[test]
+    pub fn find_values_duplicate_coords_first_wins() {
+        let first = Arc::new(RwLock::new(Cell::new(Coordinate::new(1, 1), Some("first"))));
+        let second = Arc::new(RwLock::new(Cell::new(
+            Coordinate::new(1, 1),
+            Some("second"),
+        )));
+        let cells = vec![&first, &second];
+
+        let values = find_values_by_col_rows(1, vec![1], cells.clone()).unwrap();
+
+        assert_eq!(values, vec!["first"]);
+
+        let values = find_values_by_row_cols(1, vec![1], cells).unwrap();
+
+        assert_eq!(values, vec!["first"]);
+    }
 }
