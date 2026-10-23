@@ -10,7 +10,8 @@
 #   - артефакты грузятся строго (if-no-files-found: error, skylos SKY-D311);
 #   - тулчейн Rust в macos и windows ставится явно (dtolnay/rust-toolchain):
 #     предустановленный rustc на образах раннеров отстаёт от MSRV из Cargo.toml;
-#   - публикация — только по тегу, токен — через environment pypi (skylos SKY-D299).
+#   - публикация — только по тегу, токен — через environment pypi (skylos SKY-D299);
+#   - GitHub Release создаётся автоматически с описанием из секции CHANGELOG.md.
 #
 #    maturin generate-ci github
 #
@@ -249,6 +250,11 @@ jobs:
       # Используется для генерации attestations артефактов
       attestations: write
     steps:
+      # v6 — checkout нужен ради CHANGELOG.md (источник описания релиза)
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+
       # v7
       - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
 
@@ -266,3 +272,31 @@ jobs:
         run: uv publish 'wheels-*/*'
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Create GitHub release
+        # Секция тега попадает в CHANGELOG.md ещё на релизном коммите
+        # (git-cliff --unreleased --tag X.Y.Z, см. docs/agents/git-workflow.md),
+        # поэтому в дереве тега она гарантированно есть.
+        # Шаг идёт после публикации: релиз создаётся только при успешной выкатке.
+        run: |
+          awk -v header="## [${GITHUB_REF_NAME}]" '
+            index($0, header) == 1 { found = 1; print; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > release_notes.md
+          [ -s release_notes.md ] || {
+            echo "Секция ${GITHUB_REF_NAME} не найдена в CHANGELOG.md" >&2
+            exit 1
+          }
+          if gh release view "${GITHUB_REF_NAME}" > /dev/null 2>&1; then
+            echo "Релиз ${GITHUB_REF_NAME} уже существует — обновляю описание"
+            gh release edit "${GITHUB_REF_NAME}" \
+              --title "${GITHUB_REF_NAME}" \
+              --notes-file release_notes.md
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              --title "${GITHUB_REF_NAME}" \
+              --notes-file release_notes.md
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
