@@ -132,9 +132,9 @@ def test_readable_sheet_cells_sorted(readable_sheet) -> None:
     assert [(c.row, c.column) for c in readable_sheet.cells] == [(1, 1), (2, 2)]
 
 
-def test_readable_sheet_get_value_cell(readable_sheet) -> None:
+def test_readable_sheet_find_value_by_coords(readable_sheet) -> None:
     """Значение ячейки по координатам."""
-    assert readable_sheet.get_value_cell(1, 1) == "искомое"
+    assert readable_sheet.find_value_by_coords(1, 1) == "искомое"
 
 
 def test_readable_sheet_get_cells_by_range(readable_sheet) -> None:

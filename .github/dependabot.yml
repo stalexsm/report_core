@@ -1,0 +1,12 @@
+# Обновления версий GitHub Actions (запинены на SHA — тянуть апгрейды
+# должен Dependabot, а не ручные правки).
+# cooldown: свежевышедшие версии ждут неделю — защита от скомпрометированных
+# или нестабильных релизов действий.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7

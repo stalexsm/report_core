@@ -1,6 +1,4 @@
 use ahash::HashMap;
-use anyhow::{Result, bail};
-use fancy_regex::Regex;
 use parking_lot::RwLock;
 use rayon::slice::ParallelSliceMut;
 use serde::Serialize;
@@ -10,22 +8,24 @@ use super::{cell::Cell, coordinate::Coordinate};
 use crate::{
     MAX_COL, MAX_ROW,
     datatype::CellValue,
+    error::{Error, Result},
     funcs::{
         find_cell_by_regex, find_cell_by_str, find_cells_by_regex, find_cells_by_str,
         find_cells_for_cols_by_regex, find_cells_for_rows_by_regex, find_cells_multi_regex,
         find_cells_range_cols, find_cells_range_rows,
     },
+    regex::{compile_case_insensitive, is_match},
     traits::{ReadableCell, WriteableCell},
 };
 
 /// Ячейки, снимаемые с карты при сдвиге: старый ключ и обёртка.
 type ShiftedCells = Vec<((u32, u16), Arc<RwLock<Cell>>)>;
 
-/// Вспомоогательная функция для сериализации HashMap только Value, как вектор.
+/// Вспомогательная функция для сериализации HashMap только Value, как вектор.
 fn serialize_cells_to_vec<S>(
     map: &HashMap<(u32, u16), Arc<RwLock<Cell>>>,
     serializer: S,
-) -> Result<S::Ok, S::Error>
+) -> std::result::Result<S::Ok, S::Error>
 where
     S: serde::Serializer,
 {
@@ -87,16 +87,22 @@ impl Clone for Cells {
 #[inline]
 fn validate_delete_range(idx: u64, amount: u64, max: u64) -> Result<()> {
     if idx == 0 {
-        bail!("Индекс начала удаления должен быть ≥ 1, получено: {idx}");
+        return Err(Error::domain(format!(
+            "Индекс начала удаления должен быть ≥ 1, получено: {idx}"
+        )));
     }
 
     if amount == 0 {
-        bail!("Количество удаляемых строк/колонок должно быть ≥ 1, получено: {amount}");
+        return Err(Error::domain(format!(
+            "Количество удаляемых строк/колонок должно быть ≥ 1, получено: {amount}"
+        )));
     }
 
     let end = idx + amount - 1;
     if end > max {
-        bail!("Диапазон удаления [{idx}; {end}] выходит за границы листа (максимум: {max})");
+        return Err(Error::domain(format!(
+            "Диапазон удаления [{idx}; {end}] выходит за границы листа (максимум: {max})"
+        )));
     }
 
     Ok(())
@@ -471,24 +477,25 @@ impl Cells {
         before_regex: &str,
         after_regex: &str,
     ) -> Result<Vec<&Arc<RwLock<Cell>>>> {
-        let before_regex = Regex::new(&format!("(?i){}", before_regex))?;
-        let after_regex = Regex::new(&format!("(?i){}", after_regex))?;
+        let before_regex = compile_case_insensitive(before_regex)?;
+        let after_regex = compile_case_insensitive(after_regex)?;
 
         // Проход 1 — строки границ. Значения читаются только до второй
-        // границы: дальнейшие совпадения на результат не влияют
+        // границы: дальнейшие совпадения на результат не влияют. Ошибка
+        // выполнения шаблона не глотается, а уходит вызывающему коду
         let mut boundaries: [Option<u32>; 2] = [None, None];
         let mut after_before = false;
 
         for cell in self.get_collection_sorted() {
             let guard = cell.read();
             let v = guard.get_value();
-            let matched = if !after_before {
-                before_regex.is_match(&v).unwrap_or(false)
+            let hit = if !after_before {
+                is_match(&before_regex, &v)?
             } else {
-                after_regex.is_match(&v).unwrap_or(false)
+                is_match(&after_regex, &v)?
             };
 
-            if matched {
+            if hit {
                 let slot = if after_before {
                     &mut boundaries[1]
                 } else {

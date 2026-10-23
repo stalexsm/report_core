@@ -69,10 +69,10 @@ def test_empty_sheet_dimensions() -> None:
 
 
 def test_cell_creates_and_reads(sheet) -> None:
-    """cell с значением создаёт ячейку, get_value_cell читает её."""
+    """cell с значением создаёт ячейку, find_value_by_coords читает её."""
     sheet.cell(5, 5, "новая")
 
-    assert sheet.get_value_cell(5, 5) == "новая"
+    assert sheet.find_value_by_coords(5, 5) == "новая"
 
 
 def test_cell_get_or_create_returns_same_cell(sheet) -> None:
@@ -277,3 +277,49 @@ def test_find_value_by_coords(sheet) -> None:
     """Значение по координатам: есть и нет."""
     assert sheet.find_value_by_coords(1, 1) == "v11"
     assert sheet.find_value_by_coords(100, 100) is None
+
+
+def test_find_cell_by_coords(sheet) -> None:
+    """Ячейка по координатам: найдена и промах."""
+    found = sheet.find_cell_by_coords(2, 3)
+
+    assert found is not None
+    assert (found.row, found.column) == (2, 3)
+    assert found.value == "v23"
+    assert sheet.find_cell_by_coords(100, 100) is None
+
+
+def test_find_values_by_col_rows(sheet) -> None:
+    """Значения по колонке и списку строк — в порядке запроса, пропуски пустые."""
+    assert sheet.find_values_by_col_rows(2, [1, 3]) == ["v12", "v32"]
+    assert sheet.find_values_by_col_rows(2, [5, 1]) == ["", "v12"]
+
+
+def test_find_values_by_row_cols(sheet) -> None:
+    """Значения по строке и списку колонок — в порядке запроса, пропуски пустые."""
+    assert sheet.find_values_by_row_cols(3, [1, 2]) == ["v31", "v32"]
+    assert sheet.find_values_by_row_cols(3, [1, 99]) == ["v31", ""]
+
+
+def test_cell_rejects_zero_coords() -> None:
+    """Нулевые координаты вне домена Excel — ValueError, а не тихая ячейка."""
+    book = Book()
+    sheet = book.add_sheet("лист")
+
+    with pytest.raises(ValueError, match="вне домена"):
+        sheet.cell(0, 1, "x")
+
+    with pytest.raises(ValueError, match="вне домена"):
+        sheet.cell(1, 0, "x")
+
+    assert sheet.max_row == 0
+    assert sheet.max_column == 0
+
+
+def test_add_merge_cells_rejects_inverted_range(sheet) -> None:
+    """Перевёрнутый диапазон объединения — ValueError."""
+    with pytest.raises(ValueError, match="больше конца"):
+        sheet.add_merge_cells(3, 1, 1, 2)
+
+    with pytest.raises(ValueError, match="вне домена"):
+        sheet.add_merge_cells(1, 1_048_577, 1, 2)

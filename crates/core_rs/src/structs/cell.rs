@@ -121,7 +121,7 @@ impl WriteableCell for Cell {
 
     #[inline]
     fn set_value_datetime(&mut self, value: NaiveDateTime) -> &mut Self {
-        self.value.set_value_datatime(value);
+        self.value.set_value_datetime(value);
         self.remove_formula();
 
         self

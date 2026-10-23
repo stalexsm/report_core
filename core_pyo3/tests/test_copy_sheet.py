@@ -22,8 +22,8 @@ def test_copy_sheet_cells_independent(book):
     sheet2 = book.copy_sheet(sheet1)
     sheet2.cell(1, 1, "changed")
 
-    assert sheet1.get_value_cell(1, 1) == "orig"
-    assert sheet2.get_value_cell(1, 1) == "changed"
+    assert sheet1.find_value_by_coords(1, 1) == "orig"
+    assert sheet2.find_value_by_coords(1, 1) == "changed"
 
 
 def test_copy_sheet_delete_rows_independent(book):
@@ -35,10 +35,10 @@ def test_copy_sheet_delete_rows_independent(book):
     sheet2 = book.copy_sheet(sheet1)
     sheet2.delete_rows(1, 1)
 
-    assert sheet1.get_value_cell(1, 1) == "r1"
-    assert sheet1.get_value_cell(2, 1) == "r2"
+    assert sheet1.find_value_by_coords(1, 1) == "r1"
+    assert sheet1.find_value_by_coords(2, 1) == "r2"
     # Копия сдвинулась: строка 2 стала строкой 1
-    assert sheet2.get_value_cell(1, 1) == "r2"
+    assert sheet2.find_value_by_coords(1, 1) == "r2"
 
 
 def test_copy_sheet_delete_cols_independent(book):
@@ -50,10 +50,10 @@ def test_copy_sheet_delete_cols_independent(book):
     sheet2 = book.copy_sheet(sheet1)
     sheet2.delete_cols(1, 1)
 
-    assert sheet1.get_value_cell(1, 1) == "c1"
-    assert sheet1.get_value_cell(1, 2) == "c2"
+    assert sheet1.find_value_by_coords(1, 1) == "c1"
+    assert sheet1.find_value_by_coords(1, 2) == "c2"
     # Копия сдвинулась: колонка 2 стала колонкой 1
-    assert sheet2.get_value_cell(1, 1) == "c2"
+    assert sheet2.find_value_by_coords(1, 1) == "c2"
 
 
 def test_copy_sheet_comments_independent(book):

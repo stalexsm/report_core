@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use anyhow::Result;
 use chrono::NaiveDateTime;
 use parking_lot::RwLock;
+
+use crate::error::Result;
 
 use crate::structs::{
     cell::Cell, comment::Comment, coordinate::Coordinate, range::Range, style::Style,
@@ -34,19 +35,24 @@ pub trait ReadableCell {
 
 pub trait WriteableCell {
     fn set_coordinate(&mut self, coordinate: Coordinate);
+
+    /// Записывает значение: тип распознаётся автоматически (число, bool,
+    /// datetime), но значение НИКОГДА не интерпретируется как формула —
+    /// строка вида `=SUM(A1)` сохраняется как текст.
     fn set_value(&mut self, value: &str) -> &mut Self;
     fn set_value_number(&mut self, value: f64) -> &mut Self;
     fn set_value_integer(&mut self, value: i32) -> &mut Self;
     fn set_value_bool(&mut self, value: bool) -> &mut Self;
     fn set_value_datetime(&mut self, value: NaiveDateTime) -> &mut Self;
+
+    /// Записывает формулу как есть, без проверки и экранирования:
+    /// валидация содержимого формулы — обязанность вызывающего кода.
     fn set_formula(&mut self, value: &str) -> &mut Self;
     fn set_style(&mut self, value: &str) -> &mut Self;
     fn set_hidden_value(&mut self, value: &str) -> &mut Self;
 }
 
 pub trait ReadableSheet {
-    type Cell: ReadableCell + Clone + Send; // добавляем дополнительные
-
     fn get_name(&self) -> String;
     fn get_sheet_state(&self) -> String;
 

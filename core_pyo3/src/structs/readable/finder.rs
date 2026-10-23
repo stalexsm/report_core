@@ -167,9 +167,7 @@ impl WrapperFinder {
     ///         Если pattern — невалидное регулярное выражение (например, "(")
     pub fn find_sheet_by_regex(&self, pattern: String) -> PyResult<Option<WrapperSheet>> {
         let slf = self.0.read();
-        let sheet = slf
-            .find_sheet_by_regex(&pattern)
-            .map_err(crate::user_value_error)?;
+        let sheet = slf.find_sheet_by_regex(&pattern).map_err(crate::py_error)?;
 
         Ok(sheet.map(|s| WrapperSheet(Arc::clone(s))))
     }

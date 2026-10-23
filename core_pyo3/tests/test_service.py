@@ -1,7 +1,7 @@
 """Класс Service: базовый класс сервисов отчётов.
 
 Service наследуется в Python: хранит conn_db, ведёт книгу листов
-(подчёркнутые методы-обёртки) и отдаёт заготовки summary_0/_fmt_0,
+(подчёркнутые методы-обёртки) и отдаёт заготовки summary/_fmt,
 пока не переопределённые наследником.
 """
 
@@ -18,11 +18,11 @@ class StubService(Service):
 class ReadyService(Service):
     """Наследник с переопределёнными шагами генерации и форматирования."""
 
-    def summary_0(self, sheets, /, **kwargs):
+    def summary(self, sheets, /, **kwargs):
         """Свои данные вместо заготовки."""
         return "данные"
 
-    def _fmt_0(self, **kwargs):
+    def _fmt(self, **kwargs):
         """Своё форматирование вместо заготовки."""
         return "формат"
 
@@ -53,7 +53,7 @@ def test_add_sheet_and_sheets(conn_db) -> None:
 
     sheets = service._sheets
     assert [s.name for s in sheets] == ["лист1"]
-    assert sheets[0].get_value_cell(1, 1) == "значение"
+    assert sheets[0].find_value_by_coords(1, 1) == "значение"
 
 
 def test_add_sheet_state(conn_db) -> None:
@@ -72,7 +72,7 @@ def test_copy_sheet(conn_db) -> None:
     copy = service._copy_sheet(original)
 
     assert copy.name == "Sheet 2"
-    assert copy.get_value_cell(1, 1) == "значение"
+    assert copy.find_value_by_coords(1, 1) == "значение"
     assert len(service._sheets) == 2
 
 
@@ -99,21 +99,21 @@ def test_to_json_and_to_dict(conn_db) -> None:
     assert json.loads(service.to_json()) == service.to_dict()
 
 
-def test_summary_0_not_implemented(conn_db) -> None:
-    """Заготовка summary_0 требует переопределения."""
-    with pytest.raises(NotImplementedError, match="summary_0"):
-        StubService(conn_db).summary_0([])
+def test_summary_not_implemented(conn_db) -> None:
+    """Заготовка summary требует переопределения."""
+    with pytest.raises(NotImplementedError, match="summary"):
+        StubService(conn_db).summary([])
 
 
-def test_fmt_0_not_implemented(conn_db) -> None:
-    """Заготовка _fmt_0 требует переопределения."""
-    with pytest.raises(NotImplementedError, match="fmt_0"):
-        StubService(conn_db)._fmt_0()
+def test_fmt_not_implemented(conn_db) -> None:
+    """Заготовка _fmt требует переопределения."""
+    with pytest.raises(NotImplementedError, match="_fmt"):
+        StubService(conn_db)._fmt()
 
 
 def test_overridden_methods_are_callable(conn_db) -> None:
     """Переопределённые шаги наследника работают."""
     service = ReadyService(conn_db)
 
-    assert service.summary_0([]) == "данные"
-    assert service._fmt_0() == "формат"
+    assert service.summary([]) == "данные"
+    assert service._fmt() == "формат"

@@ -26,7 +26,6 @@ extension-module = ["pyo3/extension-module"]
 [dependencies]
 core_rs = { path = "../crates/core_rs" }
 
-anyhow.workspace = true
 chrono.workspace = true
 serde.workspace = true
 serde_json.workspace = true

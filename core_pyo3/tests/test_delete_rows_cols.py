@@ -28,7 +28,7 @@ def test_delete_cols_out_of_bounds_valueerror(sheet):
         sheet.delete_cols(60000, 10000)
 
     # Ошибочный вызов ничего не удаляет
-    assert sheet.get_value_cell(1, 1) == "A1"
+    assert sheet.find_value_by_coords(1, 1) == "A1"
 
 
 def test_delete_rows_out_of_bounds_valueerror(sheet):
@@ -38,7 +38,7 @@ def test_delete_rows_out_of_bounds_valueerror(sheet):
     with pytest.raises(ValueError):
         sheet.delete_rows(MAX_ROW, 2)
 
-    assert sheet.get_value_cell(1, 1) == "A1"
+    assert sheet.find_value_by_coords(1, 1) == "A1"
 
 
 def test_delete_zero_idx_or_amount_valueerror(sheet):
@@ -94,9 +94,9 @@ def test_delete_cols_shifts_content(sheet):
     sheet.delete_cols(2, 2)
 
     assert len(sheet.cells) == 6
-    assert sheet.get_value_cell(1, 1) == "V1:1"
-    assert sheet.get_value_cell(2, 2) == "V2:4"
-    assert sheet.get_value_cell(1, 3) == "V1:5"
+    assert sheet.find_value_by_coords(1, 1) == "V1:1"
+    assert sheet.find_value_by_coords(2, 2) == "V2:4"
+    assert sheet.find_value_by_coords(1, 3) == "V1:5"
 
 
 def test_delete_rows_shifts_content(sheet):
@@ -109,9 +109,9 @@ def test_delete_rows_shifts_content(sheet):
     sheet.delete_rows(2, 2)
 
     assert len(sheet.cells) == 6
-    assert sheet.get_value_cell(1, 1) == "V1:1"
-    assert sheet.get_value_cell(2, 2) == "V4:2"
-    assert sheet.get_value_cell(3, 1) == "V5:1"
+    assert sheet.find_value_by_coords(1, 1) == "V1:1"
+    assert sheet.find_value_by_coords(2, 2) == "V4:2"
+    assert sheet.find_value_by_coords(3, 1) == "V5:1"
 
 
 def test_delete_rows_shifts_merge_cells(sheet):

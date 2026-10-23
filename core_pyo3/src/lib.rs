@@ -5,16 +5,27 @@ pub(crate) mod structs;
 
 pub(crate) use macros::*;
 
-use pyo3::{exceptions::PyValueError, prelude::*};
+use core_rs::error::Error;
+use pyo3::{
+    exceptions::{PyRuntimeError, PyValueError},
+    prelude::*,
+};
 
-/// Преобразование ошибки ядра в `ValueError`.
+/// Преобразование ошибки ядра в исключение Python.
 ///
-/// Используется на путях, где ошибка ядра означает невалидные входные
-/// данные пользователя (например, невалидная буква ячейки), а не
-/// внутренний сбой: по умолчанию `anyhow`-ошибки доходят до Python
-/// как `RuntimeError`.
-pub(crate) fn user_value_error(err: anyhow::Error) -> PyErr {
-    PyValueError::new_err(err.to_string())
+/// Доменные варианты (невалидный ввод пользователя) доходят до Python
+/// как `ValueError`, внутренние сбои — как `RuntimeError`. Отдельная
+/// функция, а не `From`: оба типа чужие, `impl From` запрещён orphan rule.
+pub(crate) fn py_error(err: Error) -> PyErr {
+    let message = err.to_string();
+
+    match err {
+        Error::InvalidCellLetter { .. }
+        | Error::InvalidRegex { .. }
+        | Error::PatternTooLong { .. }
+        | Error::Domain { .. } => PyValueError::new_err(message),
+        Error::RegexExec { .. } | Error::Json { .. } => PyRuntimeError::new_err(message),
+    }
 }
 
 /// Версия ядра, публикуемая как константа `__version__`.
@@ -95,11 +106,11 @@ mod report_core {
     #[pymodule_export]
     const __version__: &str = crate::VERSION;
 
-    /// Ширина колонки по умолчанию (~140 пикселей).
+    /// Ширина колонки по умолчанию (~163 пикселя).
     #[pymodule_export]
     const DEFAULT_COLUMN_WIDTH: f64 = core_rs::DEFAULT_COLUMN_WIDTH;
 
-    /// Высота строки по умолчанию (~20 пикселей).
+    /// Высота строки по умолчанию (~27 пикселей).
     #[pymodule_export]
     const DEFAULT_ROW_HEIGHT: f64 = core_rs::DEFAULT_ROW_HEIGHT;
 

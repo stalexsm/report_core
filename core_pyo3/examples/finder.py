@@ -43,7 +43,7 @@ class Sheet:
 
 
 class S10406(Service):
-    def summary_0(self, sheets, **kwargs):
+    def summary(self, sheets, **kwargs):
         f = create_finder(sheets)
         print("create_finder", f)
 
@@ -107,7 +107,7 @@ class S10406(Service):
 
         return "Summary"
 
-    def _fmt_0(self, **kwargs):
+    def _fmt(self, **kwargs):
         for s in self._sheets:
             print("Fmt --> ", s)
 
@@ -161,7 +161,7 @@ def main():
 
     start_time = time.time()
     s = S10406("uow")
-    s.summary_0([sheet])
+    s.summary([sheet])
 
     print(f"Выполнено за: {time.time() - start_time:.3f} сек.")
 

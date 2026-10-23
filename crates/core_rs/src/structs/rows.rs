@@ -43,7 +43,7 @@ impl Rows {
     }
 
     #[inline]
-    pub(crate) fn get_heignt(&self, row_num: u32) -> &f64 {
+    pub(crate) fn get_height(&self, row_num: u32) -> &f64 {
         self.rows
             .get(&row_num)
             .map(|r| r.get_height())
@@ -108,7 +108,7 @@ mod tests {
 
         rows.set_height(1, 100.0);
 
-        assert_eq!(*rows.get_heignt(1), 100.0);
+        assert_eq!(*rows.get_height(1), 100.0);
     }
 
     #[test]
@@ -118,6 +118,6 @@ mod tests {
         rows.set_hidden(1, true);
 
         assert!(*rows.get_hidden(1));
-        assert_eq!(*rows.get_heignt(1), DEFAULT_ROW_HEIGHT);
+        assert_eq!(*rows.get_height(1), DEFAULT_ROW_HEIGHT);
     }
 }

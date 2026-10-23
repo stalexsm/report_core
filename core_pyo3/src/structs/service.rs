@@ -45,8 +45,9 @@ impl WrapperService {
         Ok(self._conn_db.clone())
     }
 
-    /// Данный метод для реализации генерации данных сервиса
-    /// ----------------------------------------------------
+    /// Данный метод для реализации генерации данных сервиса.
+    ///
+    /// Заготовка требует переопределения наследником.
     ///
     /// Arguments:
     /// ---------
@@ -60,18 +61,19 @@ impl WrapperService {
     ///     Any
     #[pyo3(signature = (sheets, /, **kwargs))]
     #[allow(unused)]
-    pub fn summary_0(
+    pub fn summary(
         &self,
         sheets: &Bound<'_, PyList>,
         kwargs: Option<&Bound<'_, PyDict>>,
     ) -> PyResult<&Bound<'_, PyAny>> {
         Err(PyNotImplementedError::new_err(
-            "Method 'summary_0' is not implemented",
+            "Method 'summary' is not implemented",
         ))
     }
 
     /// Данный метод для форматирования отчета сервиса.
-    /// ----------------------------------------------
+    ///
+    /// Заготовка требует переопределения наследником.
     ///
     /// Arguments:
     /// ---------
@@ -83,9 +85,9 @@ impl WrapperService {
     ///     Any
     #[pyo3(signature = (**kwargs))]
     #[allow(unused)]
-    pub fn _fmt_0(&self, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<&Bound<'_, PyAny>> {
+    pub fn _fmt(&self, kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<&Bound<'_, PyAny>> {
         Err(PyNotImplementedError::new_err(
-            "Method 'fmt_0' is not implemented",
+            "Method '_fmt' is not implemented",
         ))
     }
 
@@ -211,7 +213,7 @@ impl WrapperService {
     pub fn to_json(&self, py: Python<'_>) -> PyResult<String> {
         py.detach(|| -> PyResult<String> {
             let slf = self.inner.read();
-            Ok(slf.to_json()?)
+            slf.to_json().map_err(crate::py_error)
         })
     }
 

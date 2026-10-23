@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
+use crate::error::Result;
 use ahash::HashMap;
-use anyhow::Result;
 use parking_lot::RwLock;
 use serde::Serialize;
 
@@ -130,8 +130,6 @@ impl Sheet {
 }
 
 impl ReadableSheet for Sheet {
-    type Cell = Cell;
-
     #[inline]
     fn get_name(&self) -> String {
         self.name.to_string()
@@ -189,7 +187,7 @@ impl ReadableSheet for Sheet {
 
     #[inline]
     fn get_height_by_row(&self, row_num: u32) -> &f64 {
-        self.row_dimensions.get_heignt(row_num)
+        self.row_dimensions.get_height(row_num)
     }
 
     #[inline]

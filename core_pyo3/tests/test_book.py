@@ -59,7 +59,7 @@ def test_sheets_shares_sheet_with_book(book: Book) -> None:
     stored = book.get_sheet_name("отчёт")
 
     assert stored is not None
-    assert stored.get_value_cell(9, 9) == "дополнение"
+    assert stored.find_value_by_coords(9, 9) == "дополнение"
 
 
 def test_get_sheet_index_returns_sheet(book: Book) -> None:
@@ -80,7 +80,7 @@ def test_get_sheet_name_found(book: Book) -> None:
     sheet = book.get_sheet_name("отчёт")
 
     assert sheet is not None
-    assert sheet.get_value_cell(1, 1) == "значение"
+    assert sheet.find_value_by_coords(1, 1) == "значение"
 
 
 def test_get_sheet_name_missing(book: Book) -> None:
@@ -95,7 +95,7 @@ def test_copy_sheet_appends_copy(book: Book) -> None:
 
     assert copy.name == "Sheet 2"
     assert len(book.sheets) == 2
-    assert copy.get_value_cell(1, 1) == "значение"
+    assert copy.find_value_by_coords(1, 1) == "значение"
 
 
 def test_to_dict_contains_sheet_data(book: Book) -> None:

@@ -142,7 +142,7 @@ impl WrapperBook {
     pub fn to_json(&self, py: Python<'_>) -> PyResult<String> {
         py.detach(|| -> PyResult<String> {
             let slf = self.0.read();
-            Ok(slf.to_json()?)
+            slf.to_json().map_err(crate::py_error)
         })
     }
 

@@ -19,7 +19,7 @@ pub enum CellRawValue {
 impl CellRawValue {
     /// Метод для получения типа данных.
     #[inline]
-    pub(crate) fn get_date_type(&self) -> &str {
+    pub(crate) fn get_data_type(&self) -> &str {
         match &self {
             Self::String(_) => "s",
             Self::Integer(_) => "n",
@@ -27,20 +27,6 @@ impl CellRawValue {
             Self::Bool(_) => "b",
             Self::Datetime(_) => "d",
             _ => "s",
-        }
-    }
-
-    /// Метод для получения данных тип String.
-    #[inline]
-    pub(crate) fn _get_value_str(&self) -> String {
-        match &self {
-            Self::String(_)
-            | Self::Numeric(_)
-            | Self::Integer(_)
-            | Self::Bool(_)
-            | Self::Datetime(_) => self.to_string(),
-
-            _ => "".to_string(),
         }
     }
 }
@@ -67,7 +53,7 @@ pub struct CellValue {
 impl CellValue {
     #[inline]
     pub fn get_data_type(&self) -> &str {
-        self.raw_value.get_date_type()
+        self.raw_value.get_data_type()
     }
 
     #[inline]
@@ -84,11 +70,6 @@ impl CellValue {
             CellRawValue::String(s) => s.trim() == needle,
             raw => raw.to_string().trim() == needle,
         }
-    }
-
-    #[inline]
-    pub fn get_raw_value(&self) -> &CellRawValue {
-        &self.raw_value
     }
 
     #[inline]
@@ -127,7 +108,7 @@ impl CellValue {
     }
 
     #[inline]
-    pub fn set_value_datatime(&mut self, value: NaiveDateTime) -> &mut Self {
+    pub fn set_value_datetime(&mut self, value: NaiveDateTime) -> &mut Self {
         self.raw_value = CellRawValue::Datetime(value);
 
         self
@@ -205,11 +186,12 @@ mod tests {
             let mut cell = CellValue::default();
             cell.set_value(value);
 
-            assert!(
-                matches!(cell.get_raw_value(), CellRawValue::String(_)),
+            assert!(!cell.is_empty(), "значение {value} не должно быть пустым");
+            assert_eq!(
+                cell.get_data_type(),
+                "s",
                 "значение {value} должно остаться строкой"
             );
-            assert_eq!(cell.get_data_type(), "s");
         }
     }
 
@@ -228,9 +210,10 @@ mod tests {
             cell.set_value(raw);
 
             assert!(
-                matches!(cell.get_raw_value(), CellRawValue::Bool(b) if *b == expected),
-                "значение {raw} должно распознаться как Bool({expected})"
+                cell.is_bool(),
+                "значение {raw} должно распознаться как Bool"
             );
+            assert_eq!(cell.get_value(), expected.to_string());
         }
     }
 
@@ -243,8 +226,10 @@ mod tests {
             let mut cell = CellValue::default();
             cell.set_value(raw);
 
-            assert!(
-                matches!(cell.get_raw_value(), CellRawValue::String(_)),
+            assert!(!cell.is_empty(), "значение {raw} не должно быть пустым");
+            assert_eq!(
+                cell.get_data_type(),
+                "s",
                 "значение {raw} должно остаться строкой"
             );
         }
@@ -255,12 +240,11 @@ mod tests {
         let mut cell = CellValue::default();
 
         cell.set_value("1.5");
-        assert!(matches!(
-            cell.get_raw_value(),
-            CellRawValue::Numeric(number) if *number == 1.5
-        ));
+        assert!(cell.is_numeric(), "значение 1.5 должно стать числом");
+        assert_eq!(cell.get_value(), "1.5");
 
         cell.set_value("42");
-        assert!(matches!(cell.get_raw_value(), CellRawValue::Integer(42)));
+        assert!(cell.is_integer(), "значение 42 должно стать целым числом");
+        assert_eq!(cell.get_value(), "42");
     }
 }

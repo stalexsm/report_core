@@ -82,11 +82,11 @@ def test_cell_column_garbage_is_value_error(column) -> None:
         pytest.param("5", 1, id="string-row"),
         pytest.param(2, "3", id="string-column"),
         pytest.param(1.0, 2.0, id="integral-float"),
-        pytest.param(4294967295, 65535, id="upper-bound"),
+        pytest.param(1_048_576, 16_384, id="upper-bound"),
     ],
 )
 def test_cell_valid_coords_accepted(row, column) -> None:
-    """Валидные координаты (в том числе числовые строки) читаются как есть."""
+    """Валидные координаты домена Excel (в т.ч. числовые строки) читаются как есть."""
     sheet = readable.create_finder([duck_sheet([duck_cell(row=row, column=column)])])
     sheet = sheet.find_sheet_by_name("t")
     cell = sheet.cells[0]

@@ -1,8 +1,10 @@
 use serde::Serialize;
 
-use anyhow::Result;
-
-use crate::utils::{get_letter_coordinate, index_from_coordinate, invalid_cell_letter};
+use crate::{
+    MAX_COL, MAX_ROW,
+    error::{Error, Result},
+    utils::{get_letter_coordinate, index_from_coordinate},
+};
 
 pub type CellIndex = (Option<u32>, Option<u16>);
 
@@ -27,7 +29,7 @@ impl From<(&u32, &u16)> for Coordinate {
 }
 
 impl TryFrom<String> for Coordinate {
-    type Error = anyhow::Error;
+    type Error = Error;
 
     #[inline]
     fn try_from(value: String) -> Result<Self> {
@@ -36,7 +38,7 @@ impl TryFrom<String> for Coordinate {
 }
 
 impl TryFrom<&str> for Coordinate {
-    type Error = anyhow::Error;
+    type Error = Error;
 
     #[inline]
     fn try_from(value: &str) -> Result<Self> {
@@ -45,7 +47,7 @@ impl TryFrom<&str> for Coordinate {
 
         match (row, col) {
             (Some(row), Some(col)) => Ok(Coordinate::new(row, col)),
-            _ => Err(invalid_cell_letter(value)),
+            _ => Err(Error::invalid_cell_letter(value)),
         }
     }
 }
@@ -61,11 +63,30 @@ impl Coordinate {
     pub fn new(row: u32, column: u16) -> Self {
         Coordinate { row, column }
     }
+
+    /// Координата с проверкой домена Excel: строки `1..=MAX_ROW`,
+    /// колонки `1..=MAX_COL`. Для внутренних путей, где валидность
+    /// гарантирована вызывающим кодом, остаётся непроверяющий `new`.
+    ///
+    /// # Errors
+    ///
+    /// `Domain` — координата вне домена Excel.
+    pub fn try_new(row: u32, column: u16) -> Result<Self> {
+        if row == 0 || row > MAX_ROW || column == 0 || column > MAX_COL {
+            return Err(Error::domain(format!(
+                "Координата ({row}; {column}) вне домена Excel \
+                 (строки 1..={}, колонки 1..={})",
+                MAX_ROW, MAX_COL
+            )));
+        }
+
+        Ok(Coordinate { row, column })
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use anyhow::Result;
+    use crate::error::Result;
 
     use super::*;
 
@@ -102,5 +123,38 @@ mod tests {
             Coordinate::try_from("XFD1048576").unwrap(),
             Coordinate::new(1_048_576, 16_384)
         );
+    }
+}
+
+#[cfg(test)]
+mod try_new_tests {
+    use super::*;
+    use crate::{MAX_COL, MAX_ROW};
+
+    /// Валидная координата домена Excel проходит.
+    #[test]
+    fn try_new_accepts_domain() -> Result<()> {
+        assert_eq!(Coordinate::try_new(1, 1)?, Coordinate::new(1, 1));
+        assert_eq!(
+            Coordinate::try_new(MAX_ROW, MAX_COL)?,
+            Coordinate::new(MAX_ROW, MAX_COL)
+        );
+
+        Ok(())
+    }
+
+    /// Нулевые координаты и выход за границы листа отклоняются.
+    #[test]
+    fn try_new_rejects_out_of_domain() {
+        for (row, col) in [(0, 1), (1, 0), (0, 0)] {
+            let err = Coordinate::try_new(row, col).unwrap_err();
+            assert!(err.to_string().contains("вне домена"), "получено: {err}");
+        }
+
+        let err = Coordinate::try_new(MAX_ROW + 1, 1).unwrap_err();
+        assert!(err.to_string().contains("вне домена"), "получено: {err}");
+
+        let err = Coordinate::try_new(1, MAX_COL + 1).unwrap_err();
+        assert!(err.to_string().contains("вне домена"), "получено: {err}");
     }
 }

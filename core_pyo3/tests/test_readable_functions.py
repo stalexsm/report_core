@@ -53,9 +53,15 @@ def test_find_cell_by_regex(cells) -> None:
 
 
 def test_find_cell_by_regex_invalid(cells) -> None:
-    """Невалидный шаблон доходит до движка regex и отдаёт RuntimeError."""
-    with pytest.raises(RuntimeError):
+    """Невалидный шаблон — ValueError: доменная ошибка, а не внутренний сбой."""
+    with pytest.raises(ValueError):
         readable.find_cell_by_regex("(", cells)
+
+
+def test_find_cell_by_regex_pattern_too_long(cells) -> None:
+    """Шаблон длиннее предела ядра (512) — ValueError, а не молчаливый поиск."""
+    with pytest.raises(ValueError, match="exceeds the maximum"):
+        readable.find_cell_by_regex("a" * 513, cells)
 
 
 def test_find_cell_by_str(cells) -> None:
@@ -155,4 +161,4 @@ def test_create_finder_and_find(cells) -> None:
 
     found = finder.find_sheet_by_name("другой")
     assert found is not None
-    assert found.get_value_cell(1, 1) == "значение"
+    assert found.find_value_by_coords(1, 1) == "значение"

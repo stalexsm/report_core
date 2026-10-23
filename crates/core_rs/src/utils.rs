@@ -1,8 +1,11 @@
-use anyhow::{Result, anyhow, bail};
+use std::sync::LazyLock;
 
-use crate::{MAX_COL, MAX_ROW, structs::coordinate::CellIndex};
+use crate::{
+    MAX_COL, MAX_ROW,
+    error::{Error, Result},
+    structs::coordinate::CellIndex,
+};
 use fancy_regex::Regex;
-use lazy_static::lazy_static;
 
 /// Преобразование номера колонки в букву.
 /// Данный метод используется по обработки формирования данных excel.
@@ -33,14 +36,6 @@ pub fn get_letter_coordinate(row: u32, col: u16) -> String {
     format!("{}{}", index_to_alpha(col), row)
 }
 
-/// Определение формата по типу
-pub(crate) fn _get_number_format_by_datatype(data_type: &str) -> String {
-    match data_type {
-        "d" => "mm-dd-yy".to_string(),
-        _ => "General".to_string(),
-    }
-}
-
 fn alpha_to_index<S>(alpha: S) -> u32
 where
     S: AsRef<str>,
@@ -64,11 +59,6 @@ where
         .sum::<u32>()
 }
 
-/// Ошибка для невалидной буквенной координаты ячейки.
-pub(crate) fn invalid_cell_letter<T: AsRef<str>>(letter: T) -> anyhow::Error {
-    anyhow!("invalid cell letter: {}", letter.as_ref())
-}
-
 /// Разбор буквенной координаты (A1) в индексы `(row, col)`.
 ///
 /// Координата обязана быть полной и валидной: якорный шаблон
@@ -79,9 +69,9 @@ pub fn index_from_coordinate<T>(coordinate: T) -> Result<CellIndex>
 where
     T: AsRef<str>,
 {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r"^\$?([A-Z]{1,3})\$?([0-9]+)$").unwrap();
-    }
+    // Фиксированный шаблон, компилируется один раз на процесс
+    static RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^\$?([A-Z]{1,3})\$?([0-9]+)$").expect("валидный шаблон"));
 
     let letter = coordinate.as_ref();
     let upper = letter.to_uppercase();
@@ -89,7 +79,7 @@ where
         .captures(&upper)
         .ok()
         .flatten()
-        .ok_or_else(|| invalid_cell_letter(letter))?;
+        .ok_or_else(|| Error::invalid_cell_letter(letter))?;
 
     // col number: [A-Z]{1,3}, row number: [0-9]+ — обе части обязательны.
     let col = caps.get(1).map(|v| alpha_to_index(v.as_str()) as u16);
@@ -97,6 +87,6 @@ where
 
     match (col, row) {
         (Some(col), Some(row)) if col <= MAX_COL && row <= MAX_ROW => Ok((Some(row), Some(col))),
-        _ => bail!(invalid_cell_letter(letter)),
+        _ => Err(Error::invalid_cell_letter(letter)),
     }
 }
