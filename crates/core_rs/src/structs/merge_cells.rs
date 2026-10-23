@@ -24,6 +24,38 @@ impl MergeCells {
     pub fn add_range(&mut self, range: Range) {
         self.range.push(range);
     }
+
+    /// Сдвигает/усекает диапазоны слияний при удалении строк `[idx; idx + amount)`.
+    ///
+    /// Диапазоны, целиком попавшие в удаление и усечённые до одной ячейки,
+    /// удаляются; одноячеечные диапазоны, созданные до удаления, сохраняются.
+    #[inline]
+    pub(crate) fn delete_rows(&mut self, idx: u32, amount: u32) {
+        self.range = self
+            .range
+            .iter()
+            .filter_map(|range| {
+                let shifted = range.delete_rows(idx, amount)?;
+
+                (shifted.is_single_cell() == range.is_single_cell()).then_some(shifted)
+            })
+            .collect();
+    }
+
+    /// Сдвигает/усекает диапазоны слияний при удалении колонок
+    /// `[idx; idx + amount)`. Симметрично `delete_rows`.
+    #[inline]
+    pub(crate) fn delete_cols(&mut self, idx: u16, amount: u16) {
+        self.range = self
+            .range
+            .iter()
+            .filter_map(|range| {
+                let shifted = range.delete_cols(idx, amount)?;
+
+                (shifted.is_single_cell() == range.is_single_cell()).then_some(shifted)
+            })
+            .collect();
+    }
 }
 
 // Для сериализации

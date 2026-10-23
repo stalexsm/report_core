@@ -39,4 +39,12 @@ impl Column {
 
         self
     }
+
+    /// Пересчитывает номер колонки при удалении колонок выше/на её месте
+    #[inline]
+    pub(crate) fn set_col_num(&mut self, col_num: u16) -> &mut Self {
+        self.col_num = col_num;
+
+        self
+    }
 }

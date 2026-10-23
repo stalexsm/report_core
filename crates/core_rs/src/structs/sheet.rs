@@ -65,6 +65,68 @@ impl Sheet {
             ..self.clone()
         }
     }
+
+    /// Сдвигает координаты комментариев при удалении строк `[idx; idx + amount)`,
+    /// комментарии из удаляемого диапазона удаляются — как ячейки.
+    ///
+    /// Ожидается валидный диапазон удаления: `idx ≥ 1`, `amount ≥ 1`.
+    fn remap_comments_rows(&mut self, idx: u32, amount: u32) {
+        let delete_end = (idx as u64 + amount as u64 - 1) as u32;
+
+        self.comments = self
+            .comments
+            .drain(..)
+            .filter_map(|comment| {
+                let row = comment.read().get_coordinate().row;
+
+                if row < idx {
+                    // Выше удаления — без изменений
+                    Some(comment)
+                } else if row > delete_end {
+                    // Ниже удаления — сдвиг вверх
+                    let column = comment.read().get_coordinate().column;
+
+                    comment
+                        .write()
+                        .set_coordinate(Coordinate::new(row - amount, column));
+                    Some(comment)
+                } else {
+                    // Комментарий удалённой ячейки исчезает вместе с ней
+                    None
+                }
+            })
+            .collect();
+    }
+
+    /// Сдвигает координаты комментариев при удалении колонок
+    /// `[idx; idx + amount)`. Симметрично `remap_comments_rows`.
+    fn remap_comments_cols(&mut self, idx: u16, amount: u16) {
+        let delete_end = (idx as u64 + amount as u64 - 1) as u16;
+
+        self.comments = self
+            .comments
+            .drain(..)
+            .filter_map(|comment| {
+                let column = comment.read().get_coordinate().column;
+
+                if column < idx {
+                    // Левее удаления — без изменений
+                    Some(comment)
+                } else if column > delete_end {
+                    // Правее удаления — сдвиг влево
+                    let row = comment.read().get_coordinate().row;
+
+                    comment
+                        .write()
+                        .set_coordinate(Coordinate::new(row, column - amount));
+                    Some(comment)
+                } else {
+                    // Комментарий удалённой ячейки исчезает вместе с ней
+                    None
+                }
+            })
+            .collect();
+    }
 }
 
 impl ReadableSheet for Sheet {
@@ -280,12 +342,22 @@ impl WriteableSheet for Sheet {
 
     #[inline]
     fn delete_cols(&mut self, idx: u16, amount: u16) -> Result<()> {
-        self.cells.delete_cols(idx, amount)
+        self.cells.delete_cols(idx, amount)?;
+        self.merge_cells.delete_cols(idx, amount);
+        self.column_dimensions.delete_cols(idx, amount);
+        self.remap_comments_cols(idx, amount);
+
+        Ok(())
     }
 
     #[inline]
     fn delete_rows(&mut self, idx: u32, amount: u32) -> Result<()> {
-        self.cells.delete_rows(idx, amount)
+        self.cells.delete_rows(idx, amount)?;
+        self.merge_cells.delete_rows(idx, amount);
+        self.row_dimensions.delete_rows(idx, amount);
+        self.remap_comments_rows(idx, amount);
+
+        Ok(())
     }
 
     #[inline]
@@ -312,7 +384,7 @@ impl WriteableSheet for Sheet {
 #[cfg(test)]
 mod tests {
     use crate::traits::{ReadableCell, WriteableCell};
-    use crate::{MAX_COL, MAX_ROW};
+    use crate::{DEFAULT_COLUMN_WIDTH, DEFAULT_ROW_HEIGHT, MAX_COL, MAX_ROW};
 
     use super::*;
 
@@ -387,7 +459,7 @@ mod tests {
     }
 
     /// Повторный `cell(r, c)` без значения (touch) не мутирует тип и значение
-    /// существующей ячейки: числовая ячейка остаётся "n" (issue #19).
+    /// существующей ячейки: числовая ячейка остаётся "n".
     #[test]
     fn cell_touch_preserves_existing_data_type() {
         let mut sheet = Sheet::new("A", "visible");
@@ -500,8 +572,183 @@ mod tests {
         assert_eq!(sheet.get_cell_collection().len(), 5);
     }
 
+    /// Delete_rows сдвигает merge-диапазоны, оставшиеся ниже удаления,
+    /// и не трогает диапазоны выше.
+    #[test]
+    fn delete_rows_shifts_merge_cells_below() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        sheet.add_merge_range(Range::new(1, 1, 1, 2)); // выше удаления
+        sheet.add_merge_range(Range::new(7, 8, 1, 2)); // ниже удаления
+
+        sheet.delete_rows(2, 4).unwrap(); // удалены строки 2–5
+
+        let merges = sheet.get_merge_cell_collection();
+
+        assert_eq!(merges.len(), 2);
+        assert!(merges.contains(&Range::new(1, 1, 1, 2)));
+        assert!(merges.contains(&Range::new(3, 4, 1, 2)));
+    }
+
+    /// Delete_rows: merge внутри диапазона удаления удаляется, частично
+    /// пересекающийся усекается, а усечённый до одной ячейки удаляется.
+    /// Одноячеечный до удаления диапазон сохраняется.
+    #[test]
+    fn delete_rows_truncates_and_drops_intersecting_merge_cells() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        sheet.add_merge_range(Range::new(2, 3, 1, 2)); // целиком внутри удаления
+        sheet.add_merge_range(Range::new(1, 2, 4, 5)); // хвост в удалении
+        sheet.add_merge_range(Range::new(5, 6, 7, 8)); // голова в удалении
+        sheet.add_merge_range(Range::new(5, 6, 9, 9)); // усечётся до одной ячейки
+        sheet.add_merge_range(Range::new(9, 10, 1, 2)); // ниже удаления
+        sheet.add_merge_range(Range::new(9, 9, 4, 4)); // одноячеечный до удаления
+
+        sheet.delete_rows(2, 4).unwrap(); // удалены строки 2–5
+
+        let merges = sheet.get_merge_cell_collection();
+
+        assert_eq!(merges.len(), 4);
+        // Хвост (строка 2) удалён, осталась строка 1
+        assert!(merges.contains(&Range::new(1, 1, 4, 5)));
+        // Голова (строка 5) удалена, строка 6 сдвинулась на 2
+        assert!(merges.contains(&Range::new(2, 2, 7, 8)));
+        // (2,3) удалён целиком, (5,6,9,9) схлопнулся до одной ячейки,
+        // одноячеечный (9,9,4,4) сохранился, сдвинувшись на (5,5,4,4)
+        assert!(merges.contains(&Range::new(5, 6, 1, 2)));
+        assert!(merges.contains(&Range::new(5, 5, 4, 4)));
+    }
+
+    /// Delete_cols: merge-диапазоны сдвигаются влево, усекаются или удаляются.
+    #[test]
+    fn delete_cols_shifts_and_truncates_merge_cells() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        sheet.add_merge_range(Range::new(1, 2, 2, 3)); // целиком внутри удаления
+        sheet.add_merge_range(Range::new(1, 2, 1, 3)); // хвост в удалении
+        sheet.add_merge_range(Range::new(1, 2, 5, 6)); // голова в удалении
+        sheet.add_merge_range(Range::new(9, 9, 5, 6)); // усечётся до одной ячейки
+        sheet.add_merge_range(Range::new(1, 2, 9, 10)); // правее удаления
+        sheet.add_merge_range(Range::new(1, 1, 9, 9)); // одноячеечный до удаления
+
+        sheet.delete_cols(2, 4).unwrap(); // удалены колонки 2–5
+
+        let merges = sheet.get_merge_cell_collection();
+
+        assert_eq!(merges.len(), 4);
+        // Хвост (колонки 2–3) удалён, осталась колонка 1
+        assert!(merges.contains(&Range::new(1, 2, 1, 1)));
+        // Голова (колонка 5) удалена, колонка 6 сдвинулась на 2
+        assert!(merges.contains(&Range::new(1, 2, 2, 2)));
+        // (2,3) удалён целиком, (9,9,5,6) схлопнулся до одной ячейки,
+        // одноячеечный (1,1,9,9) сохранился, сдвинувшись на (1,1,5,5)
+        assert!(merges.contains(&Range::new(1, 2, 5, 6)));
+        assert!(merges.contains(&Range::new(1, 1, 5, 5)));
+    }
+
+    /// Delete_rows пересчитывает ключи row_dimensions: размеры строк ниже
+    /// удаления сдвигаются вверх, размеры удалённых строк исчезают.
+    #[test]
+    fn delete_rows_shifts_row_dimensions() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        sheet.set_height_row(1, 10.0); // выше удаления
+        sheet.set_height_row(3, 30.0); // внутри удаления
+        sheet.set_height_row(7, 70.0); // ниже удаления
+        sheet.set_hidden_row(7, true);
+
+        sheet.delete_rows(2, 4).unwrap(); // удалены строки 2–5
+
+        assert_eq!(*sheet.get_height_by_row(1), 10.0); // выше — на месте
+        assert_eq!(*sheet.get_height_by_row(3), 70.0); // 7 → 3
+        assert!(*sheet.get_hidden_by_row(3));
+        assert_eq!(*sheet.get_height_by_row(7), DEFAULT_ROW_HEIGHT); // ключ исчез
+    }
+
+    /// Delete_cols пересчитывает ключи column_dimensions: размеры колонок
+    /// правее удаления сдвигаются влево, размеры удалённых колонок исчезают.
+    #[test]
+    fn delete_cols_shifts_column_dimensions() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        sheet.set_width_column(1, 10.0); // левее удаления
+        sheet.set_width_column(3, 30.0); // внутри удаления
+        sheet.set_width_column(7, 70.0); // правее удаления
+        sheet.set_hidden_column(7, true);
+
+        sheet.delete_cols(2, 4).unwrap(); // удалены колонки 2–5
+
+        assert_eq!(*sheet.get_width_by_column(1), 10.0); // левее — на месте
+        assert_eq!(*sheet.get_width_by_column(3), 70.0); // 7 → 3
+        assert!(*sheet.get_hidden_by_column(3));
+        assert_eq!(*sheet.get_width_by_column(7), DEFAULT_COLUMN_WIDTH); // ключ исчез
+    }
+
+    /// Delete_rows сдвигает координаты комментариев, а комментарии из
+    /// удаляемого диапазона удаляются — как ячейки и как в Excel.
+    #[test]
+    fn delete_rows_shifts_and_drops_comments() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        sheet.add_comments(Comment::new(Coordinate::new(1, 1), "A")); // выше удаления
+        sheet.add_comments(Comment::new(Coordinate::new(3, 2), "B")); // внутри удаления
+        sheet.add_comments(Comment::new(Coordinate::new(7, 3), "C")); // ниже удаления
+
+        sheet.delete_rows(2, 4).unwrap(); // удалены строки 2–5
+
+        let comments = sheet.get_comments();
+
+        assert_eq!(comments.len(), 2);
+        assert_eq!(comments[0].read().get_coordinate(), &Coordinate::new(1, 1));
+        assert_eq!(comments[1].read().get_coordinate(), &Coordinate::new(3, 3));
+    }
+
+    /// Delete_cols сдвигает координаты комментариев, а комментарии из
+    /// удаляемого диапазона удаляются.
+    #[test]
+    fn delete_cols_shifts_and_drops_comments() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        sheet.add_comments(Comment::new(Coordinate::new(1, 1), "A")); // левее удаления
+        sheet.add_comments(Comment::new(Coordinate::new(2, 3), "B")); // внутри удаления
+        sheet.add_comments(Comment::new(Coordinate::new(3, 7), "C")); // правее удаления
+
+        sheet.delete_cols(2, 4).unwrap(); // удалены колонки 2–5
+
+        let comments = sheet.get_comments();
+
+        assert_eq!(comments.len(), 2);
+        assert_eq!(comments[0].read().get_coordinate(), &Coordinate::new(1, 1));
+        assert_eq!(comments[1].read().get_coordinate(), &Coordinate::new(3, 3));
+    }
+
+    /// Ошибочный delete_rows/cols (за границами листа) не мутирует ничего:
+    /// merge, размеры и комментарии остаются на месте.
+    #[test]
+    fn delete_out_of_bounds_leaves_metadata_untouched() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        sheet.cell(Coordinate::new(1, 1), Some("A1"));
+        sheet.add_merge_range(Range::new(2, 3, 1, 2));
+        sheet.set_height_row(2, 20.0);
+        sheet.set_width_column(2, 20.0);
+        sheet.add_comments(Comment::new(Coordinate::new(2, 2), "A"));
+
+        assert!(sheet.delete_rows(MAX_ROW, 2).is_err());
+        assert!(sheet.delete_cols(MAX_COL, 2).is_err());
+
+        assert!(
+            sheet
+                .get_merge_cell_collection()
+                .contains(&Range::new(2, 3, 1, 2))
+        );
+        assert_eq!(*sheet.get_height_by_row(2), 20.0);
+        assert_eq!(*sheet.get_width_by_column(2), 20.0);
+        assert_eq!(sheet.get_comments().len(), 1);
+    }
+
     /// Диапазон удаления за границами листа → Err, а не переполнение u16
-    /// с коллизиями ключей (issue #8).
+    /// с коллизиями ключей.
     #[test]
     fn delete_cols_out_of_bounds() {
         let mut sheet = Sheet::new("A", "visible");
@@ -536,7 +783,7 @@ mod tests {
         assert!(sheet.delete_rows(1, 0).is_err());
     }
 
-    /// Граничные валидные вызовы → Ok, содержимое корректно (issue #8).
+    /// Граничные валидные вызовы → Ok, содержимое корректно.
     #[test]
     fn delete_cols_boundaries() {
         // Удалить последнюю колонку (XFD = MAX_COL) — валидно
@@ -575,7 +822,7 @@ mod tests {
     }
 
     /// После валидного удаления ячейки правее/ниже диапазона сдвигаются
-    /// с корректными значениями и координатами (issue #8).
+    /// с корректными значениями и координатами.
     #[test]
     fn delete_cols_shifts_content() {
         let mut sheet = Sheet::new("A", "visible");

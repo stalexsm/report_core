@@ -24,6 +24,15 @@ impl Comment {
         &self.coordinate
     }
 
+    /// Пересчитывает координату комментария при удалении строк/колонок выше
+    /// и на его месте.
+    #[inline]
+    pub(crate) fn set_coordinate(&mut self, coordinate: Coordinate) -> &mut Self {
+        self.coordinate = coordinate;
+
+        self
+    }
+
     #[inline]
     pub fn get_author(&self) -> &str {
         &self.author

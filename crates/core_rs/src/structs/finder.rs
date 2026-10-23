@@ -107,7 +107,7 @@ mod tests {
         assert_eq!(f.get_name(), "A")
     }
 
-    /// Невалидный шаблон — Err, а не паника (issue #6).
+    /// Невалидный шаблон — Err, а не паника.
     #[test]
     fn find_sheet_by_regex_invalid_pattern() {
         let f = Finder::new(vec![Sheet::new("A", "visible")]);
