@@ -11,7 +11,8 @@
 #   - тулчейн Rust в macos и windows ставится явно (dtolnay/rust-toolchain):
 #     предустановленный rustc на образах раннеров отстаёт от MSRV из Cargo.toml;
 #   - публикация — только по тегу, токен — через environment pypi (skylos SKY-D299);
-#   - GitHub Release создаётся автоматически с описанием из секции CHANGELOG.md.
+#   - GitHub Release создаётся автоматически с описанием из секции CHANGELOG.md;
+#     имя релиза — с префиксом v (vX.Y.Z), сам тег остаётся без префикса (X.Y.Z).
 #
 #    maturin generate-ci github
 #
@@ -278,6 +279,7 @@ jobs:
         # (git-cliff --unreleased --tag X.Y.Z, см. docs/agents/git-workflow.md),
         # поэтому в дереве тега она гарантированно есть.
         # Шаг идёт после публикации: релиз создаётся только при успешной выкатке.
+        # Имя релиза — с префиксом v (vX.Y.Z); тег всегда без префикса (X.Y.Z).
         run: |
           awk -v header="## [${GITHUB_REF_NAME}]" '
             index($0, header) == 1 { found = 1; print; next }
@@ -289,13 +291,13 @@ jobs:
             exit 1
           }
           if gh release view "${GITHUB_REF_NAME}" > /dev/null 2>&1; then
-            echo "Релиз ${GITHUB_REF_NAME} уже существует — обновляю описание"
+            echo "Релиз ${GITHUB_REF_NAME} уже существует — обновляю имя и описание"
             gh release edit "${GITHUB_REF_NAME}" \
-              --title "${GITHUB_REF_NAME}" \
+              --title "v${GITHUB_REF_NAME}" \
               --notes-file release_notes.md
           else
             gh release create "${GITHUB_REF_NAME}" \
-              --title "${GITHUB_REF_NAME}" \
+              --title "v${GITHUB_REF_NAME}" \
               --notes-file release_notes.md
           fi
         env:
