@@ -819,6 +819,95 @@ impl WrapperSheet {
         })
     }
 
+    /// Функция для получения ячейки по координатам
+    /// ---
+    ///
+    /// Arguments:
+    /// ---
+    ///     row: int
+    ///         Строка ячейки
+    ///     col: int
+    ///         Колонка ячейки
+    ///
+    /// Returns:
+    /// ---
+    ///     Cell | None
+    pub fn find_cell_by_coords(
+        &self,
+        py: Python<'_>,
+        row: u32,
+        col: u16,
+    ) -> PyResult<Option<WrapperCell>> {
+        let slf = self.0.read();
+
+        py.detach(|| {
+            Ok(slf
+                .find_cell_by_coords(row, col)
+                .map_err(crate::py_error)?
+                .map(|c| WrapperCell(Arc::clone(c))))
+        })
+    }
+
+    /// Функция для получения значений ячеек по колонке и списку строк.
+    /// ---
+    ///
+    /// Значения идут в порядке запрошенных строк; отсутствующая ячейка даёт
+    /// пустую строку — длина результата всегда равна длине запроса.
+    ///
+    /// Arguments:
+    /// ---
+    ///     col: int
+    ///         Колонка
+    ///     rows: list[int]
+    ///         Список строк
+    ///
+    /// Returns:
+    /// ---
+    ///     list[str]
+    pub fn find_values_by_col_rows(
+        &self,
+        py: Python<'_>,
+        col: u16,
+        rows: Vec<u32>,
+    ) -> PyResult<Vec<String>> {
+        let slf = self.0.read();
+
+        py.detach(|| {
+            slf.find_values_by_col_rows(col, rows)
+                .map_err(crate::py_error)
+        })
+    }
+
+    /// Функция для получения значений ячеек по строке и списку колонок.
+    /// ---
+    ///
+    /// Значения идут в порядке запрошенных колонок; отсутствующая ячейка даёт
+    /// пустую строку — длина результата всегда равна длине запроса.
+    ///
+    /// Arguments:
+    /// ---
+    ///     row: int
+    ///         Строка
+    ///     cols: list[int]
+    ///         Список колонок
+    ///
+    /// Returns:
+    /// ---
+    ///     list[str]
+    pub fn find_values_by_row_cols(
+        &self,
+        py: Python<'_>,
+        row: u32,
+        cols: Vec<u16>,
+    ) -> PyResult<Vec<String>> {
+        let slf = self.0.read();
+
+        py.detach(|| {
+            slf.find_values_by_row_cols(row, cols)
+                .map_err(crate::py_error)
+        })
+    }
+
     /// Функция для поиска значения ячейки по координатам
     /// ---
     ///

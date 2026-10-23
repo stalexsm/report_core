@@ -277,3 +277,25 @@ def test_find_value_by_coords(sheet) -> None:
     """Значение по координатам: есть и нет."""
     assert sheet.find_value_by_coords(1, 1) == "v11"
     assert sheet.find_value_by_coords(100, 100) is None
+
+
+def test_find_cell_by_coords(sheet) -> None:
+    """Ячейка по координатам: найдена и промах."""
+    found = sheet.find_cell_by_coords(2, 3)
+
+    assert found is not None
+    assert (found.row, found.column) == (2, 3)
+    assert found.value == "v23"
+    assert sheet.find_cell_by_coords(100, 100) is None
+
+
+def test_find_values_by_col_rows(sheet) -> None:
+    """Значения по колонке и списку строк — в порядке запроса, пропуски пустые."""
+    assert sheet.find_values_by_col_rows(2, [1, 3]) == ["v12", "v32"]
+    assert sheet.find_values_by_col_rows(2, [5, 1]) == ["", "v12"]
+
+
+def test_find_values_by_row_cols(sheet) -> None:
+    """Значения по строке и списку колонок — в порядке запроса, пропуски пустые."""
+    assert sheet.find_values_by_row_cols(3, [1, 2]) == ["v31", "v32"]
+    assert sheet.find_values_by_row_cols(3, [1, 99]) == ["v31", ""]

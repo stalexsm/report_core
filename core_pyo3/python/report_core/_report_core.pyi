@@ -5,6 +5,7 @@ Rust-ядро для построения отчётов на основе XLSX.
 from datetime import datetime
 from typing import Any, Final, SupportsFloat, SupportsIndex, final
 
+from _typeshed import SupportsGetItem
 from typing_extensions import disjoint_base
 
 from . import readable as readable
@@ -613,6 +614,22 @@ class Sheet:
             OverflowError
                 Если idx или amount отрицательные
         """
+    def find_cell_by_coords(self, /, row: SupportsIndex, col: SupportsIndex) -> Cell | None:
+        """
+        Функция для получения ячейки по координатам
+        ---
+
+        Arguments:
+        ---
+            row: int
+                Строка ячейки
+            col: int
+                Колонка ячейки
+
+        Returns:
+        ---
+            Cell | None
+        """
     def find_cell_by_letter(self, /, letter: str) -> Cell | None:
         """
         Функция для получения ячейки по буквенной координате (A1).
@@ -801,6 +818,44 @@ class Sheet:
         Returns:
         ---
             str | None
+        """
+    def find_values_by_col_rows(self, /, col: SupportsIndex, rows: SupportsGetItem[int, SupportsIndex]) -> list[str]:
+        """
+        Функция для получения значений ячеек по колонке и списку строк.
+        ---
+
+        Значения идут в порядке запрошенных строк; отсутствующая ячейка даёт
+        пустую строку — длина результата всегда равна длине запроса.
+
+        Arguments:
+        ---
+            col: int
+                Колонка
+            rows: list[int]
+                Список строк
+
+        Returns:
+        ---
+            list[str]
+        """
+    def find_values_by_row_cols(self, /, row: SupportsIndex, cols: SupportsGetItem[int, SupportsIndex]) -> list[str]:
+        """
+        Функция для получения значений ячеек по строке и списку колонок.
+        ---
+
+        Значения идут в порядке запрошенных колонок; отсутствующая ячейка даёт
+        пустую строку — длина результата всегда равна длине запроса.
+
+        Arguments:
+        ---
+            row: int
+                Строка
+            cols: list[int]
+                Список колонок
+
+        Returns:
+        ---
+            list[str]
         """
     def get_cells_by_range(self, /, start_row: SupportsIndex | None = None, end_row: SupportsIndex | None = None, start_col: SupportsIndex | None = None, end_col: SupportsIndex | None = None) -> list[Cell]:
         """
