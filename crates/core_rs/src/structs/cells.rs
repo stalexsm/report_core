@@ -180,6 +180,10 @@ impl Cells {
         cells.into_iter().map(|(_, cell)| cell)
     }
 
+    /// Get-or-create ячейки по координатам.
+    ///
+    /// Существующая ячейка не мутируется: при `Some(value)` значение
+    /// перезаписывается, при `None` возвращается ячейка как есть.
     #[inline]
     pub fn cell<T>(&mut self, coordinate: T, value: Option<&str>) -> &Arc<RwLock<Cell>>
     where
@@ -191,13 +195,11 @@ impl Cells {
             Arc::new(RwLock::new(Cell::new(Coordinate::new(row, column), value)))
         });
 
+        // Get-or-create: существующую ячейку не мутируем. Новая пустая ячейка
+        // уже получает data_type "s" в Cell::new (Empty → "s"), поэтому touch
+        // без значения не требует никаких правок (issue #19).
         if let Some(value) = value {
             cell.write().set_value(value);
-        } else {
-            let mut c = cell.write();
-            if !c.is_formula() {
-                c.set_data_type("s");
-            }
         }
 
         cell

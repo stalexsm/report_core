@@ -311,7 +311,7 @@ impl WriteableSheet for Sheet {
 
 #[cfg(test)]
 mod tests {
-    use crate::traits::ReadableCell;
+    use crate::traits::{ReadableCell, WriteableCell};
     use crate::{MAX_COL, MAX_ROW};
 
     use super::*;
@@ -384,6 +384,63 @@ mod tests {
         sheet.cell(coord.clone(), Some("Привет, мир!"));
 
         assert_eq!(sheet.get_cell_value(coord), "Привет, мир!");
+    }
+
+    /// Повторный `cell(r, c)` без значения (touch) не мутирует тип и значение
+    /// существующей ячейки: числовая ячейка остаётся "n" (issue #19).
+    #[test]
+    fn cell_touch_preserves_existing_data_type() {
+        let mut sheet = Sheet::new("A", "visible");
+        let coord = Coordinate::new(1, 1);
+
+        sheet.cell(coord.clone(), Some("3.14"));
+
+        let cell = sheet.cell(coord, None);
+
+        assert_eq!(cell.read().get_data_type(), "n");
+        assert_eq!(cell.read().get_value(), "3.14");
+    }
+
+    /// Touch не мутирует и строковую ячейку: тип "s" и значение на месте.
+    #[test]
+    fn cell_touch_preserves_string_cell() {
+        let mut sheet = Sheet::new("A", "visible");
+        let coord = Coordinate::new(1, 1);
+
+        sheet.cell(coord.clone(), Some("текст"));
+
+        let cell = sheet.cell(coord, None);
+
+        assert_eq!(cell.read().get_data_type(), "s");
+        assert_eq!(cell.read().get_value(), "текст");
+    }
+
+    /// Touch не сбрасывает тип формульной ячейки с пустым значением: "f"
+    /// сохраняется, ячейка остаётся формульной.
+    #[test]
+    fn cell_touch_preserves_formula_cell() {
+        let mut sheet = Sheet::new("A", "visible");
+        let coord = Coordinate::new(1, 1);
+
+        let cell = sheet.cell(coord.clone(), None);
+        cell.write().set_formula("SUM(B1:B10)");
+
+        let cell = sheet.cell(coord, None);
+
+        assert!(cell.read().is_formula());
+        assert_eq!(cell.read().get_data_type(), "f");
+    }
+
+    /// Touch по новой координате создаёт пустую ячейку с типом "s" —
+    /// исходное поведение ветки создания сохранено.
+    #[test]
+    fn cell_touch_creates_empty_string_typed_cell() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        let cell = sheet.cell(Coordinate::new(1, 1), None);
+
+        assert!(cell.read().is_value_empty());
+        assert_eq!(cell.read().get_data_type(), "s");
     }
 
     #[test]
