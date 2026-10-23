@@ -143,7 +143,7 @@ mod tests {
         sheet.write().cell(Coordinate::new(2, 1), Some("r2"));
 
         let sheet2 = book.copy_sheet(sheet.clone());
-        sheet2.write().delete_rows(1, 1);
+        sheet2.write().delete_rows(1, 1).unwrap();
 
         // Оригинал не тронут: обе ячейки на месте, координаты не съехали
         assert_eq!(sheet.read().get_cell_value(Coordinate::new(1, 1)), "r1");
@@ -170,7 +170,7 @@ mod tests {
         sheet.write().cell(Coordinate::new(1, 2), Some("c2"));
 
         let sheet2 = book.copy_sheet(sheet.clone());
-        sheet2.write().delete_cols(1, 1);
+        sheet2.write().delete_cols(1, 1).unwrap();
 
         // Оригинал не тронут: обе ячейки на месте, координаты не съехали
         assert_eq!(sheet.read().get_cell_value(Coordinate::new(1, 1)), "c1");

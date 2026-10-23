@@ -110,8 +110,8 @@ pub trait WriteableSheet {
     fn add_merge_range(&mut self, range: Range);
     fn add_comments(&mut self, value: Comment);
     fn cell(&mut self, coordinate: Coordinate, value: Option<&str>) -> &Arc<RwLock<Cell>>;
-    fn delete_cols(&mut self, idx: u16, amount: u16);
-    fn delete_rows(&mut self, idx: u32, amount: u32);
+    fn delete_cols(&mut self, idx: u16, amount: u16) -> Result<()>;
+    fn delete_rows(&mut self, idx: u32, amount: u32) -> Result<()>;
     fn set_height_row(&mut self, row_num: u32, val: f64);
     fn set_hidden_row(&mut self, row_num: u32, val: bool);
     fn set_width_column(&mut self, col_num: u16, val: f64);

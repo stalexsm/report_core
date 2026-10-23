@@ -279,13 +279,13 @@ impl WriteableSheet for Sheet {
     }
 
     #[inline]
-    fn delete_cols(&mut self, idx: u16, amount: u16) {
-        self.cells.delete_cols(idx, amount);
+    fn delete_cols(&mut self, idx: u16, amount: u16) -> Result<()> {
+        self.cells.delete_cols(idx, amount)
     }
 
     #[inline]
-    fn delete_rows(&mut self, idx: u32, amount: u32) {
-        self.cells.delete_rows(idx, amount);
+    fn delete_rows(&mut self, idx: u32, amount: u32) -> Result<()> {
+        self.cells.delete_rows(idx, amount)
     }
 
     #[inline]
@@ -312,6 +312,7 @@ impl WriteableSheet for Sheet {
 #[cfg(test)]
 mod tests {
     use crate::traits::ReadableCell;
+    use crate::{MAX_COL, MAX_ROW};
 
     use super::*;
 
@@ -419,7 +420,7 @@ mod tests {
             }
         }
 
-        sheet.delete_rows(2, 4);
+        sheet.delete_rows(2, 4).unwrap();
 
         assert_eq!(sheet.get_cell_collection().len(), 5);
     }
@@ -437,9 +438,132 @@ mod tests {
             }
         }
 
-        sheet.delete_cols(2, 4);
+        sheet.delete_cols(2, 4).unwrap();
 
         assert_eq!(sheet.get_cell_collection().len(), 5);
+    }
+
+    /// Диапазон удаления за границами листа → Err, а не переполнение u16
+    /// с коллизиями ключей (issue #8).
+    #[test]
+    fn delete_cols_out_of_bounds() {
+        let mut sheet = Sheet::new("A", "visible");
+        sheet.cell(Coordinate::new(1, 1), Some("A1"));
+
+        // 60000 + 10000 = 70000 > u16::MAX — раньше переполнялось
+        assert!(sheet.delete_cols(60000, 10000).is_err());
+
+        // Карта не опустошена: ошибочный вызов ничего не удаляет
+        assert_eq!(sheet.get_cell_collection().len(), 1);
+    }
+
+    /// Диапазон удаления строк за границами листа → Err.
+    #[test]
+    fn delete_rows_out_of_bounds() {
+        let mut sheet = Sheet::new("A", "visible");
+        sheet.cell(Coordinate::new(1, 1), Some("A1"));
+
+        // 1_048_577 — за границей листа (MAX_ROW = 1_048_576)
+        assert!(sheet.delete_rows(MAX_ROW, 2).is_err());
+        assert_eq!(sheet.get_cell_collection().len(), 1);
+    }
+
+    /// Нулевые idx/amount вне домена Excel → Err.
+    #[test]
+    fn delete_zero_idx_or_amount() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        assert!(sheet.delete_cols(0, 1).is_err());
+        assert!(sheet.delete_cols(1, 0).is_err());
+        assert!(sheet.delete_rows(0, 1).is_err());
+        assert!(sheet.delete_rows(1, 0).is_err());
+    }
+
+    /// Граничные валидные вызовы → Ok, содержимое корректно (issue #8).
+    #[test]
+    fn delete_cols_boundaries() {
+        // Удалить последнюю колонку (XFD = MAX_COL) — валидно
+        let mut sheet = Sheet::new("A", "visible");
+        sheet.cell(Coordinate::new(1, MAX_COL), Some("последняя"));
+
+        sheet.delete_cols(MAX_COL, 1).unwrap();
+        assert_eq!(sheet.get_cell_collection().len(), 0);
+
+        // Удалить все колонки одним вызовом — валидно
+        let mut sheet = Sheet::new("A", "visible");
+        sheet.cell(Coordinate::new(1, 1), Some("A1"));
+        sheet.cell(Coordinate::new(1, MAX_COL), Some("XFD1"));
+
+        sheet.delete_cols(1, MAX_COL).unwrap();
+        assert_eq!(sheet.get_cell_collection().len(), 0);
+    }
+
+    /// Граничные валидные вызовы для строк → Ok, содержимое корректно.
+    #[test]
+    fn delete_rows_boundaries() {
+        // Удалить последнюю строку (MAX_ROW) — валидно
+        let mut sheet = Sheet::new("A", "visible");
+        sheet.cell(Coordinate::new(MAX_ROW, 1), Some("последняя"));
+
+        sheet.delete_rows(MAX_ROW, 1).unwrap();
+        assert_eq!(sheet.get_cell_collection().len(), 0);
+
+        // Удалить все строки одним вызовом — валидно
+        let mut sheet = Sheet::new("A", "visible");
+        sheet.cell(Coordinate::new(1, 1), Some("A1"));
+        sheet.cell(Coordinate::new(MAX_ROW, 1), Some("A1048576"));
+
+        sheet.delete_rows(1, MAX_ROW).unwrap();
+        assert_eq!(sheet.get_cell_collection().len(), 0);
+    }
+
+    /// После валидного удаления ячейки правее/ниже диапазона сдвигаются
+    /// с корректными значениями и координатами (issue #8).
+    #[test]
+    fn delete_cols_shifts_content() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        for r in 1..=2 {
+            for c in 1..=5 {
+                let coord = Coordinate::new(r, c);
+                let val = format!("V{r}:{c}");
+
+                sheet.cell(coord, Some(&val));
+            }
+        }
+
+        // Удаляем колонки 2–3: 4→2, 5→3, колонка 1 не двигается
+        sheet.delete_cols(2, 2).unwrap();
+
+        assert_eq!(sheet.get_cell_collection().len(), 6);
+        assert_eq!(sheet.get_cell_value(Coordinate::new(1, 1)), "V1:1");
+        assert_eq!(sheet.get_cell_value(Coordinate::new(2, 2)), "V2:4");
+        assert_eq!(sheet.get_cell_value(Coordinate::new(1, 3)), "V1:5");
+        assert!(sheet.find_cell_by_coords(1, 4).unwrap().is_none());
+    }
+
+    /// После валидного удаления строк содержимое корректно.
+    #[test]
+    fn delete_rows_shifts_content() {
+        let mut sheet = Sheet::new("A", "visible");
+
+        for r in 1..=5 {
+            for c in 1..=2 {
+                let coord = Coordinate::new(r, c);
+                let val = format!("V{r}:{c}");
+
+                sheet.cell(coord, Some(&val));
+            }
+        }
+
+        // Удаляем строки 2–3: 4→2, 5→3, строка 1 не двигается
+        sheet.delete_rows(2, 2).unwrap();
+
+        assert_eq!(sheet.get_cell_collection().len(), 6);
+        assert_eq!(sheet.get_cell_value(Coordinate::new(1, 1)), "V1:1");
+        assert_eq!(sheet.get_cell_value(Coordinate::new(2, 2)), "V4:2");
+        assert_eq!(sheet.get_cell_value(Coordinate::new(3, 1)), "V5:1");
+        assert!(sheet.find_cell_by_coords(4, 1).unwrap().is_none());
     }
 
     #[test]
