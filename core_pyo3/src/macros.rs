@@ -1,4 +1,5 @@
 use pyo3::{
+    exceptions::PyValueError,
     prelude::*,
     types::{PyBool, PyFloat, PyInt, PyList, PyString},
 };
@@ -30,37 +31,70 @@ impl PyValue {
         }
     }
 
-    pub fn as_u32(&self) -> u32 {
-        match self {
-            PyValue::Int(i) => *i as u32,
-            PyValue::Float(f) => *f as u32,
-            PyValue::String(s) => s.parse().unwrap_or(0),
-            PyValue::Bool(b) => {
-                if *b {
-                    1
-                } else {
-                    0
-                }
-            }
-            PyValue::List(_) => 0, // Для списков возвращаем 0
-            PyValue::None => 0,
-        }
+    /// Строгое преобразование в `u32`: `ValueError` вместо тихих
+    /// `as`-приведений и `unwrap_or` — мусорное значение не превращается
+    /// молча в валидную координату.
+    pub fn as_u32(&self) -> PyResult<u32> {
+        self.strict_unsigned(
+            "u32",
+            |i| u32::try_from(i).ok(),
+            f64_to_u32,
+            |s| s.parse().ok(),
+        )
     }
 
-    pub fn as_u16(&self) -> u16 {
+    /// Строгое преобразование в `u16`, см. `as_u32`.
+    pub fn as_u16(&self) -> PyResult<u16> {
+        self.strict_unsigned(
+            "u16",
+            |i| u16::try_from(i).ok(),
+            f64_to_u16,
+            |s| s.parse().ok(),
+        )
+    }
+
+    /// Общая механика строгих конверсий: `Int` — через `try_from`, `Float` —
+    /// только целые в диапазоне, `String` — через `parse`; всё остальное —
+    /// `ValueError` с Python-представлением значения.
+    fn strict_unsigned<T>(
+        &self,
+        type_name: &str,
+        from_int: impl Fn(i64) -> Option<T>,
+        from_float: impl Fn(f64) -> Option<T>,
+        from_str: impl Fn(&str) -> Option<T>,
+    ) -> PyResult<T> {
+        let (repr, value) = match self {
+            PyValue::Int(i) => (i.to_string(), from_int(*i)),
+            PyValue::Float(f) => (f.to_string(), from_float(*f)),
+            PyValue::String(s) => (format!("{s:?}"), from_str(s)),
+            PyValue::Bool(_) | PyValue::List(_) | PyValue::None => (self.py_repr(), None),
+        };
+
+        value.ok_or_else(|| {
+            PyValueError::new_err(format!(
+                "expected unsigned integer ({type_name}), got: {repr}"
+            ))
+        })
+    }
+
+    /// Python-подобное представление значения для сообщений об ошибках.
+    pub(crate) fn py_repr(&self) -> String {
         match self {
-            PyValue::Int(i) => *i as u16,
-            PyValue::Float(f) => *f as u16,
-            PyValue::String(s) => s.parse().unwrap_or(0),
+            PyValue::String(s) => format!("{s:?}"),
+            PyValue::Int(i) => i.to_string(),
+            PyValue::Float(f) => f.to_string(),
             PyValue::Bool(b) => {
                 if *b {
-                    1
+                    "True".to_string()
                 } else {
-                    0
+                    "False".to_string()
                 }
             }
-            PyValue::List(_) => 0, // Для списков возвращаем 0
-            PyValue::None => 0,
+            PyValue::List(list) => {
+                let items: Vec<String> = list.iter().map(PyValue::py_repr).collect();
+                format!("[{}]", items.join(", "))
+            }
+            PyValue::None => "None".to_string(),
         }
     }
 
@@ -77,169 +111,23 @@ impl PyValue {
             PyValue::None => String::new(),
         }
     }
+}
 
-    // Generic метод для получения Vec<T>
-    pub fn as_vec<T>(&self) -> Vec<T>
-    where
-        T: From<PyValue> + Clone,
-    {
-        match self {
-            PyValue::List(list) => list.iter().map(|v| T::from(v.clone())).collect(),
-            _ => vec![], // Для не-списков возвращаем пустой Vec
-        }
-    }
-
-    // Generic метод для получения массива фиксированного размера
-    fn as_array<T, const N: usize>(&self) -> [T; N]
-    where
-        T: From<PyValue> + Copy + Clone + Default,
-    {
-        match self {
-            PyValue::List(list) => {
-                let mut result = [T::default(); N];
-                for (i, item) in list.iter().enumerate().take(N) {
-                    result[i] = T::from(item.clone());
-                }
-                result
-            }
-            _ => [T::default(); N], // Для не-списков возвращаем массив с default значениями
-        }
-    }
-
-    fn as_vec_array<T, const N: usize>(&self) -> Vec<[T; N]>
-    where
-        T: From<PyValue> + Copy + Clone + Default,
-    {
-        match self {
-            PyValue::List(list) => {
-                list.iter()
-                    .map(|item| match item {
-                        PyValue::List(inner_list) => {
-                            let mut result = [T::default(); N];
-                            for (i, inner_item) in inner_list.iter().enumerate().take(N) {
-                                result[i] = T::from(inner_item.clone());
-                            }
-                            result
-                        }
-                        // Если элемент не список, создаем массив с одним элементом
-                        _ => {
-                            let mut result = [T::default(); N];
-                            result[0] = T::from(item.clone());
-                            result
-                        }
-                    })
-                    .collect()
-            }
-            _ => vec![], // Для не-списков возвращаем пустой Vec
-        }
-    }
-
-    // Специализированные методы для удобства
-    pub fn as_u32_vec(&self) -> Vec<u32> {
-        self.as_vec::<u32>()
-    }
-
-    pub fn as_u16_vec(&self) -> Vec<u16> {
-        self.as_vec::<u16>()
-    }
-
-    pub fn as_string_vec(&self) -> Vec<String> {
-        self.as_vec::<String>()
-    }
-
-    // Методы для получения массивов фиксированного размера
-    pub fn as_u32_array<const N: usize>(&self) -> [u32; N] {
-        self.as_array::<u32, N>()
-    }
-
-    pub fn as_u16_array<const N: usize>(&self) -> [u16; N] {
-        self.as_array::<u16, N>()
-    }
-
-    pub fn as_u32_vec_array<const N: usize>(&self) -> Vec<[u32; N]> {
-        self.as_vec_array::<u32, N>()
-    }
-
-    pub fn as_u16_vec_array<const N: usize>(&self) -> Vec<[u16; N]> {
-        self.as_vec_array::<u16, N>()
-    }
-
-    pub fn as_i64_vec_array<const N: usize>(&self) -> Vec<[i64; N]> {
-        self.as_vec_array::<i64, N>()
-    }
-
-    pub fn as_f64_vec_array<const N: usize>(&self) -> Vec<[f64; N]> {
-        self.as_vec_array::<f64, N>()
+/// Строгая конверсия `f64` в `u32`: только целые числа в диапазоне типа.
+fn f64_to_u32(f: f64) -> Option<u32> {
+    if f.is_finite() && f >= 0.0 && f <= u32::MAX as f64 && f.fract() == 0.0 {
+        Some(f as u32)
+    } else {
+        None
     }
 }
 
-// Реализация From для автоматического преобразования
-impl From<PyValue> for u32 {
-    fn from(value: PyValue) -> Self {
-        value.as_u32()
-    }
-}
-
-impl From<PyValue> for u16 {
-    fn from(value: PyValue) -> Self {
-        value.as_u16()
-    }
-}
-
-impl From<PyValue> for String {
-    fn from(value: PyValue) -> Self {
-        value.as_string_direct()
-    }
-}
-
-impl From<PyValue> for i64 {
-    fn from(value: PyValue) -> Self {
-        match value {
-            PyValue::Int(i) => i,
-            PyValue::Float(f) => f as i64,
-            PyValue::String(s) => s.parse().unwrap_or(0),
-            PyValue::Bool(b) => {
-                if b {
-                    1
-                } else {
-                    0
-                }
-            }
-            PyValue::List(_) => 0,
-            PyValue::None => 0,
-        }
-    }
-}
-
-impl From<PyValue> for f64 {
-    fn from(value: PyValue) -> Self {
-        match value {
-            PyValue::Int(i) => i as f64,
-            PyValue::Float(f) => f,
-            PyValue::String(s) => s.parse().unwrap_or(0.0),
-            PyValue::Bool(b) => {
-                if b {
-                    1.0
-                } else {
-                    0.0
-                }
-            }
-            PyValue::List(_) => 0.0,
-            PyValue::None => 0.0,
-        }
-    }
-}
-
-impl From<PyValue> for bool {
-    fn from(value: PyValue) -> Self {
-        match value {
-            PyValue::Bool(b) => b,
-            PyValue::Int(i) => i != 0,
-            PyValue::Float(f) => f != 0.0,
-            PyValue::String(s) => !s.is_empty(),
-            PyValue::List(list) => !list.is_empty(),
-            PyValue::None => false,
-        }
+/// Строгая конверсия `f64` в `u16`: только целые числа в диапазоне типа.
+fn f64_to_u16(f: f64) -> Option<u16> {
+    if f.is_finite() && f >= 0.0 && f <= u16::MAX as f64 && f.fract() == 0.0 {
+        Some(f as u16)
+    } else {
+        None
     }
 }
 
