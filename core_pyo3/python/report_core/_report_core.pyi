@@ -571,6 +571,14 @@ class Sheet:
                 Номер колонки
             amount: int
                 Количество колонок
+
+        Raises:
+        ---
+            ValueError
+                Если idx или amount равны 0 либо диапазон удаления
+                выходит за границы листа (16 384 колонки)
+            OverflowError
+                Если idx или amount отрицательные
         """
     def delete_rows(self, /, idx: SupportsIndex, amount: SupportsIndex) -> None:
         """
@@ -583,6 +591,14 @@ class Sheet:
                 Номер строки
             amount: int
                 Количество строк
+
+        Raises:
+        ---
+            ValueError
+                Если idx или amount равны 0 либо диапазон удаления
+                выходит за границы листа (1 048 576 строк)
+            OverflowError
+                Если idx или amount отрицательные
         """
     def find_cell_by_letter(self, /, letter: str) -> Cell | None:
         """

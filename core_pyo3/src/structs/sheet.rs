@@ -260,9 +260,18 @@ impl WrapperSheet {
     ///         Номер колонки
     ///     amount: int
     ///         Количество колонок
+    ///
+    /// Raises:
+    /// ---
+    ///     ValueError
+    ///         Если idx или amount равны 0 либо диапазон удаления
+    ///         выходит за границы листа (16 384 колонки)
+    ///     OverflowError
+    ///         Если idx или amount отрицательные
     pub fn delete_cols(&self, idx: u16, amount: u16) -> PyResult<()> {
         let mut slf = self.0.write();
-        slf.delete_cols(idx, amount);
+        slf.delete_cols(idx, amount)
+            .map_err(crate::user_value_error)?;
 
         Ok(())
     }
@@ -276,9 +285,18 @@ impl WrapperSheet {
     ///         Номер строки
     ///     amount: int
     ///         Количество строк
+    ///
+    /// Raises:
+    /// ---
+    ///     ValueError
+    ///         Если idx или amount равны 0 либо диапазон удаления
+    ///         выходит за границы листа (1 048 576 строк)
+    ///     OverflowError
+    ///         Если idx или amount отрицательные
     pub fn delete_rows(&self, idx: u32, amount: u32) -> PyResult<()> {
         let mut slf = self.0.write();
-        slf.delete_rows(idx, amount);
+        slf.delete_rows(idx, amount)
+            .map_err(crate::user_value_error)?;
 
         Ok(())
     }

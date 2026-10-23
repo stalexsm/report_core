@@ -1,5 +1,5 @@
 use ahash::HashMap;
-use anyhow::Result;
+use anyhow::{Result, bail};
 use parking_lot::RwLock;
 use rayon::{
     iter::{IntoParallelRefIterator, ParallelIterator},
@@ -49,6 +49,28 @@ pub struct Cells {
     map: HashMap<(u32, u16), Arc<RwLock<Cell>>>,
     #[serde(skip)]
     default_cell_value: CellValue,
+}
+
+/// Проверяет, что диапазон удаления `[idx; idx + amount)` лежит в домене
+/// Excel `[1; max]` (issue #8). Арифметика — в широком типе: в исходных
+/// типах (u16/u32) `idx + amount` переполнялось с коллизиями ключей
+/// карты в release и паникой в debug.
+#[inline]
+fn validate_delete_range(idx: u64, amount: u64, max: u64) -> Result<()> {
+    if idx == 0 {
+        bail!("Индекс начала удаления должен быть ≥ 1, получено: {idx}");
+    }
+
+    if amount == 0 {
+        bail!("Количество удаляемых строк/колонок должно быть ≥ 1, получено: {amount}");
+    }
+
+    let end = idx + amount - 1;
+    if end > max {
+        bail!("Диапазон удаления [{idx}; {end}] выходит за границы листа (максимум: {max})");
+    }
+
+    Ok(())
 }
 
 impl Cells {
@@ -181,8 +203,15 @@ impl Cells {
         cell
     }
 
+    /// Удаляет колонки `[idx; idx + amount)`, сдвигая оставшиеся влево.
+    ///
+    /// # Errors
+    /// Возвращает ошибку, если `idx` или `amount` меньше 1 либо диапазон
+    /// выходит за границы листа (`MAX_COL`).
     #[inline]
-    pub fn delete_cols(&mut self, idx: u16, amount: u16) {
+    pub fn delete_cols(&mut self, idx: u16, amount: u16) -> Result<()> {
+        validate_delete_range(idx as u64, amount as u64, MAX_COL as u64)?;
+
         let new_map: HashMap<_, _> = self
             .map
             .drain()
@@ -205,10 +234,19 @@ impl Cells {
             .collect();
 
         self.map = new_map;
+
+        Ok(())
     }
 
+    /// Удаляет строки `[idx; idx + amount)`, сдвигая оставшиеся вверх.
+    ///
+    /// # Errors
+    /// Возвращает ошибку, если `idx` или `amount` меньше 1 либо диапазон
+    /// выходит за границы листа (`MAX_ROW`).
     #[inline]
-    pub fn delete_rows(&mut self, idx: u32, amount: u32) {
+    pub fn delete_rows(&mut self, idx: u32, amount: u32) -> Result<()> {
+        validate_delete_range(idx as u64, amount as u64, MAX_ROW as u64)?;
+
         let new_map: HashMap<_, _> = self
             .map
             .drain()
@@ -231,6 +269,8 @@ impl Cells {
             .collect();
 
         self.map = new_map;
+
+        Ok(())
     }
 
     #[inline]
