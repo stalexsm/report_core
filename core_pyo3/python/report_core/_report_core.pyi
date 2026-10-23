@@ -13,12 +13,12 @@ __all__ = ["DEFAULT_COLUMN_WIDTH", "DEFAULT_ROW_HEIGHT", "Book", "Cell", "Commen
 
 DEFAULT_COLUMN_WIDTH: Final[float]
 """
-Ширина колонки по умолчанию (~140 пикселей).
+Ширина колонки по умолчанию (~163 пикселя).
 """
 
 DEFAULT_ROW_HEIGHT: Final[float]
 """
-Высота строки по умолчанию (~20 пикселей).
+Высота строки по умолчанию (~27 пикселей).
 """
 
 __version__: Final[str]

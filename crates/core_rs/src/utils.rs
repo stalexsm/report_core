@@ -1,10 +1,11 @@
+use std::sync::LazyLock;
+
 use crate::{
     MAX_COL, MAX_ROW,
     error::{Error, Result},
     structs::coordinate::CellIndex,
 };
 use fancy_regex::Regex;
-use lazy_static::lazy_static;
 
 /// Преобразование номера колонки в букву.
 /// Данный метод используется по обработки формирования данных excel.
@@ -33,14 +34,6 @@ pub fn index_to_alpha(mut column: u16) -> String {
 /// Получение координат ячейки в стиле A1
 pub fn get_letter_coordinate(row: u32, col: u16) -> String {
     format!("{}{}", index_to_alpha(col), row)
-}
-
-/// Определение формата по типу
-pub(crate) fn _get_number_format_by_datatype(data_type: &str) -> String {
-    match data_type {
-        "d" => "mm-dd-yy".to_string(),
-        _ => "General".to_string(),
-    }
 }
 
 fn alpha_to_index<S>(alpha: S) -> u32
@@ -76,9 +69,9 @@ pub fn index_from_coordinate<T>(coordinate: T) -> Result<CellIndex>
 where
     T: AsRef<str>,
 {
-    lazy_static! {
-        static ref RE: Regex = Regex::new(r"^\$?([A-Z]{1,3})\$?([0-9]+)$").unwrap();
-    }
+    // Фиксированный шаблон, компилируется один раз на процесс
+    static RE: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"^\$?([A-Z]{1,3})\$?([0-9]+)$").expect("валидный шаблон"));
 
     let letter = coordinate.as_ref();
     let upper = letter.to_uppercase();

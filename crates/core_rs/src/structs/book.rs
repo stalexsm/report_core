@@ -1,5 +1,6 @@
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
+use ahash::HashMap;
 use parking_lot::RwLock;
 use serde::Serialize;
 use serde_json::Value;

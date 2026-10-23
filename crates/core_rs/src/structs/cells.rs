@@ -21,7 +21,7 @@ use crate::{
 /// Ячейки, снимаемые с карты при сдвиге: старый ключ и обёртка.
 type ShiftedCells = Vec<((u32, u16), Arc<RwLock<Cell>>)>;
 
-/// Вспомоогательная функция для сериализации HashMap только Value, как вектор.
+/// Вспомогательная функция для сериализации HashMap только Value, как вектор.
 fn serialize_cells_to_vec<S>(
     map: &HashMap<(u32, u16), Arc<RwLock<Cell>>>,
     serializer: S,

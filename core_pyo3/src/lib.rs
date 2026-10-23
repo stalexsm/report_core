@@ -106,11 +106,11 @@ mod report_core {
     #[pymodule_export]
     const __version__: &str = crate::VERSION;
 
-    /// Ширина колонки по умолчанию (~140 пикселей).
+    /// Ширина колонки по умолчанию (~163 пикселя).
     #[pymodule_export]
     const DEFAULT_COLUMN_WIDTH: f64 = core_rs::DEFAULT_COLUMN_WIDTH;
 
-    /// Высота строки по умолчанию (~20 пикселей).
+    /// Высота строки по умолчанию (~27 пикселей).
     #[pymodule_export]
     const DEFAULT_ROW_HEIGHT: f64 = core_rs::DEFAULT_ROW_HEIGHT;
 
