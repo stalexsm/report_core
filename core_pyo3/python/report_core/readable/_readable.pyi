@@ -485,22 +485,6 @@ class ReadableSheet:
         ---
             list[ReadableCell]
         """
-    def get_value_cell(self, /, row: SupportsIndex, col: SupportsIndex) -> str:
-        """
-        Функция для получения значения ячейки.
-        ---
-
-        Arguments:
-        ---
-            row: int
-                Строка ячейки
-            col: int
-                Колонка ячейки
-
-        Returns:
-        ---
-            str
-        """
     @property
     def max_column(self, /) -> int:
         """

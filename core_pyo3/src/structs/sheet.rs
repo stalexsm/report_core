@@ -235,26 +235,6 @@ impl WrapperSheet {
         Ok(WrapperCell(Arc::clone(cell)))
     }
 
-    /// Функция для получения значения ячейки.
-    /// ---
-    ///
-    /// Arguments:
-    /// ---
-    ///     row: int
-    ///         Строка ячейки
-    ///     col: int
-    ///         Колонка ячейки
-    ///
-    /// Returns:
-    /// ---
-    ///     str
-    pub fn get_value_cell(&self, row: u32, col: u16) -> PyResult<String> {
-        let slf = self.0.read();
-
-        let coord = Coordinate::from((row, col));
-        Ok(slf.get_cell_value(coord))
-    }
-
     /// Метод удаления колонок
     /// ---
     ///

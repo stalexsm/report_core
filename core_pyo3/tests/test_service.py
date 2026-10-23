@@ -53,7 +53,7 @@ def test_add_sheet_and_sheets(conn_db) -> None:
 
     sheets = service._sheets
     assert [s.name for s in sheets] == ["лист1"]
-    assert sheets[0].get_value_cell(1, 1) == "значение"
+    assert sheets[0].find_value_by_coords(1, 1) == "значение"
 
 
 def test_add_sheet_state(conn_db) -> None:
@@ -72,7 +72,7 @@ def test_copy_sheet(conn_db) -> None:
     copy = service._copy_sheet(original)
 
     assert copy.name == "Sheet 2"
-    assert copy.get_value_cell(1, 1) == "значение"
+    assert copy.find_value_by_coords(1, 1) == "значение"
     assert len(service._sheets) == 2
 
 

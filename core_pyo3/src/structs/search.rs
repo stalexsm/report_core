@@ -62,24 +62,13 @@ mod tests {
                 Some("v"),
             );
 
-            let found = find_one(
-                py,
-                &sheet,
-                WrapperCellLike,
-                |s| s.find_cell_by_str("v"),
-            )
-            .unwrap()
-            .expect("ячейка найдена");
+            let found = find_one(py, &sheet, WrapperCellLike, |s| s.find_cell_by_str("v"))
+                .unwrap()
+                .expect("ячейка найдена");
 
             assert_eq!(found.value(), "v");
 
-            let all = find_many(
-                py,
-                &sheet,
-                WrapperCellLike,
-                |s| s.find_cells_by_str("v"),
-            )
-            .unwrap();
+            let all = find_many(py, &sheet, WrapperCellLike, |s| s.find_cells_by_str("v")).unwrap();
 
             assert_eq!(all.len(), 1);
         });

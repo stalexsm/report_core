@@ -161,4 +161,4 @@ def test_create_finder_and_find(cells) -> None:
 
     found = finder.find_sheet_by_name("другой")
     assert found is not None
-    assert found.get_value_cell(1, 1) == "значение"
+    assert found.find_value_by_coords(1, 1) == "значение"

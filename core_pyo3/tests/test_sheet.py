@@ -69,10 +69,10 @@ def test_empty_sheet_dimensions() -> None:
 
 
 def test_cell_creates_and_reads(sheet) -> None:
-    """cell с значением создаёт ячейку, get_value_cell читает её."""
+    """cell с значением создаёт ячейку, find_value_by_coords читает её."""
     sheet.cell(5, 5, "новая")
 
-    assert sheet.get_value_cell(5, 5) == "новая"
+    assert sheet.find_value_by_coords(5, 5) == "новая"
 
 
 def test_cell_get_or_create_returns_same_cell(sheet) -> None:

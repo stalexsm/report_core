@@ -919,22 +919,6 @@ class Sheet:
         ---
             bool
         """
-    def get_value_cell(self, /, row: SupportsIndex, col: SupportsIndex) -> str:
-        """
-        Функция для получения значения ячейки.
-        ---
-
-        Arguments:
-        ---
-            row: int
-                Строка ячейки
-            col: int
-                Колонка ячейки
-
-        Returns:
-        ---
-            str
-        """
     def get_width_by_column(self, /, col_num: SupportsIndex) -> float:
         """
         Метод для получения ширины колонки
