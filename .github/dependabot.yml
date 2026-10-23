@@ -1,0 +1,8 @@
+# Обновления версий GitHub Actions (запинены на SHA — тянуть апгрейды
+# должен Dependabot, а не ручные правки).
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
