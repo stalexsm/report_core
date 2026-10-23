@@ -81,7 +81,7 @@ pub fn find_cell_by_letter<T: ReadableCell + Send + Sync>(
     letter: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Option<&Arc<RwLock<T>>>> {
-    let letter_coord = &Coordinate::from(letter);
+    let letter_coord = &Coordinate::try_from(letter.as_str())?;
 
     let cell = cells.par_iter().find_map_first(|cell| {
         let guard = cell.read();

@@ -519,12 +519,18 @@ impl WrapperSheet {
     /// Returns:
     /// --------
     ///     Cell | None
+    ///
+    /// Raises:
+    /// ---
+    ///     ValueError
+    ///         Если буква не координата ячейки (например, "1A") или за границами листа
     pub fn find_cell_by_letter(&self, letter: &str) -> PyResult<Option<WrapperCell>> {
         let slf = self.0.read();
+        let cell = slf
+            .find_cell_by_letter(letter)
+            .map_err(crate::user_value_error)?;
 
-        Ok(slf
-            .find_cell_by_letter(letter)?
-            .map(|c| WrapperCell(Arc::clone(c))))
+        Ok(cell.map(|c| WrapperCell(Arc::clone(c))))
     }
 
     /// Функция для получения ячеек по регулярному (шаблону) значению.

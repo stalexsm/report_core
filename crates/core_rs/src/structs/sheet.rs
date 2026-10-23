@@ -486,6 +486,26 @@ mod tests {
     }
 
     #[test]
+    pub fn find_cell_by_letter_invalid() {
+        let sheet = sheet();
+
+        for letter in ["1A", "", "HELLO", "A99999999999999999"] {
+            let err = sheet.cells.find_cell_by_letter(letter).unwrap_err();
+
+            assert_eq!(err.to_string(), format!("invalid cell letter: {letter}"));
+        }
+    }
+
+    /// Невалидная буква — не паника, а отсутствие ячейки.
+    #[test]
+    pub fn get_cell_by_letter_invalid() {
+        let sheet = sheet();
+
+        assert!(sheet.cells.get_cell_by_letter("1A").is_none());
+        assert!(sheet.cells.get_cell_by_letter("C1").is_some());
+    }
+
+    #[test]
     pub fn find_cells_by_regex() {
         let sheet = sheet();
         let regex = "Yop! 2:2";
