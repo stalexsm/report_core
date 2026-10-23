@@ -1,8 +1,9 @@
 use std::sync::Arc;
 
-use anyhow::Result;
 use chrono::NaiveDateTime;
 use parking_lot::RwLock;
+
+use crate::error::Result;
 
 use crate::structs::{
     cell::Cell, comment::Comment, coordinate::Coordinate, range::Range, style::Style,

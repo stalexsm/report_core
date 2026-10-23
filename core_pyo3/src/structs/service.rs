@@ -211,7 +211,7 @@ impl WrapperService {
     pub fn to_json(&self, py: Python<'_>) -> PyResult<String> {
         py.detach(|| -> PyResult<String> {
             let slf = self.inner.read();
-            Ok(slf.to_json()?)
+            slf.to_json().map_err(crate::py_error)
         })
     }
 

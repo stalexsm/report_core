@@ -1,8 +1,11 @@
 pub mod datatype;
+pub mod error;
 pub mod funcs;
 pub mod structs;
 pub mod traits;
 pub mod utils;
+
+pub use error::{Error, Result};
 
 /// Функция для получения версии.
 pub const fn version() -> &'static str {

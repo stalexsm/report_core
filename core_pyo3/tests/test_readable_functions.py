@@ -53,8 +53,8 @@ def test_find_cell_by_regex(cells) -> None:
 
 
 def test_find_cell_by_regex_invalid(cells) -> None:
-    """Невалидный шаблон доходит до движка regex и отдаёт RuntimeError."""
-    with pytest.raises(RuntimeError):
+    """Невалидный шаблон — ValueError: доменная ошибка, а не внутренний сбой."""
+    with pytest.raises(ValueError):
         readable.find_cell_by_regex("(", cells)
 
 

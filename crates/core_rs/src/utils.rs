@@ -1,6 +1,8 @@
-use anyhow::{Result, anyhow, bail};
-
-use crate::{MAX_COL, MAX_ROW, structs::coordinate::CellIndex};
+use crate::{
+    MAX_COL, MAX_ROW,
+    error::{Error, Result},
+    structs::coordinate::CellIndex,
+};
 use fancy_regex::Regex;
 use lazy_static::lazy_static;
 
@@ -64,11 +66,6 @@ where
         .sum::<u32>()
 }
 
-/// Ошибка для невалидной буквенной координаты ячейки.
-pub(crate) fn invalid_cell_letter<T: AsRef<str>>(letter: T) -> anyhow::Error {
-    anyhow!("invalid cell letter: {}", letter.as_ref())
-}
-
 /// Разбор буквенной координаты (A1) в индексы `(row, col)`.
 ///
 /// Координата обязана быть полной и валидной: якорный шаблон
@@ -89,7 +86,7 @@ where
         .captures(&upper)
         .ok()
         .flatten()
-        .ok_or_else(|| invalid_cell_letter(letter))?;
+        .ok_or_else(|| Error::invalid_cell_letter(letter))?;
 
     // col number: [A-Z]{1,3}, row number: [0-9]+ — обе части обязательны.
     let col = caps.get(1).map(|v| alpha_to_index(v.as_str()) as u16);
@@ -97,6 +94,6 @@ where
 
     match (col, row) {
         (Some(col), Some(row)) if col <= MAX_COL && row <= MAX_ROW => Ok((Some(row), Some(col))),
-        _ => bail!(invalid_cell_letter(letter)),
+        _ => Err(Error::invalid_cell_letter(letter)),
     }
 }

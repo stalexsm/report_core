@@ -1,8 +1,11 @@
 use std::sync::Arc;
 
-use crate::{structs::coordinate::Coordinate, traits::ReadableCell};
+use crate::{
+    error::{Error, Result},
+    structs::coordinate::Coordinate,
+    traits::ReadableCell,
+};
 use ahash::HashMap;
-use anyhow::Result;
 use fancy_regex::Regex;
 use parking_lot::RwLock;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -49,16 +52,24 @@ pub fn find_cell_by_regex<T: ReadableCell + Send + Sync>(
     regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Option<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&format!("(?i){}", regex))?;
+    let re = Regex::new(&format!("(?i){}", regex))
+        .map_err(|e| Error::invalid_regex(regex.clone(), e))?;
 
-    let cell = cells.par_iter().find_map_first(|cell| {
-        let v = cell.read().get_value();
-        if re.is_match(&v).unwrap_or(false) {
-            Some(*cell)
-        } else {
-            None
-        }
-    });
+    // Совпадения собираются в Vec с сохранением порядка: ошибка выполнения
+    // шаблона (например, исчерпанный лимит обратной трассировки) не глотается,
+    // а уходит вызывающему коду
+    let cell = cells
+        .par_iter()
+        .map(|cell| {
+            let v = cell.read().get_value();
+            re.is_match(&v)
+                .map(|hit| hit.then_some(*cell))
+                .map_err(Error::regex_exec)
+        })
+        .collect::<Result<Vec<Option<_>>>>()?
+        .into_iter()
+        .flatten()
+        .next();
 
     Ok(cell)
 }
@@ -100,18 +111,20 @@ pub fn find_cells_by_regex<T: ReadableCell + Send + Sync>(
     regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&format!("(?i){}", regex))?;
+    let re = Regex::new(&format!("(?i){}", regex))
+        .map_err(|e| Error::invalid_regex(regex.clone(), e))?;
 
     Ok(cells
         .par_iter()
-        .filter_map(|cell| {
+        .map(|cell| {
             let v = cell.read().get_value();
-            if re.is_match(&v).unwrap_or(false) {
-                Some(*cell)
-            } else {
-                None
-            }
+            re.is_match(&v)
+                .map(|hit| hit.then_some(*cell))
+                .map_err(Error::regex_exec)
         })
+        .collect::<Result<Vec<Option<_>>>>()?
+        .into_iter()
+        .flatten()
         .collect())
 }
 
@@ -132,23 +145,25 @@ pub fn find_cells_for_rows_by_regex<T: ReadableCell + Send + Sync>(
     col_stop: u16,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&format!("(?i){}", regex))?;
+    let re = Regex::new(&format!("(?i){}", regex))
+        .map_err(|e| Error::invalid_regex(regex.clone(), e))?;
 
     Ok(cells
         .par_iter()
-        .filter_map(|cell| {
+        .map(|cell| {
             let guard = cell.read();
-            if guard.get_coordinate().column <= col_stop {
-                let v = guard.get_value();
-                if re.is_match(&v).unwrap_or(false) {
-                    Some(*cell)
-                } else {
-                    None
-                }
-            } else {
-                None
+            if guard.get_coordinate().column > col_stop {
+                return Ok(None);
             }
+
+            let v = guard.get_value();
+            re.is_match(&v)
+                .map(|hit| hit.then_some(*cell))
+                .map_err(Error::regex_exec)
         })
+        .collect::<Result<Vec<Option<_>>>>()?
+        .into_iter()
+        .flatten()
         .collect())
 }
 
@@ -157,23 +172,25 @@ pub fn find_cells_for_cols_by_regex<T: ReadableCell + Send + Sync>(
     row_stop: u32,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let re = Regex::new(&format!("(?i){}", regex))?;
+    let re = Regex::new(&format!("(?i){}", regex))
+        .map_err(|e| Error::invalid_regex(regex.clone(), e))?;
 
     Ok(cells
         .par_iter()
-        .filter_map(|cell| {
+        .map(|cell| {
             let guard = cell.read();
-            if guard.get_coordinate().row <= row_stop {
-                let v = guard.get_value();
-                if re.is_match(&v).unwrap_or(false) {
-                    Some(*cell)
-                } else {
-                    None
-                }
-            } else {
-                None
+            if guard.get_coordinate().row > row_stop {
+                return Ok(None);
             }
+
+            let v = guard.get_value();
+            re.is_match(&v)
+                .map(|hit| hit.then_some(*cell))
+                .map_err(Error::regex_exec)
         })
+        .collect::<Result<Vec<Option<_>>>>()?
+        .into_iter()
+        .flatten()
         .collect())
 }
 
@@ -182,24 +199,28 @@ pub fn find_cells_multi_regex<T: ReadableCell + Send + Sync>(
     after_regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let before_regex = Regex::new(&format!("(?i){}", before_regex))?;
-    let after_regex = Regex::new(&format!("(?i){}", after_regex))?;
+    let before_regex = Regex::new(&format!("(?i){}", before_regex))
+        .map_err(|e| Error::invalid_regex(before_regex.clone(), e))?;
+    let after_regex = Regex::new(&format!("(?i){}", after_regex))
+        .map_err(|e| Error::invalid_regex(after_regex.clone(), e))?;
 
     let mut b = false;
-    Ok(cells
-        .iter()
-        .filter_map(|cell| {
-            let v = cell.read().get_value();
-            if ((before_regex.is_match(&v).unwrap_or(false)) && !b)
-                || ((after_regex.is_match(&v).unwrap_or(false)) && b)
-            {
-                b = !b;
-                Some(*cell)
-            } else {
-                None
-            }
-        })
-        .collect())
+    let mut matched_cells = Vec::new();
+
+    for cell in cells {
+        let v = cell.read().get_value();
+        // Оба шаблона проверяются всегда: ошибка выполнения любого из них
+        // не глотается, а уходит вызывающему коду
+        let before_hit = before_regex.is_match(&v).map_err(Error::regex_exec)?;
+        let after_hit = after_regex.is_match(&v).map_err(Error::regex_exec)?;
+
+        if (before_hit && !b) || (after_hit && b) {
+            b = !b;
+            matched_cells.push(cell);
+        }
+    }
+
+    Ok(matched_cells)
 }
 
 pub fn find_cells_between_regex<T: ReadableCell + Send + Sync>(
@@ -207,44 +228,35 @@ pub fn find_cells_between_regex<T: ReadableCell + Send + Sync>(
     after_regex: String,
     cells: Vec<&Arc<RwLock<T>>>,
 ) -> Result<Vec<&Arc<RwLock<T>>>> {
-    let before_regex = Regex::new(&format!("(?i){}", before_regex))?;
-    let after_regex = Regex::new(&format!("(?i){}", after_regex))?;
+    let before_regex = Regex::new(&format!("(?i){}", before_regex))
+        .map_err(|e| Error::invalid_regex(before_regex.clone(), e))?;
+    let after_regex = Regex::new(&format!("(?i){}", after_regex))
+        .map_err(|e| Error::invalid_regex(after_regex.clone(), e))?;
 
     let mut b = false;
-    let rows_idx = cells
-        .iter()
-        .filter_map(|cell| {
-            let guard = cell.read();
-            let v = guard.get_value();
-            if ((before_regex.is_match(&v).unwrap_or(false)) && !b)
-                || ((after_regex.is_match(&v).unwrap_or(false)) && b)
-            {
-                b = !b;
-                Some(guard.get_coordinate().row)
-            } else {
-                None
-            }
-        })
-        .collect::<Vec<_>>();
+    let mut rows_idx = Vec::new();
+
+    for cell in cells.iter() {
+        let guard = cell.read();
+        let v = guard.get_value();
+        let before_hit = before_regex.is_match(&v).map_err(Error::regex_exec)?;
+        let after_hit = after_regex.is_match(&v).map_err(Error::regex_exec)?;
+
+        if (before_hit && !b) || (after_hit && b) {
+            b = !b;
+            rows_idx.push(guard.get_coordinate().row);
+        }
+    }
 
     Ok(cells
         .par_iter()
         .filter_map(|cell| {
             let row = cell.read().get_coordinate().row;
-            if rows_idx.len() >= 2 {
-                if row >= rows_idx[0] && row <= rows_idx[1] {
-                    Some(*cell)
-                } else {
-                    None
-                }
-            } else if rows_idx.len() == 1 {
-                if row >= rows_idx[0] {
-                    Some(*cell)
-                } else {
-                    None
-                }
-            } else {
-                None
+            match rows_idx.len() {
+                0 => None,
+                1 if row >= rows_idx[0] => Some(*cell),
+                _ if row >= rows_idx[0] && row <= rows_idx[1] => Some(*cell),
+                _ => None,
             }
         })
         .collect())

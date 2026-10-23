@@ -1,10 +1,10 @@
 use std::{collections::HashMap, sync::Arc};
 
-use anyhow::{Result, bail};
 use parking_lot::RwLock;
 use serde::Serialize;
 use serde_json::Value;
 
+use crate::error::Result;
 use crate::traits::{ReadableSheet, WriteableSheet};
 
 use super::sheet::Sheet;
@@ -60,12 +60,8 @@ impl Book {
 
     #[inline]
     pub fn to_json(&self) -> Result<String> {
-        match serde_json::to_string(self) {
-            Ok(j) => Ok(j),
-            Err(e) => {
-                bail!("Failed to convert in JSON: {}", e);
-            }
-        }
+        // From<serde_json::Error> для Error генерирует thiserror (#[from])
+        Ok(serde_json::to_string(self)?)
     }
 
     #[inline]

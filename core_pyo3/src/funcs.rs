@@ -56,7 +56,9 @@ pub(crate) fn find_cell_by_coords(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cell_by_coords(row, col, cells)?.map(|c| WrapperCell(Arc::clone(c))))
+        Ok(funcs::find_cell_by_coords(row, col, cells)
+            .map_err(crate::py_error)?
+            .map(|c| WrapperCell(Arc::clone(c))))
     })
 }
 
@@ -88,10 +90,12 @@ pub(crate) fn find_value_by_coords(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cell_by_coords(row, col, cells)?.map(|c| {
-            let guard = c.read();
-            guard.get_value()
-        }))
+        Ok(funcs::find_cell_by_coords(row, col, cells)
+            .map_err(crate::py_error)?
+            .map(|c| {
+                let guard = c.read();
+                guard.get_value()
+            }))
     })
 }
 
@@ -120,7 +124,9 @@ pub(crate) fn find_cell_by_regex(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cell_by_regex(regex, cells)?.map(|c| WrapperCell(Arc::clone(c))))
+        Ok(funcs::find_cell_by_regex(regex, cells)
+            .map_err(crate::py_error)?
+            .map(|c| WrapperCell(Arc::clone(c))))
     })
 }
 
@@ -149,7 +155,9 @@ pub(crate) fn find_cell_by_str(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cell_by_str(value, cells)?.map(|c| WrapperCell(Arc::clone(c))))
+        Ok(funcs::find_cell_by_str(value, cells)
+            .map_err(crate::py_error)?
+            .map(|c| WrapperCell(Arc::clone(c))))
     })
 }
 
@@ -183,7 +191,7 @@ pub(crate) fn find_cell_by_letter(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        let cell = funcs::find_cell_by_letter(letter, cells).map_err(crate::user_value_error)?;
+        let cell = funcs::find_cell_by_letter(letter, cells).map_err(crate::py_error)?;
 
         Ok(cell.map(|c| WrapperCell(Arc::clone(c))))
     })
@@ -214,7 +222,8 @@ pub(crate) fn find_cells_by_regex(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cells_by_regex(regex, cells)?
+        Ok(funcs::find_cells_by_regex(regex, cells)
+            .map_err(crate::py_error)?
             .into_iter()
             .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
@@ -246,7 +255,8 @@ pub(crate) fn find_cells_by_str(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cells_by_str(value, cells)?
+        Ok(funcs::find_cells_by_str(value, cells)
+            .map_err(crate::py_error)?
             .into_iter()
             .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
@@ -281,7 +291,8 @@ pub(crate) fn find_cells_for_rows_by_regex(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cells_for_rows_by_regex(regex, col_stop, cells)?
+        Ok(funcs::find_cells_for_rows_by_regex(regex, col_stop, cells)
+            .map_err(crate::py_error)?
             .into_iter()
             .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
@@ -316,7 +327,8 @@ pub(crate) fn find_cells_for_cols_by_regex(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cells_for_cols_by_regex(regex, row_stop, cells)?
+        Ok(funcs::find_cells_for_cols_by_regex(regex, row_stop, cells)
+            .map_err(crate::py_error)?
             .into_iter()
             .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
@@ -352,7 +364,8 @@ pub(crate) fn find_cells_multi_regex(
     py.detach(|| {
         let cells = cells.iter().collect();
         Ok(
-            funcs::find_cells_multi_regex(before_regex, after_regex, cells)?
+            funcs::find_cells_multi_regex(before_regex, after_regex, cells)
+                .map_err(crate::py_error)?
                 .into_iter()
                 .map(|c| WrapperCell(Arc::clone(c)))
                 .collect(),
@@ -389,7 +402,8 @@ pub(crate) fn find_cells_between_regex(
     py.detach(|| {
         let cells = cells.iter().collect();
         Ok(
-            funcs::find_cells_between_regex(before_regex, after_regex, cells)?
+            funcs::find_cells_between_regex(before_regex, after_regex, cells)
+                .map_err(crate::py_error)?
                 .into_iter()
                 .map(|c| WrapperCell(Arc::clone(c)))
                 .collect(),
@@ -425,7 +439,8 @@ pub(crate) fn find_cells_range_rows(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cells_range_rows(start_row, end_row, cells)?
+        Ok(funcs::find_cells_range_rows(start_row, end_row, cells)
+            .map_err(crate::py_error)?
             .into_iter()
             .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
@@ -460,7 +475,8 @@ pub(crate) fn find_cells_range_cols(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_cells_range_cols(start_col, end_col, cells)?
+        Ok(funcs::find_cells_range_cols(start_col, end_col, cells)
+            .map_err(crate::py_error)?
             .into_iter()
             .map(|c| WrapperCell(Arc::clone(c)))
             .collect())
@@ -495,7 +511,7 @@ pub(crate) fn find_values_by_col_rows(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_values_by_col_rows(col, rows, cells)?)
+        funcs::find_values_by_col_rows(col, rows, cells).map_err(crate::py_error)
     })
 }
 
@@ -527,6 +543,6 @@ pub(crate) fn find_values_by_row_cols(
 
     py.detach(|| {
         let cells = cells.iter().collect();
-        Ok(funcs::find_values_by_row_cols(row, cols, cells)?)
+        funcs::find_values_by_row_cols(row, cols, cells).map_err(crate::py_error)
     })
 }

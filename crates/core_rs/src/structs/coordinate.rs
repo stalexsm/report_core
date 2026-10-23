@@ -1,8 +1,7 @@
 use serde::Serialize;
 
-use anyhow::Result;
-
-use crate::utils::{get_letter_coordinate, index_from_coordinate, invalid_cell_letter};
+use crate::error::{Error, Result};
+use crate::utils::{get_letter_coordinate, index_from_coordinate};
 
 pub type CellIndex = (Option<u32>, Option<u16>);
 
@@ -27,7 +26,7 @@ impl From<(&u32, &u16)> for Coordinate {
 }
 
 impl TryFrom<String> for Coordinate {
-    type Error = anyhow::Error;
+    type Error = Error;
 
     #[inline]
     fn try_from(value: String) -> Result<Self> {
@@ -36,7 +35,7 @@ impl TryFrom<String> for Coordinate {
 }
 
 impl TryFrom<&str> for Coordinate {
-    type Error = anyhow::Error;
+    type Error = Error;
 
     #[inline]
     fn try_from(value: &str) -> Result<Self> {
@@ -45,7 +44,7 @@ impl TryFrom<&str> for Coordinate {
 
         match (row, col) {
             (Some(row), Some(col)) => Ok(Coordinate::new(row, col)),
-            _ => Err(invalid_cell_letter(value)),
+            _ => Err(Error::invalid_cell_letter(value)),
         }
     }
 }
@@ -65,7 +64,7 @@ impl Coordinate {
 
 #[cfg(test)]
 mod tests {
-    use anyhow::Result;
+    use crate::error::Result;
 
     use super::*;
 

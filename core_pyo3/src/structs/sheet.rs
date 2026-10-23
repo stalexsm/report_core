@@ -273,8 +273,7 @@ impl WrapperSheet {
     ///         Если idx или amount отрицательные
     pub fn delete_cols(&self, idx: u16, amount: u16) -> PyResult<()> {
         let mut slf = self.0.write();
-        slf.delete_cols(idx, amount)
-            .map_err(crate::user_value_error)?;
+        slf.delete_cols(idx, amount).map_err(crate::py_error)?;
 
         Ok(())
     }
@@ -298,8 +297,7 @@ impl WrapperSheet {
     ///         Если idx или amount отрицательные
     pub fn delete_rows(&self, idx: u32, amount: u32) -> PyResult<()> {
         let mut slf = self.0.write();
-        slf.delete_rows(idx, amount)
-            .map_err(crate::user_value_error)?;
+        slf.delete_rows(idx, amount).map_err(crate::py_error)?;
 
         Ok(())
     }
@@ -507,7 +505,8 @@ impl WrapperSheet {
 
         py.detach(|| {
             Ok(slf
-                .find_cell_by_regex(regex)?
+                .find_cell_by_regex(regex)
+                .map_err(crate::py_error)?
                 .map(|c| WrapperCell(Arc::clone(c))))
         })
     }
@@ -528,7 +527,8 @@ impl WrapperSheet {
 
         py.detach(|| {
             Ok(slf
-                .find_cell_by_str(value)?
+                .find_cell_by_str(value)
+                .map_err(crate::py_error)?
                 .map(|c| WrapperCell(Arc::clone(c))))
         })
     }
@@ -557,9 +557,7 @@ impl WrapperSheet {
         let slf = self.0.read();
 
         py.detach(|| {
-            let cell = slf
-                .find_cell_by_letter(letter)
-                .map_err(crate::user_value_error)?;
+            let cell = slf.find_cell_by_letter(letter).map_err(crate::py_error)?;
 
             Ok(cell.map(|c| WrapperCell(Arc::clone(c))))
         })
@@ -580,7 +578,7 @@ impl WrapperSheet {
         let slf = self.0.read();
 
         py.detach(|| {
-            let cells = slf.find_cells_by_regex(regex)?;
+            let cells = slf.find_cells_by_regex(regex).map_err(crate::py_error)?;
             let wrapped_cells = cells
                 .into_iter()
                 .map(|cell| WrapperCell(Arc::clone(cell)))
@@ -605,7 +603,7 @@ impl WrapperSheet {
         let slf = self.0.read();
 
         py.detach(|| {
-            let cells = slf.find_cells_by_str(value)?;
+            let cells = slf.find_cells_by_str(value).map_err(crate::py_error)?;
             let wrapped_cells = cells
                 .into_iter()
                 .map(|cell| WrapperCell(Arc::clone(cell)))
@@ -637,7 +635,9 @@ impl WrapperSheet {
         let slf = self.0.read();
 
         py.detach(|| {
-            let cells = slf.find_cells_for_rows_by_regex(regex, col_stop)?;
+            let cells = slf
+                .find_cells_for_rows_by_regex(regex, col_stop)
+                .map_err(crate::py_error)?;
             let wrapped_cells = cells
                 .into_iter()
                 .map(|cell| WrapperCell(Arc::clone(cell)))
@@ -669,7 +669,9 @@ impl WrapperSheet {
         let slf = self.0.read();
 
         py.detach(|| {
-            let cells = slf.find_cells_for_cols_by_regex(regex, row_stop)?;
+            let cells = slf
+                .find_cells_for_cols_by_regex(regex, row_stop)
+                .map_err(crate::py_error)?;
             let wrapped_cells = cells
                 .into_iter()
                 .map(|cell| WrapperCell(Arc::clone(cell)))
@@ -702,7 +704,9 @@ impl WrapperSheet {
         let slf = self.0.read();
 
         py.detach(|| {
-            let cells = slf.find_cells_multi_regex(before_regex, after_regex)?;
+            let cells = slf
+                .find_cells_multi_regex(before_regex, after_regex)
+                .map_err(crate::py_error)?;
             let wrapped_cells = cells
                 .into_iter()
                 .map(|cell| WrapperCell(Arc::clone(cell)))
@@ -735,7 +739,9 @@ impl WrapperSheet {
         let slf = self.0.read();
 
         py.detach(|| {
-            let cells = slf.find_cells_between_regex(before_regex, after_regex)?;
+            let cells = slf
+                .find_cells_between_regex(before_regex, after_regex)
+                .map_err(crate::py_error)?;
             let wrapped_cells = cells
                 .into_iter()
                 .map(|cell| WrapperCell(Arc::clone(cell)))
@@ -767,7 +773,9 @@ impl WrapperSheet {
         let slf = self.0.read();
 
         py.detach(|| {
-            let cells = slf.find_cells_range_rows(start_row, end_row)?;
+            let cells = slf
+                .find_cells_range_rows(start_row, end_row)
+                .map_err(crate::py_error)?;
             let wrapped_cells = cells
                 .into_iter()
                 .map(|cell| WrapperCell(Arc::clone(cell)))
@@ -799,7 +807,9 @@ impl WrapperSheet {
         let slf = self.0.read();
 
         py.detach(|| {
-            let cells = slf.find_cells_range_cols(start_col, end_col)?;
+            let cells = slf
+                .find_cells_range_cols(start_col, end_col)
+                .map_err(crate::py_error)?;
             let wrapped_cells = cells
                 .into_iter()
                 .map(|cell| WrapperCell(Arc::clone(cell)))
@@ -830,6 +840,6 @@ impl WrapperSheet {
     ) -> PyResult<Option<String>> {
         let slf = self.0.read();
 
-        py.detach(|| Ok(slf.find_value_by_coords(row, col)?))
+        py.detach(|| slf.find_value_by_coords(row, col).map_err(crate::py_error))
     }
 }
