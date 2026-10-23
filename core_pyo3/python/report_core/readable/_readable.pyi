@@ -15,7 +15,9 @@ class Finder:
     """
     def __new__(cls, /, sheets: list) -> Finder:
         """
-        Инициализация поисковика по списку листов (dict или ReadableSheet).
+        Инициализация поисковика по списку листов (dict, ReadableSheet или
+        лист книги). Собственные листы библиотеки разделяются без
+        копирования — поисковик видит их последующие мутации.
         """
     def find_sheet_by_name(self, /, name: str) -> ReadableSheet | None:
         """
@@ -542,7 +544,9 @@ class ReadableSheet:
 
 def create_finder(sheets: list) -> Finder:
     """
-    Создание Finder по списку листов (dict или ReadableSheet).
+    Создание Finder по списку листов (dict, ReadableSheet или лист книги).
+    Собственные листы библиотеки разделяются без копирования — Finder видит
+    их последующие мутации.
     ---
 
     Arguments:

@@ -4,13 +4,15 @@ use core_rs::structs::{finder::Finder, sheet::Sheet};
 use parking_lot::RwLock;
 use pyo3::{prelude::*, types::PyList};
 
-use crate::structs::readable::{finder::WrapperFinder, sheet::WrapperSheet};
+use crate::structs::readable::finder::WrapperFinder;
 
 pub mod cell;
 pub mod finder;
 pub mod sheet;
 
-/// Создание Finder по списку листов (dict или ReadableSheet).
+/// Создание Finder по списку листов (dict, ReadableSheet или лист книги).
+/// Собственные листы библиотеки разделяются без копирования — Finder видит
+/// их последующие мутации.
 /// ---
 ///
 /// Arguments:
@@ -24,10 +26,8 @@ pub mod sheet;
 #[inline]
 #[pyfunction]
 pub(crate) fn create_finder(py: Python, sheets: &Bound<'_, PyList>) -> PyResult<WrapperFinder> {
-    let sheets: Result<Vec<Sheet>, _> = sheets
-        .iter()
-        .map(|s| WrapperSheet::try_from(&s).map(|ws| ws.0.read().clone()))
-        .collect();
+    let sheets: PyResult<Vec<Arc<RwLock<Sheet>>>> =
+        sheets.iter().map(|s| sheet::shared_sheet(&s)).collect();
 
     py.detach(|| Ok(WrapperFinder(Arc::new(RwLock::new(Finder::new(sheets?))))))
 }

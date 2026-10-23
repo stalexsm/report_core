@@ -103,6 +103,21 @@ impl TryFrom<&Bound<'_, PyAny>> for WrapperSheet {
     }
 }
 
+/// Лист для Finder: собственные типы библиотеки (лист книги, ReadableSheet)
+/// отдаются тем же Arc — без копирования данных; чужие объекты (dict,
+/// duck-typed) извлекаются в новый лист.
+pub(crate) fn shared_sheet(obj: &Bound<'_, PyAny>) -> PyResult<Arc<RwLock<Sheet>>> {
+    if let Ok(book_sheet) = obj.cast::<crate::structs::sheet::WrapperSheet>() {
+        return Ok(book_sheet.borrow().0.clone());
+    }
+
+    if let Ok(readable_sheet) = obj.cast::<WrapperSheet>() {
+        return Ok(readable_sheet.borrow().0.clone());
+    }
+
+    Ok(WrapperSheet::try_from(obj)?.0)
+}
+
 #[pymethods]
 impl WrapperSheet {
     pub fn __repr__(slf: &Bound<'_, Self>) -> PyResult<String> {
