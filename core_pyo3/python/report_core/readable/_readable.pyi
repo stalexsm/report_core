@@ -33,7 +33,8 @@ class Finder:
         """
     def find_sheet_by_regex(self, /, pattern: str) -> ReadableSheet | None:
         """
-        Поиск листа по регулярному выражению
+        Поиск листа по регулярному выражению (без учёта регистра — как клеточные
+        find_*_by_regex)
         ---
 
         Arguments:
@@ -44,6 +45,11 @@ class Finder:
         Returns:
         ---
             ReadableSheet | None
+
+        Raises:
+        ---
+            ValueError
+                Если pattern — невалидное регулярное выражение (например, "(")
         """
     def get_sheet_index(self, /, idx: SupportsIndex) -> ReadableSheet | None:
         """

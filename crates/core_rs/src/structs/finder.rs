@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::Result;
 use fancy_regex::Regex;
 use parking_lot::RwLock;
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -33,14 +34,22 @@ impl<T: ReadableSheet + Send + Sync> Finder<T> {
             .find_first(|s| s.read().get_name() == name)
     }
 
+    /// Поиск листа по регулярному выражению.
+    ///
+    /// Шаблон интерпретируется без учёта регистра — как в клеточных
+    /// `find_*_by_regex` (у них шаблон неявно обёрнут в `(?i)`).
+    ///
+    /// # Errors
+    ///
+    /// Возвращает `Err`, если `pattern` — невалидное регулярное выражение.
     #[inline]
-    pub fn find_sheet_by_regex(&self, pattern: &str) -> Option<&Arc<RwLock<T>>> {
-        let re = Regex::new(pattern).unwrap();
+    pub fn find_sheet_by_regex(&self, pattern: &str) -> Result<Option<&Arc<RwLock<T>>>> {
+        let re = Regex::new(&format!("(?i){}", pattern))?;
 
-        self.sheets.par_iter().find_first(|s| {
+        Ok(self.sheets.par_iter().find_first(|s| {
             let s = s.read().get_name();
             re.is_match(&s).unwrap_or(false)
-        })
+        }))
     }
 
     #[inline]
@@ -92,7 +101,37 @@ mod tests {
     fn find_sheet_by_regex() {
         let f = Finder::new(vec![Sheet::new("A", "visible")]);
 
-        let f = f.find_sheet_by_regex("A").unwrap();
+        let f = f.find_sheet_by_regex("A").unwrap().unwrap();
+        let f = f.read();
+
+        assert_eq!(f.get_name(), "A")
+    }
+
+    /// Невалидный шаблон — Err, а не паника (issue #6).
+    #[test]
+    fn find_sheet_by_regex_invalid_pattern() {
+        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+
+        assert!(f.find_sheet_by_regex("(").is_err());
+    }
+
+    /// Валидный шаблон без совпадений — Ok(None).
+    #[test]
+    fn find_sheet_by_regex_no_match() {
+        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+
+        let f = f.find_sheet_by_regex("B").unwrap();
+
+        assert!(f.is_none());
+    }
+
+    /// Поиск без учёта регистра — семантика выровнена с клеточными
+    /// find_*_by_regex (у них шаблон неявно обёрнут в (?i)).
+    #[test]
+    fn find_sheet_by_regex_case_insensitive() {
+        let f = Finder::new(vec![Sheet::new("A", "visible")]);
+
+        let f = f.find_sheet_by_regex("a").unwrap().unwrap();
         let f = f.read();
 
         assert_eq!(f.get_name(), "A")
