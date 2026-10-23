@@ -123,3 +123,11 @@ def test_value_flags_for_text(sheet) -> None:
     assert not cell.is_value_bool
     assert not cell.is_value_datetime
     assert not cell.is_value_empty
+
+
+def test_value_flags_for_empty(sheet) -> None:
+    """Ячейка без значения помечается как пустая."""
+    cell = sheet.cell(1, 1)
+
+    assert cell.value == ""
+    assert cell.is_value_empty

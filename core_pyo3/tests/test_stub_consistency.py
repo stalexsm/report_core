@@ -41,15 +41,20 @@ def parse_stub(
     for node in tree.body:
         match node:
             case ast.ClassDef():
-                members = {
-                    item.name
-                    for item in node.body
-                    if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef))
+                members = set()
+                for item in node.body:
+                    match item:
+                        case ast.FunctionDef() | ast.AsyncFunctionDef():
+                            name = item.name
+                        case ast.AnnAssign(target=ast.Name(id=name)):
+                            pass
+                        case _:
+                            continue
                     # Dunder-протокол (__new__, __init__) в сверке имён не
                     # участвует: он есть у любого pyclass и от генератора
                     # не зависит.
-                    and not item.name.startswith("_")
-                }
+                    if not name.startswith("_"):
+                        members.add(name)
                 classes[node.name] = members
             case ast.FunctionDef() | ast.AsyncFunctionDef():
                 functions.add(node.name)
