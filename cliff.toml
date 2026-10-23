@@ -11,6 +11,18 @@ body = """
 {% else %}\
     ## [unreleased]
 {% endif %}\
+{% set breaking_count = 0 %}\
+{% for commit in commits %}{% if commit.breaking %}{% set_global breaking_count = breaking_count + 1 %}{% endif %}{% endfor %}\
+{% if breaking_count != 0 %}\
+{{ "" }}
+    ### ⚠️ BREAKING CHANGES
+
+    {% for commit in commits %}\
+        {%- if commit.breaking %}\
+            - {% if commit.breaking_description is containing("\n") %}{{ commit.message | upper_first }}{% elif commit.breaking_description != commit.message %}{{ commit.breaking_description }}{% else %}{{ commit.message | upper_first }}{% endif %}\
+        {%- endif %}\
+    {% endfor %}
+{% endif %}\
 {% for group, commits in commits | unique(attribute="message") | group_by(attribute="group") %}
     ### {{ group | striptags | trim | upper_first }}
     {% for commit in commits %}

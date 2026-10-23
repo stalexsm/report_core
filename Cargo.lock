@@ -105,7 +105,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "core_pyo3"
-version = "0.12.3"
+version = "0.13.0"
 dependencies = [
  "ahash",
  "chrono",
@@ -119,7 +119,7 @@ dependencies = [
 
 [[package]]
 name = "core_rs"
-version = "0.12.3"
+version = "0.13.0"
 dependencies = [
  "ahash",
  "chrono",

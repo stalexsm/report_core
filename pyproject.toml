@@ -1,6 +1,6 @@
 [project]
 name = "report_core_dev"
-version = "0.12.3"
+version = "0.13.0"
 description = "report-core-root"
 readme = "README.md"
 requires-python = ">=3.12"
