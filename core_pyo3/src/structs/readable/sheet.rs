@@ -12,15 +12,56 @@ use core_rs::{
 };
 use parking_lot::RwLock;
 use pyo3::{
+    exceptions::PyValueError,
     prelude::*,
     types::{PyDict, PyList, PyString},
 };
 
 use super::cell::WrapperCell;
-use crate::py_extract;
+use crate::{PyValue, py_extract};
 
 /// Вспомогптельная функция для преобразования cells в rust тип
 type CellMap = HashMap<(u32, u16), Arc<RwLock<Cell>>>;
+
+/// Длина списка координат одного объединённого диапазона:
+/// `[start_row, end_row, start_col, end_col]`.
+const MERGE_RANGE_LEN: usize = 4;
+
+/// Строгий разбор `merge_cells`: список 4-элементных списков или `None`
+/// (нет объединений). Плоские и короткие списки — `ValueError`, а не
+/// «диапазоны» с мусорными координатами.
+fn extract_merge_cells(value: &PyValue) -> PyResult<Vec<Range>> {
+    const MSG: &str =
+        "merge_cells: expected a list of [start_row, end_row, start_col, end_col] lists";
+
+    let ranges = match value {
+        PyValue::None => Vec::new(),
+        PyValue::List(items) => items
+            .iter()
+            .map(|item| match item {
+                PyValue::List(parts) if parts.len() == MERGE_RANGE_LEN => {
+                    let start_row = parts[0].as_u32()?;
+                    let end_row = parts[1].as_u32()?;
+                    let start_col = parts[2].as_u16()?;
+                    let end_col = parts[3].as_u16()?;
+                    Ok(Range::new(start_row, end_row, start_col, end_col))
+                }
+                _ => Err(PyValueError::new_err(format!(
+                    "{MSG}, got: {}",
+                    item.py_repr()
+                ))),
+            })
+            .collect::<PyResult<Vec<_>>>()?,
+        _ => {
+            return Err(PyValueError::new_err(format!(
+                "{MSG}, got: {}",
+                value.py_repr()
+            )));
+        }
+    };
+
+    Ok(ranges)
+}
 
 fn extract_cells(obj: &Bound<'_, PyAny>) -> PyResult<CellMap> {
     let cells_attr = if obj.is_instance_of::<PyDict>() {
@@ -53,11 +94,7 @@ impl TryFrom<&Bound<'_, PyAny>> for WrapperSheet {
     fn try_from(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
         let name = py_extract!(obj, name)?.as_string_direct();
         let sheet_state = py_extract!(obj, sheet_state)?.as_string_direct();
-        let merge_cells = py_extract!(obj, merge_cells)?
-            .as_u32_vec_array::<4>()
-            .into_iter()
-            .map(|v| Range::new(v[0], v[1], v[2] as u16, v[3] as u16))
-            .collect();
+        let merge_cells = extract_merge_cells(&py_extract!(obj, merge_cells)?)?;
 
         let map = extract_cells(obj)?;
 

@@ -22,8 +22,8 @@ impl TryFrom<&Bound<'_, PyAny>> for WrapperCell {
     type Error = PyErr;
 
     fn try_from(obj: &Bound<'_, PyAny>) -> Result<Self, Self::Error> {
-        let row = py_extract!(obj, row)?.as_u32();
-        let column = py_extract!(obj, column)?.as_u16();
+        let row = py_extract!(obj, row)?.as_u32()?;
+        let column = py_extract!(obj, column)?.as_u16()?;
         let value = py_extract!(obj, value)?.as_string();
         let formula = py_extract!(obj, formula)?.as_string();
         let data_type = py_extract!(obj, data_type)?.as_string_direct();
