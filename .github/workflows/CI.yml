@@ -51,7 +51,7 @@ jobs:
             target: ppc64le
     steps:
       # v6
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       # v6
@@ -92,7 +92,7 @@ jobs:
             target: armv7
     steps:
       # v6
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       # v6
@@ -135,7 +135,7 @@ jobs:
           #   python_arch: arm64
     steps:
       # v6
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       # v6
@@ -178,7 +178,7 @@ jobs:
             target: aarch64
     steps:
       # v6
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       # v6
@@ -214,7 +214,7 @@ jobs:
     timeout-minutes: 10
     steps:
       # v6
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
 
@@ -251,7 +251,7 @@ jobs:
       attestations: write
     steps:
       # v6 — checkout нужен ради CHANGELOG.md (источник описания релиза)
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
 
