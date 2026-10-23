@@ -149,7 +149,8 @@ impl WrapperFinder {
         }
     }
 
-    /// Поиск листа по регулярному выражению
+    /// Поиск листа по регулярному выражению (без учёта регистра — как клеточные
+    /// find_*_by_regex)
     /// ---
     ///
     /// Arguments:
@@ -160,11 +161,17 @@ impl WrapperFinder {
     /// Returns:
     /// ---
     ///     ReadableSheet | None
+    ///
+    /// Raises:
+    /// ---
+    ///     ValueError
+    ///         Если pattern — невалидное регулярное выражение (например, "(")
     pub fn find_sheet_by_regex(&self, pattern: String) -> PyResult<Option<WrapperSheet>> {
-        if let Some(sheet) = self.0.read().find_sheet_by_regex(&pattern) {
-            Ok(Some(WrapperSheet(Arc::clone(sheet))))
-        } else {
-            Ok(None)
-        }
+        let slf = self.0.read();
+        let sheet = slf
+            .find_sheet_by_regex(&pattern)
+            .map_err(crate::user_value_error)?;
+
+        Ok(sheet.map(|s| WrapperSheet(Arc::clone(s))))
     }
 }
