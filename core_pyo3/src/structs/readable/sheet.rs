@@ -20,7 +20,7 @@ use pyo3::{
 use super::cell::WrapperCell;
 use crate::{PyValue, py_extract};
 
-/// Вспомогптельная функция для преобразования cells в rust тип
+/// Вспомогательная функция для преобразования cells в rust тип
 type CellMap = HashMap<(u32, u16), Arc<RwLock<Cell>>>;
 
 /// Длина списка координат одного объединённого диапазона:
@@ -92,8 +92,8 @@ impl TryFrom<&Bound<'_, PyAny>> for WrapperSheet {
     type Error = PyErr;
 
     fn try_from(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
-        let name = py_extract!(obj, name)?.as_string_direct();
-        let sheet_state = py_extract!(obj, sheet_state)?.as_string_direct();
+        let name = py_extract!(obj, name)?.as_string_or_empty();
+        let sheet_state = py_extract!(obj, sheet_state)?.as_string_or_empty();
         let merge_cells = extract_merge_cells(&py_extract!(obj, merge_cells)?)?;
 
         let map = extract_cells(obj)?;

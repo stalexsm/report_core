@@ -1,7 +1,7 @@
 use pyo3::{
-    exceptions::PyValueError,
+    exceptions::{PyAttributeError, PyKeyError, PyValueError},
     prelude::*,
-    types::{PyBool, PyFloat, PyInt, PyList, PyString},
+    types::{PyBool, PyDict, PyFloat, PyInt, PyList, PyString, PyTuple},
 };
 
 // Универсальный enum для всех Python типов
@@ -24,7 +24,7 @@ impl PyValue {
             PyValue::Float(f) => Some(f.to_string()),
             PyValue::Bool(b) => Some(b.to_string()),
             PyValue::List(list) => {
-                let strings: Vec<String> = list.iter().map(|v| v.as_string_direct()).collect();
+                let strings: Vec<String> = list.iter().map(|v| v.as_string_or_empty()).collect();
                 Some(format!("[{}]", strings.join(", ")))
             }
             PyValue::None => None,
@@ -98,14 +98,16 @@ impl PyValue {
         }
     }
 
-    pub fn as_string_direct(&self) -> String {
+    /// Строгое преобразование в `String`: `None` → пустая строка — для
+    /// обязательных строковых полей, где пустота безопасна.
+    pub fn as_string_or_empty(&self) -> String {
         match self {
             PyValue::String(s) => s.to_string(),
             PyValue::Int(i) => i.to_string(),
             PyValue::Float(f) => f.to_string(),
             PyValue::Bool(b) => b.to_string(),
             PyValue::List(list) => {
-                let strings: Vec<String> = list.iter().map(|v| v.as_string_direct()).collect();
+                let strings: Vec<String> = list.iter().map(|v| v.as_string_or_empty()).collect();
                 format!("[{}]", strings.join(", "))
             }
             PyValue::None => String::new(),
@@ -144,11 +146,13 @@ pub(crate) fn extract_py_value_auto(py_value: &Bound<'_, PyAny>) -> PyResult<PyV
         Ok(PyValue::Float(py_value.extract::<f64>()?))
     } else if py_value.is_instance_of::<PyString>() {
         Ok(PyValue::String(py_value.extract::<String>()?))
-    } else if py_value.is_instance_of::<PyList>() {
-        let py_list = py_value.cast::<PyList>()?;
+    } else if py_value.is_instance_of::<PyList>() || py_value.is_instance_of::<PyTuple>() {
+        // Кортежи обрабатываем как списки: публичный API библиотеки возвращает
+        // list[tuple] (например, Sheet.merge_cells), и readable-слой обязан
+        // читать собственные типы, а не только duck-typed объекты.
         let mut values = Vec::new();
-        for item in py_list.iter() {
-            values.push(extract_py_value_auto(&item)?);
+        for item in py_value.try_iter()? {
+            values.push(extract_py_value_auto(&item?)?);
         }
         Ok(PyValue::List(values))
     } else {
@@ -158,17 +162,46 @@ pub(crate) fn extract_py_value_auto(py_value: &Bound<'_, PyAny>) -> PyResult<PyV
 }
 
 // Один универсальный макрос для извлечения любого атрибута
+//
+// Цепочка имён через `|` — фолбэки: берётся первый существующий атрибут
+// (для readable-типов имена идут от duck-typed объектов к собственным,
+// например `style_id | style`).
 #[macro_export]
 macro_rules! py_extract {
-    ($obj:expr, $attr:ident) => {{
-        (|| -> PyResult<$crate::PyValue> {
-            let py_value = if $obj.is_instance_of::<PyDict>() {
-                $obj.get_item(stringify!($attr))?
-            } else {
-                $obj.getattr(stringify!($attr))?
-            };
+    ($obj:expr, $attr:ident $(| $fallback:ident)*) => {
+        $crate::extract_py_attr_chain(
+            &$obj,
+            &[stringify!($attr) $(, stringify!($fallback))*],
+        )
+    };
+}
 
-            $crate::extract_py_value_auto(&py_value)
-        })()
-    }};
+/// Извлечение атрибута по цепочке имён: первый найденный побеждает. Для dict
+/// отсутствие имени — это `KeyError`, для объекта — `AttributeError`; любой
+/// другой переход к следующему имени не считается и отдаётся как есть.
+pub(crate) fn extract_py_attr_chain(obj: &Bound<'_, PyAny>, attrs: &[&str]) -> PyResult<PyValue> {
+    let is_dict = obj.is_instance_of::<PyDict>();
+
+    for (idx, attr) in attrs.iter().enumerate() {
+        let last = idx + 1 == attrs.len();
+
+        let value = if is_dict {
+            obj.get_item(*attr)
+        } else {
+            obj.getattr(*attr)
+        };
+
+        match value {
+            Ok(value) => return extract_py_value_auto(&value),
+            Err(err)
+                if !last && (is_dict && err.is_instance_of::<PyKeyError>(obj.py()))
+                    || (!is_dict && err.is_instance_of::<PyAttributeError>(obj.py())) =>
+            {
+                continue;
+            }
+            Err(err) => return Err(err),
+        }
+    }
+
+    unreachable!("attrs не пуст: макрос гарантирует хотя бы одно имя")
 }

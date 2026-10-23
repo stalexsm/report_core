@@ -5,10 +5,7 @@ use core_rs::{
     traits::ReadableCell,
 };
 use parking_lot::RwLock;
-use pyo3::{
-    prelude::*,
-    types::{PyDict, PyString},
-};
+use pyo3::{prelude::*, types::PyString};
 
 use crate::py_extract;
 
@@ -26,8 +23,10 @@ impl TryFrom<&Bound<'_, PyAny>> for WrapperCell {
         let column = py_extract!(obj, column)?.as_u16()?;
         let value = py_extract!(obj, value)?.as_string();
         let formula = py_extract!(obj, formula)?.as_string();
-        let data_type = py_extract!(obj, data_type)?.as_string_direct();
-        let style_id = py_extract!(obj, style_id)?.as_string();
+        let data_type = py_extract!(obj, data_type)?.as_string_or_empty();
+        // Собственная Cell библиотеки отдаёт стиль через `style`,
+        // duck-typed объекты — через `style_id`.
+        let style_id = py_extract!(obj, style_id | style)?.as_string();
 
         let cell = Cell::extract(
             Coordinate::new(row, column),
