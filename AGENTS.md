@@ -3,6 +3,24 @@
 report_core — Rust-ядро + PyO3-биндинги Python-библиотеки
 для построения XLSX-отчётов.
 
+### Git workflow
+
+Работа всегда в новой ветке через PR (в `main` напрямую не коммитим); коммиты и заголовки PR — Conventional Commits с русским описанием; gates перед коммитом, PR и релизом; CHANGELOG генерирует git-cliff, вручную не редактировать. See `docs/agents/git-workflow.md`.
+
+### Code style
+
+Комментарии, docstring и коммиты — на русском; в комментариях и докстрингах кода нет ссылок на issues (они живут в коммитах и докстрингах тестов); числа в бизнес-логике — только именованные константы. See `docs/agents/code-style.md`.
+
+### Python-стабы (experimental-inspect)
+
+`.pyi`-стабы пакета генерируются из Rust-кода (pyo3 `experimental-inspect` + `pyo3-introspection`), руками их не редактировать. Публичная документация методов живёт в Rust `///` — именно оттуда она попадает в стабы. После доработок публичного API — перед коммитом и гейтами — регенерируй стабы и коммить их вместе с изменениями:
+
+```bash
+./scripts/generate-stubs.sh
+```
+
+See `docs/agents/git-workflow.md` (гейт «Стабы») и `docs/research/pyo3-experimental-inspect.md` (как это устроено).
+
 ## Agent skills
 
 ### Issue tracker
@@ -16,21 +34,3 @@ report_core — Rust-ядро + PyO3-биндинги Python-библиотек�
 ### Domain docs
 
 Single-context: один `GLOSSARY.md` + `docs/adr/` в корне. See `docs/agents/domain.md`.
-
-### Git workflow
-
-Работа всегда в новой ветке через PR (в `main` напрямую не коммитим); коммиты и заголовки PR — Conventional Commits с русским описанием; gates перед коммитом, PR и релизом; CHANGELOG генерирует git-cliff, вручную не редактировать. See `docs/agents/git-workflow.md`.
-
-### Code style
-
-Комментарии, docstring и коммиты — на русском; числа в бизнес-логике — только именованные константы. See `docs/agents/code-style.md`.
-
-### Python-стабы (experimental-inspect)
-
-`.pyi`-стабы пакета генерируются из Rust-кода (pyo3 `experimental-inspect` + `pyo3-introspection`), руками их не редактировать. Публичная документация методов живёт в Rust `///` — именно оттуда она попадает в стабы. После доработок публичного API — перед коммитом и гейтами — регенерируй стабы и коммить их вместе с изменениями:
-
-```bash
-./scripts/generate-stubs.sh
-```
-
-See `docs/agents/git-workflow.md` (гейт «Стабы») и `docs/research/pyo3-experimental-inspect.md` (как это устроено).
