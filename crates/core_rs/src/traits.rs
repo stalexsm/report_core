@@ -53,8 +53,6 @@ pub trait WriteableCell {
 }
 
 pub trait ReadableSheet {
-    type Cell: ReadableCell + Clone + Send; // добавляем дополнительные
-
     fn get_name(&self) -> String;
     fn get_sheet_state(&self) -> String;
 

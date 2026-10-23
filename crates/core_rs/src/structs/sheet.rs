@@ -130,8 +130,6 @@ impl Sheet {
 }
 
 impl ReadableSheet for Sheet {
-    type Cell = Cell;
-
     #[inline]
     fn get_name(&self) -> String {
         self.name.to_string()
